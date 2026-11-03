@@ -462,7 +462,7 @@ Port the simulated people from router-demo.html (Rekha, Arjun, Farhan) into `tes
 
 ## 7. Screens
 
-The app sits in a centred, rounded frame (up to 1120 × 860) rather than filling the screen; calibration and the gaze dot still use the whole screen. Undo strip on top (80 px), hidden during setup. Sidebar on the left (Chats, Settings, well apart), hidden in Compose. Buttons at least 120 px tall with 24 px gaps (36 px between keyboard keys). The draft field and Send share their row 3 to 1. The keyboard takes all the height left over. Controls stay in the same place on every screen.
+The app is designed as a 1120 × 860 frame and scaled as one piece to fill the screen height with the same aspect ratio, centred with a 16 px margin; calibration and the gaze dot still use the whole screen. Undo strip on top (80 px), hidden during setup. Sidebar on the left (Chats, Settings, well apart), hidden in Compose. Buttons at least 120 px tall with 24 px gaps (36 px between keyboard keys). The draft field and Send share their row 3 to 1. The keyboard takes all the height left over. Controls stay in the same place on every screen.
 
 | Screen | What is on it | Tiers |
 |---|---|---|

@@ -41,8 +41,10 @@ h3 { font-size: 20px; margin: 22px 0 10px; color: var(--muted); font-weight: 600
 svg { display: block; }
 
 /* ---------- layout ---------- */
-/* The app sits in a centred, rounded frame instead of filling the screen. */
-#app { position: fixed; inset: 0; margin: auto; width: min(1120px, calc(100vw - 64px)); height: min(860px, calc(100vh - 48px));
+/* The app is designed at 1120 x 860 and scaled as one piece (view.js sets --s) so it fills
+   the screen height and keeps its shape. Gaze targets are measured after scaling. */
+#app { position: fixed; left: 50%; top: 50%; width: 1120px; height: 860px;
+  transform: translate(-50%, -50%) scale(var(--s, 1)); transform-origin: center;
   border: 1px solid var(--line-strong); border-radius: 28px; overflow: hidden; background: var(--screen); }
 #strip { position: absolute; inset: 0 0 auto 0; height: 80px; overflow: hidden; background: var(--soft); border-bottom: 1px solid var(--line);
   display: flex; align-items: stretch; z-index: 5; }
@@ -62,7 +64,8 @@ body.setup #strip { display: none; }
 body.setup #layout { inset: 0; }
 #side { width: 170px; padding: var(--gap); display: flex; flex-direction: column; justify-content: center; gap: 72px; border-right: 1px solid var(--line); }
 #side:empty { display: none; }
-#side .t { min-height: 120px; width: 100%; padding: 14px 10px; }
+#side .t { min-height: 120px; width: 100%; padding: 14px 8px; font-size: 20px; }
+#side .t .lb { flex-direction: column; gap: 8px; }
 #main { flex: 1; padding: var(--gap); display: flex; flex-direction: column; gap: var(--gap); min-width: 0; }
 .row { display: flex; gap: var(--gap); align-items: stretch; }
 .row > .t { flex: 1; }

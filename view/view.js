@@ -434,8 +434,18 @@ $("#start").addEventListener("click", () => {
   setTimeout(() => { hello(); reportTargets(); }, 400);
 });
 
+// Scale the 1120 x 860 frame to fill the screen height (or width, if that runs out first),
+// keeping a 16 px margin and the same aspect ratio.
+const FRAME = { w: 1120, h: 860, margin: 16 };
+function fit() {
+  const s = Math.min((innerWidth - 2 * FRAME.margin) / FRAME.w, (innerHeight - 2 * FRAME.margin) / FRAME.h);
+  document.documentElement.style.setProperty("--s", Math.max(0.5, s).toFixed(4));
+}
+fit();
+
 let resizeTimer = null;
 addEventListener("resize", () => {
+  fit();
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => { hello(); reportTargets(); }, 200);
 });
