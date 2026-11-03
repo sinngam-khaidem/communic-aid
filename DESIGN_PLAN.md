@@ -468,7 +468,7 @@ The app is designed as a 1120 × 860 frame and scaled as one piece to fill the s
 |---|---|---|
 | **1. Landing** (first time only) | a) Calibration, 9 dots. b) About you: age, disability, apps used (all optional, picked by dwell). c) Signal check (3.7) and sound preview. d) Continue. | 0 |
 | **2. Chat list** | One large row per chat (Priya, Project group, Dr. Mehta). Up and down arrows if more. | Open chat 0 |
-| **3. Chat thread** | Top: Back, name, **Call**. Middle: messages (not targets), the latest three with a small **More** button. Scroll up and down in a right sidebar, always in the same place (faint, and not a target, when there is nothing to scroll). Bottom: draft field (opens Compose), **Send**. | Back 0, More 0, Call 3, Send 2 |
+| **3. Chat thread** | Top: Back, name, **Call**. Middle: the latest 4 messages (not targets), the latest three with a small **More** button inside the bubble. Scroll up and down in a right sidebar, always in the same place (faint, and not a target, when there is nothing to scroll). Bottom: draft field (opens Compose), **Send**. | Back 0, More 0, Call 3, Send 2 |
 | **4. Compose** | Top: Close keyboard, draft, **Send**. Suggestions row: quick replies when the draft is empty ("I am fine", "Call later", "Hi", "Ok", "Thanks"), word predictions once typing starts. Keyboard. Backspace and Space. | Close 0, keys 1, Send 2 |
 | **5. Message actions** | Close nearest to the message. React, Forward, **Delete** furthest from Close. | Close 0, React 2, Forward 3, Delete 3 |
 | **6. Call** | "Calling Priya", ringing tone, then a timer after 3 s. Mute, **End call**. | Mute 1, End 2 |
@@ -513,7 +513,7 @@ Dark theme taken from router-demo.html. Dark is the only theme.
 
 **Colour only where it means something.** Outline colour shows the tier. Blue fill shows dwell. Pink dot shows gaze. Green means accepted. Teal means undo.
 
-**Type.** Atkinson Hyperlegible Next (made for low vision readers). Messages and button labels 22 px, headers 28 px, weight 600 on buttons.
+**Type.** Atkinson Hyperlegible Next (made for low vision readers). Only three sizes: 18 px for notes and small labels, 22 px for messages and buttons, 28 px for titles. Weight 600 on buttons.
 
 **Buttons.** 10 px corners, 2 px outline in the tier colour. Signal icons: closed eye (blink and hold), raised eyebrows, speech bubble with "yes", round switch. Reuse the demo's SVG icons for all four.
 

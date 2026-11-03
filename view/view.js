@@ -141,10 +141,10 @@ const chatOf = (id) => state.chats.find((c) => c.id === id);
 const initial = (name) => esc(name.replace(/^Dr\.\s*/, "")[0]);
 const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
-// The thread shows 5 messages at a time; scrolling moves this window.
+// The thread shows 4 messages at a time; scrolling moves this window.
 function threadWindow(c) {
   const end = Math.max(0, c.messages.length - state.scroll);
-  const start = Math.max(0, end - 5);
+  const start = Math.max(0, end - 4);
   return { shown: c.messages.slice(start, end), canUp: start > 0, canDown: state.scroll > 0 };
 }
 
@@ -198,8 +198,8 @@ const SCREENS = {
     const c = chatOf(state.chat_id);
     const { shown } = threadWindow(c);
     const msgs = shown.map((m, i) => `<div class="msg ${m.from === "me" ? "me" : ""}">
-        <div class="bubble">${m.forwarded ? '<span class="fw">Forwarded</span>' : ""}${esc(m.text)}${m.reaction ? `<span class="re">${esc(m.reaction)}</span>` : ""}</div>
-        ${i >= shown.length - 3 ? B(`more:${m.id}`, "More", { cls: "more" }) : ""}</div>`).join("");
+        <div class="bubble"><span class="txt">${m.forwarded ? '<span class="fw">Forwarded</span>' : ""}${esc(m.text)}${m.reaction ? `<span class="re">${esc(m.reaction)}</span>` : ""}</span>
+        ${i >= shown.length - 3 ? B(`more:${m.id}`, "More", { cls: "more" }) : ""}</div></div>`).join("");
     const draft = state.draft ? esc(state.draft) : '<span class="ph">Write a message</span>';
     return `<div class="head">${B("back", "Back", { icon: "back" })}<div class="who"><span class="av">${initial(c.name)}</span>${esc(c.name)}</div>${B("call", "Call", { icon: "phone" })}</div>
       <div class="thread"><div class="msgs">${msgs}</div></div>
@@ -249,7 +249,7 @@ const SCREENS = {
   settings() {
     const st = state.settings;
     const toggles = SIGNALS.map((k) => B(`toggle:${k}`, null, { cls: `short ${st.enabled[k] ? "on" : "off"}`,
-      html: `<span>${esc(NAMES[k])}<span class="sub">${st.enabled[k] ? "On" : "Off"}</span>${state.can_do[k] ? "" : '<span class="cant">not found in signal check</span>'}</span>` })).join("");
+      html: `<span>${esc(NAMES[k])}<span class="sub">${st.enabled[k] ? "On" : "Off"}</span>${state.can_do[k] ? "" : '<span class="cant">not found</span>'}</span>` })).join("");
     const prefer = SIGNALS.filter((k) => st.enabled[k]).map((k) => B(`prefer:${k}`, NAMES[k], { cls: `short ${st.preferred === k ? "on" : ""}` })).join("");
     return `<h2>Settings</h2><div class="settings">
       <div class="label">Signals</div><div class="row">${toggles}</div>
