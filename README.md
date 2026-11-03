@@ -1,12 +1,11 @@
 # Communic-aid
 
-A gaze and multimodal chat prototype for people with motor impairments. People look at buttons
+A gaze and multimodal chat interface for people with motor impairments. People look at buttons
 to pick them. Risky actions ask for a second signal (blink and hold, raised eyebrows, saying
 "yes", or a switch). Two learners adapt the dwell time and the signal to each person.
 
-The design is in [DESIGN_PLAN.md](DESIGN_PLAN.md).
 
-## How it fits together
+## How it fits together?
 
 ![System architecture](figures/architecture.svg)
 
@@ -14,7 +13,7 @@ The design is in [DESIGN_PLAN.md](DESIGN_PLAN.md).
 The dashed arrow is the learning loop: Interaction reports what happened, Outcomes labels it,
 and Policy learns from it.*
 
-## Setup (once)
+## Setup.
 
 ```bash
 ./setup.sh
@@ -23,7 +22,7 @@ and Policy learns from it.*
 It creates `.venv` (with [uv](https://docs.astral.sh/uv/) if you have it, otherwise Python 3.11
 or newer) and installs the app. Add `--test` to run the tests afterwards. Running it again is safe.
 
-## Run without the phone (mouse test mode)
+## Run without the phone (Mouse Test Mode)
 
 ```bash
 .venv/bin/python -m communicaid --person P01 --source mouse
@@ -33,7 +32,7 @@ Open http://localhost:8080 and click to start. The mouse is your gaze. Hold **B*
 hold, hold **E** to raise eyebrows, press **Y** to say "yes", and **S** or Space for the switch.
 Esc goes home.
 
-## Run with the iPhone
+## Run with the iPhone.
 
 1. Build and install `ARKitGaze/ios` on an iPhone with Face ID (see `ARKitGaze/README.md`).
 2. Start the core:
