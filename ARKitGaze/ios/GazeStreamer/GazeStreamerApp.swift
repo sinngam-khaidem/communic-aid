@@ -23,13 +23,15 @@ final class Streamer: ObservableObject {
     init() {
         sensor.onFrame = { [sender] frame in sender.send(frame) }
         sensor.onAudio = { [speech] buffer in speech.append(buffer) }
+        sensor.onPreview = { [sender] jpeg in sender.sendPreview(jpeg) }
         speech.onYes = { [sender] in sender.sendYes() }
         speech.onStatus = { [weak self] text in DispatchQueue.main.async { self?.speechStatus = text } }
         sender.onError = { [weak self] text in self?.error = text }
     }
 
-    func start(host: String, port: UInt16, listen: Bool) {
+    func start(host: String, port: UInt16, listen: Bool, preview: Bool) {
         error = nil
+        sensor.previewEnabled = preview
         guard sender.open(host: host, port: port) else {
             error = "Invalid port."
             return

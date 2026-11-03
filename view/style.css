@@ -181,6 +181,13 @@ body.dim .t:not([data-action="undo"]):not([data-action="redo"]) { opacity: .35; 
   background: color-mix(in srgb, var(--gaze) 26%, transparent); pointer-events: none; z-index: 40; transition: opacity .3s, scale .3s; }
 #gaze::after { content: ""; position: absolute; left: 11px; top: 11px; width: 12px; height: 12px; border-radius: 50%; background: var(--gaze); }
 #gaze.small { scale: .55; opacity: .5; }
+#corner { position: fixed; top: 12px; right: 12px; z-index: 50; display: flex; align-items: flex-start; gap: 10px; pointer-events: none; }
+#facecam { width: 96px; height: 128px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line-strong); background: #000; opacity: .92; }
+#facecam img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#sig { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px; font-size: var(--fs-s); font-weight: 600;
+  background: color-mix(in srgb, var(--ok) 18%, var(--bg)); border: 1px solid var(--ok); color: var(--ok); animation: sigIn .25s ease-out; }
+#sig svg { width: 22px; height: 22px; }
+@keyframes sigIn { from { opacity: 0; transform: translateX(6px); } to { opacity: 1; transform: none; } }
 #calib { position: fixed; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; background: var(--gaze);
   z-index: 45; box-shadow: 0 0 0 12px color-mix(in srgb, var(--gaze) 25%, transparent); transition: left .4s, top .4s; }
 #start { position: fixed; inset: 0; z-index: 60; background: var(--bg); display: grid; place-items: center; text-align: center; cursor: pointer; }

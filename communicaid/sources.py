@@ -56,6 +56,8 @@ class ArkitSource(asyncio.DatagramProtocol):
             self.bus.emit("frame", {"frame": frame_from_packet(msg)})
         elif kind == "yes":
             self.bus.emit("yes", {"t": self.clock.now()})
+        elif kind == "preview":
+            self.bus.emit("preview", {"jpg": msg.get("jpg", "")})
 
 
 class BrowserSource:

@@ -22,6 +22,12 @@ private struct YesMessage: Encodable {
     let t: TimeInterval
 }
 
+private struct PreviewMessage: Encodable {
+    var type = "preview"
+    let t: TimeInterval
+    let jpg: String           // base64 JPEG, about 120 x 160
+}
+
 /// Sends messages to the Mac over UDP. Knows nothing about ARKit or speech.
 final class Sender {
     private var connection: NWConnection?
@@ -53,6 +59,10 @@ final class Sender {
 
     func sendYes() {
         transmit(YesMessage(t: ProcessInfo.processInfo.systemUptime))
+    }
+
+    func sendPreview(_ jpeg: Data) {
+        transmit(PreviewMessage(t: ProcessInfo.processInfo.systemUptime, jpg: jpeg.base64EncodedString()))
     }
 
     private func transmit<T: Encodable>(_ message: T) {

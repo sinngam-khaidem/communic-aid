@@ -312,6 +312,22 @@ function showDot(x, y) {
   d.style.top = `${y}px`;
 }
 
+// ---------- corner: face view and the signal just detected ----------
+
+let showFace = true;
+try { showFace = localStorage.getItem("showFace") !== "no"; } catch (_) { /* fine without storage */ }
+let sigTimer = null;
+function showSignal(kind) {
+  const s = $("#sig");
+  s.innerHTML = `${ICON[kind] || ""}<span>${esc(NAMES[kind] || kind)}</span>`;
+  s.hidden = false;
+  s.style.animation = "none";
+  void s.offsetWidth;
+  s.style.animation = "";
+  clearTimeout(sigTimer);
+  sigTimer = setTimeout(() => (s.hidden = true), 1600);
+}
+
 let noticeTimer = null;
 function notice(text) {
   const n = $("#notice");
@@ -412,6 +428,11 @@ const HANDLERS = {
     if (state && state.screen === "landing") render();
   },
   check_done() { showDot(null); checkPrompt = null; },
+  preview(m) {
+    $("#faceimg").src = `data:image/jpeg;base64,${m.jpg}`;
+    $("#facecam").hidden = !showFace;
+  },
+  signal(m) { showSignal(m.kind); },
   choice(m) { debug.choice = m; renderDebug(); },
   dwell_now(m) { debug.dwell[m.tier] = m.ms; debug.group = m.group; renderDebug(); },
   context(m) { debug.context = m; debug.group = m.group; renderDebug(); },
@@ -433,6 +454,12 @@ addEventListener("keydown", (e) => {
   if (e.target.closest && e.target.closest("#study")) return;
   if (e.key === "`") { $("#study").hidden = !$("#study").hidden; return; }
   if (e.key === "\\") { $("#debug").hidden = !$("#debug").hidden; renderDebug(); return; }
+  if (e.key === "f" || e.key === "F") {
+    showFace = !showFace;
+    try { localStorage.setItem("showFace", showFace ? "yes" : "no"); } catch (_) { /* fine */ }
+    $("#facecam").hidden = !showFace || !$("#faceimg").src;
+    return;
+  }
   if (e.repeat) return;
   if (e.key === " " || e.key === "Enter") e.preventDefault();
   send({ type: "key", key: e.key, down: true });

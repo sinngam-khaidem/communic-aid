@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		64A73E2D11440D61DCF32EE1 /* SpeechListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A6EE4AA8CDA77875B5745C /* SpeechListener.swift */; };
+		91D81C8A5D1A61F164C7F78C /* FacePreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FEFC68E79F1695120ECCBE /* FacePreview.swift */; };
 		C501E6829B9F73E320A2B042 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558A6A76EAAF539B1144AE97 /* ContentView.swift */; };
 		D0888C86961B2DAB4CF71869 /* GazeStreamerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06EAF606C26DAAC21E92C5EB /* GazeStreamerApp.swift */; };
 		DA88D42C772E5CC8927C51D1 /* Sender.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C2E229EF9845DD572EC587 /* Sender.swift */; };
@@ -21,6 +22,7 @@
 		558A6A76EAAF539B1144AE97 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		76A6EE4AA8CDA77875B5745C /* SpeechListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechListener.swift; sourceTree = "<group>"; };
 		92D920160726550F69D58847 /* FaceSensor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceSensor.swift; sourceTree = "<group>"; };
+		A9FEFC68E79F1695120ECCBE /* FacePreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FacePreview.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -28,6 +30,7 @@
 			isa = PBXGroup;
 			children = (
 				558A6A76EAAF539B1144AE97 /* ContentView.swift */,
+				A9FEFC68E79F1695120ECCBE /* FacePreview.swift */,
 				92D920160726550F69D58847 /* FaceSensor.swift */,
 				06EAF606C26DAAC21E92C5EB /* GazeStreamerApp.swift */,
 				32C2E229EF9845DD572EC587 /* Sender.swift */,
@@ -112,6 +115,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C501E6829B9F73E320A2B042 /* ContentView.swift in Sources */,
+				91D81C8A5D1A61F164C7F78C /* FacePreview.swift in Sources */,
 				E4BDF6CEA8F208D0B686BBF3 /* FaceSensor.swift in Sources */,
 				D0888C86961B2DAB4CF71869 /* GazeStreamerApp.swift in Sources */,
 				DA88D42C772E5CC8927C51D1 /* Sender.swift in Sources */,

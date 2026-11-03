@@ -23,6 +23,13 @@
   </div>
 
   <!-- Calibration dots and the gaze dot use the whole screen, not just the frame. -->
+  <!-- Top right corner: a tiny live view of the face from the phone (F hides it), and the
+       signal just detected. Never a gaze target. -->
+  <div id="corner">
+    <div id="sig" hidden></div>
+    <div id="facecam" hidden><img id="faceimg" alt=""></div>
+  </div>
+
   <div id="calib" hidden></div>
   <div id="gaze" hidden></div>
 
