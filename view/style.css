@@ -41,7 +41,10 @@ h3 { font-size: 20px; margin: 22px 0 10px; color: var(--muted); font-weight: 600
 svg { display: block; }
 
 /* ---------- layout ---------- */
-#strip { position: fixed; inset: 0 0 auto 0; height: 80px; overflow: hidden; background: var(--soft); border-bottom: 1px solid var(--line);
+/* The app sits in a centred, rounded frame instead of filling the screen. */
+#app { position: fixed; inset: 0; margin: auto; width: min(1120px, calc(100vw - 64px)); height: min(860px, calc(100vh - 48px));
+  border: 1px solid var(--line-strong); border-radius: 28px; overflow: hidden; background: var(--screen); }
+#strip { position: absolute; inset: 0 0 auto 0; height: 80px; overflow: hidden; background: var(--soft); border-bottom: 1px solid var(--line);
   display: flex; align-items: stretch; z-index: 5; }
 #strip .rest { flex: 1; display: grid; place-items: center; color: var(--none); opacity: .4; }
 #strip .rest svg, #strip .t svg { width: 30px; height: 30px; }
@@ -49,28 +52,32 @@ svg { display: block; }
   background: color-mix(in srgb, var(--save) 14%, var(--screen)); animation: undoIn 1.4s ease-out; }
 @keyframes undoIn { 0% { background: color-mix(in srgb, var(--save) 45%, var(--screen)); } 100% { background: color-mix(in srgb, var(--save) 14%, var(--screen)); } }
 
-#banner { position: fixed; top: 92px; left: 50%; transform: translateX(-50%); z-index: 20; padding: 12px 22px;
+#banner { position: absolute; top: 92px; left: 50%; transform: translateX(-50%); z-index: 20; padding: 12px 22px;
   border-radius: 10px; background: color-mix(in srgb, var(--warn) 22%, var(--bg)); border: 1px solid var(--warn); font-weight: 600; }
-#notice { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 20; padding: 12px 22px;
+#notice { position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 20; padding: 12px 22px;
   border-radius: 10px; background: var(--soft); border: 1px solid var(--line-strong); }
 
-#layout { position: fixed; inset: 80px 0 0 0; display: flex; }
+#layout { position: absolute; inset: 80px 0 0 0; display: flex; }
 body.setup #strip { display: none; }
 body.setup #layout { inset: 0; }
-#side { width: 190px; padding: var(--gap); display: flex; flex-direction: column; justify-content: center; gap: var(--gap); border-right: 1px solid var(--line); }
+#side { width: 170px; padding: var(--gap); display: flex; flex-direction: column; justify-content: center; gap: 72px; border-right: 1px solid var(--line); }
 #side:empty { display: none; }
-#side .t { min-height: 120px; min-width: 0; width: 100%; padding: 14px 10px; }
+#side .t { min-height: 120px; width: 100%; padding: 14px 10px; }
 #main { flex: 1; padding: var(--gap); display: flex; flex-direction: column; gap: var(--gap); min-width: 0; }
 .row { display: flex; gap: var(--gap); align-items: stretch; }
 .row > .t { flex: 1; }
+.row > .w1 { flex: 1; }
+.row > .w2 { flex: 2; }
+.row > .w3 { flex: 3; }
 .grow { flex: 1; min-height: 0; }
 .head { display: flex; gap: var(--gap); align-items: center; }
+.head .t { min-width: 180px; }
 .head .who { flex: 1; display: flex; align-items: center; gap: 16px; font-size: 28px; font-weight: 600; }
 .av { width: 52px; height: 52px; border-radius: 50%; background: var(--soft); display: grid; place-items: center; font-weight: 700; flex-shrink: 0; }
 
 /* ---------- buttons (DESIGN_PLAN 8) ---------- */
 .t { --bc: var(--ink); position: relative; overflow: hidden; isolation: isolate;
-  min-width: 200px; min-height: 120px; padding: 14px 22px; border: 2px solid var(--bc); border-radius: 10px;
+  min-width: 0; min-height: 120px; padding: 14px 22px; border: 2px solid var(--bc); border-radius: 10px;
   background: var(--screen); color: var(--ink); font: inherit; font-weight: 600;
   display: inline-flex; align-items: center; justify-content: center; gap: 12px; text-align: center;
   transition: opacity .3s; }
@@ -120,24 +127,26 @@ body.dim .t:not([data-action="undo"]):not([data-action="redo"]) { opacity: .35; 
 .msg .t { min-width: 130px; min-height: 72px; font-size: 18px; }
 .scrollcol { display: flex; flex-direction: column; gap: var(--gap); justify-content: center; }
 .scrollcol .t { min-width: 120px; }
-.draft { flex: 1; display: flex; align-items: center; padding: 0 22px; border: 1px solid var(--line-strong); border-radius: 10px; min-height: 100px; font-size: 26px; }
+.draft { display: flex; align-items: center; padding: 0 22px; border: 1px solid var(--line-strong); border-radius: 10px; min-height: 100px; font-size: 26px; }
 .draft .caret { display: inline-block; width: 2px; height: 30px; background: var(--ink); margin-left: 2px; animation: caret 1s step-end infinite; vertical-align: middle; }
 @keyframes caret { 50% { opacity: 0; } }
 .draft .ph { color: var(--muted); }
-.keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); }
+/* The keyboard takes all the height left over, so keys grow instead of leaving space unused. */
+.keys { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr; gap: 36px; }
 .keys.qwerty { grid-template-columns: repeat(10, 1fr); gap: var(--gap); }
-.keys.qwerty .t { min-width: 0; min-height: 96px; padding: 6px; }
-.keys .t { min-width: 0; font-size: 28px; letter-spacing: .05em; }
+.keys.qwerty .t { min-height: 0; padding: 6px; }
+.keys .t { min-height: 0; font-size: 30px; letter-spacing: .05em; }
 .keys.letters { grid-template-columns: repeat(5, 1fr); }
-.keys.letters .t { font-size: 40px; min-height: 150px; }
+.keys.letters .t { font-size: 44px; }
 .selected { padding: 20px 24px; border-radius: 14px; background: var(--soft); font-size: 26px; }
 .calltop { flex: 1; display: grid; place-items: center; text-align: center; }
 .calltop .big { font-size: 40px; font-weight: 700; }
 .calltop .av { width: 120px; height: 120px; font-size: 52px; margin: 0 auto 20px; }
 .prompt { flex: 1; display: grid; place-items: center; text-align: center; font-size: 36px; font-weight: 600; padding: 0 60px; }
 .opts { display: flex; flex-wrap: wrap; gap: var(--gap); }
-.opts .t { min-height: 88px; }
-.settings { display: grid; grid-template-columns: 220px 1fr; gap: var(--gap); align-items: center; }
+.opts .t { min-height: 88px; min-width: 150px; }
+.settings { display: grid; grid-template-columns: 150px 1fr; gap: var(--gap); align-items: center; }
+.settings .t { font-size: 19px; padding: 10px 12px; }
 .settings .label { color: var(--muted); }
 .cant { font-size: 15px; color: var(--risk); display: block; font-weight: 400; }
 

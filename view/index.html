@@ -11,16 +11,19 @@
 </head>
 <body>
   <!-- Undo strip: always in the same place. Only a button while there is something to undo. -->
-  <div id="strip"></div>
-  <div id="banner" hidden></div>
-  <div id="layout">
-    <nav id="side"></nav>
-    <main id="main"></main>
+  <div id="app">
+    <div id="strip"></div>
+    <div id="banner" hidden></div>
+    <div id="layout">
+      <nav id="side"></nav>
+      <main id="main"></main>
+    </div>
+    <div id="notice" hidden></div>
   </div>
 
+  <!-- Calibration dots and the gaze dot use the whole screen, not just the frame. -->
   <div id="calib" hidden></div>
   <div id="gaze" hidden></div>
-  <div id="notice" hidden></div>
 
   <div id="start">
     <div>

@@ -141,6 +141,9 @@ const chatOf = (id) => state.chats.find((c) => c.id === id);
 const initial = (name) => esc(name.replace(/^Dr\.\s*/, "")[0]);
 const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
+// Send takes a quarter of the draft row. With an empty draft the space stays, so nothing moves.
+const sendOrSpace = () => (state.draft.trim() ? B("send", "Send", { cls: "w1" }) : '<div class="w1"></div>');
+
 const SCREENS = {
   landing() {
     const s = state;
@@ -187,7 +190,7 @@ const SCREENS = {
     const draft = state.draft ? esc(state.draft) : '<span class="ph">Write a message</span>';
     return `<div class="head">${B("back", "Back", { icon: "back" })}<div class="who"><span class="av">${initial(c.name)}</span>${esc(c.name)}</div>${B("call", "Call", { icon: "phone" })}</div>
       <div class="thread"><div class="msgs">${msgs}</div><div class="scrollcol">${scroll}</div></div>
-      <div class="row">${B("compose", null, { html: `<span style="font-weight:400">${draft}</span>`, cls: "grow" })}${state.draft.trim() ? B("send", "Send") : '<div style="min-width:200px"></div>'}</div>`;
+      <div class="row">${B("compose", null, { html: `<span style="font-weight:400">${draft}</span>`, cls: "w3" })}${sendOrSpace()}</div>`;
   },
 
   compose() {
@@ -198,14 +201,14 @@ const SCREENS = {
     if (s.settings.keyboard === "qwerty") {
       keys = `<div class="keys qwerty">${"qwertyuiopasdfghjklzxcvbnm".split("").map((k) => B(`key:${k}`, k.toUpperCase())).join("")}</div>`;
     } else if (s.kb_group) {
-      keys = `<div class="keys letters">${s.kb_group.split("").map((k) => B(`key:${k}`, k.toUpperCase())).join("")}${B("groups", "Back", { icon: "back" })}</div>`;
+      keys = `<div class="keys letters" style="grid-template-columns: repeat(${s.kb_group.length + 1}, 1fr)">${s.kb_group.split("").map((k) => B(`key:${k}`, k.toUpperCase())).join("")}${B("groups", "Back", { icon: "back" })}</div>`;
     } else {
       keys = `<div class="keys">${s.kb_groups.map((g) => B(`group:${g}`, g.toUpperCase())).join("")}</div>`;
     }
-    return `<div class="row">${B("close_keyboard", "Close keyboard")}<div class="draft">${esc(s.draft)}<span class="caret"></span></div>${s.draft.trim() ? B("send", "Send") : '<div style="min-width:200px"></div>'}</div>
+    return `<div class="row"><div class="draft w3">${esc(s.draft)}<span class="caret"></span></div>${sendOrSpace()}</div>
       <div class="row" style="min-height:88px">${suggestions.join("")}</div>
       ${keys}
-      <div class="row">${B("backspace", "Backspace", { icon: "backspace" })}${B("space", "Space", { cls: "grow" })}</div>`;
+      <div class="row">${B("close_keyboard", "Close keyboard", { cls: "w1" })}${B("backspace", "Backspace", { icon: "backspace", cls: "w1" })}${B("space", "Space", { cls: "w2" })}</div>`;
   },
 
   actions() {
