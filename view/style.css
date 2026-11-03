@@ -170,6 +170,7 @@ body.dim .t:not([data-action="undo"]):not([data-action="redo"]) { opacity: .35; 
   padding: 18px 20px; font-size: 15px; cursor: auto; user-select: text; }
 #study { right: 16px; top: 96px; width: 320px; }
 #study h2 { font-size: 20px; }
+#stale { color: var(--warn); font-weight: 600; }
 #study h3 { font-size: 15px; margin-top: 14px; }
 #study label { display: flex; justify-content: space-between; align-items: center; margin: 6px 0; }
 #study input { width: 90px; font: inherit; background: var(--screen); color: var(--ink); border: 1px solid var(--line-strong); border-radius: 6px; padding: 4px 8px; }

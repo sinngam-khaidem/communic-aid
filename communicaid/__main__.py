@@ -10,7 +10,9 @@ from __future__ import annotations
 import argparse
 import asyncio
 import socket
+import sys
 import time
+from pathlib import Path
 
 import numpy as np
 
@@ -89,6 +91,13 @@ def build(args, bus: Bus, clock: Clock) -> dict:
             "browser": browser, "context": context, "outcomes": outcomes, "interaction": interaction}
 
 
+def changed_since(started: float, config_path) -> bool:
+    """True if any core file or the config was saved after the core started. Python reads them only once."""
+    files = list((ROOT / "communicaid").glob("*.py")) + [ROOT / "communicaid" / "chats.json"]
+    files.append(Path(config_path) if config_path else ROOT / "config.toml")
+    return any(f.exists() and f.stat().st_mtime > started for f in files)
+
+
 async def run(args) -> None:
     bus, clock = Bus(), Clock()
     app = build(args, bus, clock)
@@ -103,9 +112,16 @@ async def run(args) -> None:
         print(f"  phone: send to {local_ip()} port {args.udp_port or config['server']['udp_port']}")
     app["chat"].publish()
     period = 1 / config["server"]["tick_hz"]
+    started, warned, next_check = time.time(), False, 0.0
     try:
         while True:
             bus.emit("tick", {})
+            if not warned and time.time() >= next_check:
+                next_check = time.time() + 2
+                if changed_since(started, args.config):
+                    warned = True
+                    print("\n  Code or config.toml changed after start. Restart (Ctrl+C, run again) to use it.\n")
+                    bus.emit("stale", {"text": "Code or config changed. Restart the core to use it."})
             await asyncio.sleep(period)
     finally:
         if app["arkit"]:
@@ -115,6 +131,7 @@ async def run(args) -> None:
 
 
 def main() -> None:
+    sys.stdout.reconfigure(line_buffering=True)   # messages show up at once, even when not in a terminal
     ap = argparse.ArgumentParser(prog="communicaid", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--person", default="P00", help="participant ID, used for the data folder")
     ap.add_argument("--source", choices=("arkit", "mouse"), default="arkit")

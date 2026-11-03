@@ -399,6 +399,8 @@ const HANDLERS = {
   dwell_now(m) { debug.dwell[m.tier] = m.ms; debug.group = m.group; renderDebug(); },
   context(m) { debug.context = m; debug.group = m.group; renderDebug(); },
   config(m) { buildCosts(m.costs); },
+  // Researcher only: never shown on the participant's screen.
+  stale(m) { const s = $("#stale"); s.textContent = m.text; s.hidden = false; },
 };
 
 function connect() {
