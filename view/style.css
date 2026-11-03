@@ -63,7 +63,10 @@ svg { display: block; }
 body.setup #strip { display: none; }
 body.setup #layout { inset: 0; }
 #side { width: 170px; padding: var(--gap); display: flex; flex-direction: column; justify-content: center; gap: 72px; border-right: 1px solid var(--line); }
-#side:empty { display: none; }
+#side:empty, #rside:empty { display: none; }
+#rside { width: 130px; padding: var(--gap); display: flex; flex-direction: column; justify-content: center; gap: 72px; border-left: 1px solid var(--line); }
+#rside .t { min-height: 140px; width: 100%; padding: 8px; }
+.t.ghost { opacity: .25; --bc: var(--line-strong); color: var(--muted); }
 #side .t { min-height: 120px; width: 100%; padding: 14px 8px; font-size: 20px; }
 #side .t .lb { flex-direction: column; gap: 8px; }
 #main { flex: 1; padding: var(--gap); display: flex; flex-direction: column; gap: var(--gap); min-width: 0; }
@@ -127,9 +130,7 @@ body.dim .t:not([data-action="undo"]):not([data-action="redo"]) { opacity: .35; 
 .msg.me .bubble { background: color-mix(in srgb, var(--learn) 14%, var(--screen)); }
 .bubble .fw { display: block; font-size: 16px; color: var(--muted); }
 .bubble .re { margin-left: 10px; color: var(--risk); }
-.msg .t { min-width: 130px; min-height: 72px; font-size: 18px; }
-.scrollcol { display: flex; flex-direction: column; gap: var(--gap); justify-content: center; }
-.scrollcol .t { min-width: 120px; }
+.msg .t.more { min-width: 84px; min-height: 52px; padding: 6px 14px; font-size: 16px; font-weight: 600; border-radius: 8px; }
 .draft { display: flex; align-items: center; padding: 0 22px; border: 1px solid var(--line-strong); border-radius: 10px; min-height: 100px; font-size: 26px; }
 .draft .caret { display: inline-block; width: 2px; height: 30px; background: var(--ink); margin-left: 2px; animation: caret 1s step-end infinite; vertical-align: middle; }
 @keyframes caret { 50% { opacity: 0; } }

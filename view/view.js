@@ -141,6 +141,22 @@ const chatOf = (id) => state.chats.find((c) => c.id === id);
 const initial = (name) => esc(name.replace(/^Dr\.\s*/, "")[0]);
 const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
+// The thread shows 5 messages at a time; scrolling moves this window.
+function threadWindow(c) {
+  const end = Math.max(0, c.messages.length - state.scroll);
+  const start = Math.max(0, end - 5);
+  return { shown: c.messages.slice(start, end), canUp: start > 0, canDown: state.scroll > 0 };
+}
+
+// Right sidebar on the thread: scroll buttons in a fixed place. When there is nothing to
+// scroll, a faint outline keeps the place but is not a target.
+function scrollBar() {
+  if (state.screen !== "thread") return "";
+  const { canUp, canDown } = threadWindow(chatOf(state.chat_id));
+  const ghost = (icon) => `<div class="t ghost"><span class="lb">${ICON[icon]}</span></div>`;
+  return (canUp ? B("scroll_up", "", { icon: "up" }) : ghost("up")) + (canDown ? B("scroll_down", "", { icon: "down" }) : ghost("down"));
+}
+
 // Send takes a quarter of the draft row. With an empty draft the space stays, so nothing moves.
 const sendOrSpace = () => (state.draft.trim() ? B("send", "Send", { cls: "w1" }) : '<div class="w1"></div>');
 
@@ -180,16 +196,13 @@ const SCREENS = {
 
   thread() {
     const c = chatOf(state.chat_id);
-    const end = Math.max(0, c.messages.length - state.scroll);
-    const start = Math.max(0, end - 5);
-    const shown = c.messages.slice(start, end);
+    const { shown } = threadWindow(c);
     const msgs = shown.map((m, i) => `<div class="msg ${m.from === "me" ? "me" : ""}">
         <div class="bubble">${m.forwarded ? '<span class="fw">Forwarded</span>' : ""}${esc(m.text)}${m.reaction ? `<span class="re">${esc(m.reaction)}</span>` : ""}</div>
-        ${i >= shown.length - 3 ? B(`more:${m.id}`, "More") : ""}</div>`).join("");
-    const scroll = (start > 0 ? B("scroll_up", "", { icon: "up" }) : "") + (state.scroll > 0 ? B("scroll_down", "", { icon: "down" }) : "");
+        ${i >= shown.length - 3 ? B(`more:${m.id}`, "More", { cls: "more" }) : ""}</div>`).join("");
     const draft = state.draft ? esc(state.draft) : '<span class="ph">Write a message</span>';
     return `<div class="head">${B("back", "Back", { icon: "back" })}<div class="who"><span class="av">${initial(c.name)}</span>${esc(c.name)}</div>${B("call", "Call", { icon: "phone" })}</div>
-      <div class="thread"><div class="msgs">${msgs}</div><div class="scrollcol">${scroll}</div></div>
+      <div class="thread"><div class="msgs">${msgs}</div></div>
       <div class="row">${B("compose", null, { html: `<span style="font-weight:400">${draft}</span>`, cls: "w3" })}${sendOrSpace()}</div>`;
   },
 
@@ -261,6 +274,7 @@ function render() {
       B("nav_settings", "Settings", { icon: "settings", cls: state.screen === "settings" ? "on" : "" })
     : "";
   $("#main").innerHTML = (SCREENS[state.screen] || SCREENS.chats)();
+  $("#rside").innerHTML = scrollBar();
   reapplyButtons();
   reportTargets();
   ring(state.call && !state.call.connected);

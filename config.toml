@@ -32,12 +32,13 @@ come_back_signal_s = 3.0
 
 # Section 6.4: dwell learner (tiers 0 and 1 only).
 [dwell]
-start = 1000
+start = 1500            # a careful start; the learner shortens it as it learns the person
 min = 400
 max = 2000
 step = 25
-warmup_looks = 20
-smoothing = 0.2
+warmup_selections = 20  # selections (not glances) at the starting dwell before learning moves it
+smoothing = 0.2         # move 20% of the way towards the learner's pick, once per selection
+max_step = 150          # and never more than this many ms at once
 borrow_looks = 30
 high_tier = 1000        # fixed dwell before the signal step on tiers 2 and 3
 undo = 800              # undo strip, fixed, never learned

@@ -212,7 +212,7 @@ Checked every frame over the last 5 s.
 
 | Step | Value |
 |---|---|
-| Starting dwell | 1000 ms |
+| Starting dwell | 1500 ms (careful at first; the learner shortens it) |
 | Grace before draining | 150 ms |
 | Drain speed | twice the fill speed |
 | Waiting window | 4 s, the pulse fades as time runs out |
@@ -352,8 +352,8 @@ score(d) = π × [ (1 - G) × (1 - 0.6 × d_seconds)  -  0.5 × G ]
 
 **Keeping it calm.** A dwell that jumps on every look would feel random. So:
 
-- The first 20 looks in a group use 1000 ms. The learner still records them.
-- After that, move 20% of the way towards the chosen value each time: `dwell = dwell + 0.2 × (best - dwell)`.
+- The first 20 **selections** in a group use 1500 ms. Stray glances never count towards this, so the warm-up cannot end just because gaze wandered. The learner still records everything.
+- After that, the dwell changes only once per selection, never on a glance: move 20% of the way towards the chosen value, and at most 150 ms at a time: `dwell = dwell + clip(0.2 × (best - dwell), ±150)`.
 - Limits: 400 to 2000 ms.
 
 **Likely next letter (optional, from Report 2).** In Compose, letter groups holding the next letter of the top 3 predicted words get 0.8 times the dwell. Only use this if typing feels slow in the pilot.
@@ -423,9 +423,9 @@ The accident costs and the other reward values are **settings we expect to chang
 | Undo window | 5 s | Rarely |
 | Backspace window | 3 s | Rarely |
 | Come-back window | 2 s for looks, 3 s for signals | Rarely |
-| Warm-up | 20 looks per group at 1000 ms | Rarely |
+| Warm-up | 20 selections per group at 1500 ms | Rarely |
 | Borrowing | under 30 looks (dwell), under 20 tries (router) | Rarely |
-| Smoothing | 20% step | Rarely |
+| Smoothing | 20% step, at most 150 ms, once per selection | Rarely |
 | Dwell limits | 400 to 2000 ms | Rarely |
 
 **Where they live.** All in `config.toml` (section 9). The costs and reward values can also be edited from the study panel, so we can change them between pilot sessions without touching code.
@@ -468,7 +468,7 @@ The app is designed as a 1120 × 860 frame and scaled as one piece to fill the s
 |---|---|---|
 | **1. Landing** (first time only) | a) Calibration, 9 dots. b) About you: age, disability, apps used (all optional, picked by dwell). c) Signal check (3.7) and sound preview. d) Continue. | 0 |
 | **2. Chat list** | One large row per chat (Priya, Project group, Dr. Mehta). Up and down arrows if more. | Open chat 0 |
-| **3. Chat thread** | Top: Back, name, **Call**. Middle: messages (not targets), each with a small **More** button. Up and down scroll arrows. Bottom: draft field (opens Compose), **Send**. | Back 0, More 0, Call 3, Send 2 |
+| **3. Chat thread** | Top: Back, name, **Call**. Middle: messages (not targets), the latest three with a small **More** button. Scroll up and down in a right sidebar, always in the same place (faint, and not a target, when there is nothing to scroll). Bottom: draft field (opens Compose), **Send**. | Back 0, More 0, Call 3, Send 2 |
 | **4. Compose** | Top: Close keyboard, draft, **Send**. Suggestions row: quick replies when the draft is empty ("I am fine", "Call later", "Hi", "Ok", "Thanks"), word predictions once typing starts. Keyboard. Backspace and Space. | Close 0, keys 1, Send 2 |
 | **5. Message actions** | Close nearest to the message. React, Forward, **Delete** furthest from Close. | Close 0, React 2, Forward 3, Delete 3 |
 | **6. Call** | "Calling Priya", ringing tone, then a timer after 3 s. Mute, **End call**. | Mute 1, End 2 |

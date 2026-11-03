@@ -29,6 +29,7 @@ class DwellLearner:
         self.config, self.rng = config, rng
         self.obs = {g: np.zeros(6) for g in GROUPS}
         self.looks = {g: 0 for g in GROUPS}
+        self.selections = {g: 0 for g in GROUPS}
         self.current: dict[str, float] = {}
         self.last: dict = {}
 
@@ -46,12 +47,19 @@ class DwellLearner:
         return pi * ((1 - give_up) * worked + r["give_up"] * give_up) - (1 - pi) * accident * cost(self.config, tier)
 
     def dwell_for(self, tier: int, group: str) -> int:
+        """The dwell in use. It only changes after a selection (see _step), never on a glance."""
+        d = self.config["dwell"]
+        if self.selections[group] < d["warmup_selections"]:
+            return int(d["start"])
+        return int(round(self.current.get(f"{tier}|{group}", float(d["start"]))))
+
+    def _step(self, tier: int, group: str) -> None:
+        """After each selection: draw plausible habits, pick the best dwell, move a little towards it."""
         d = self.config["dwell"]
         key = f"{tier}|{group}"
-        if self.looks[group] < d["warmup_looks"]:
-            self.current.setdefault(key, float(d["start"]))
+        if self.selections[group] < d["warmup_selections"]:
             self.last = {"tier": tier, "group": group, "dwell": d["start"], "warmup": True}
-            return int(d["start"])
+            return
         intended, unintended, passed, stray, give_ups, waiting = self.numbers(group)
         # Thompson sampling: draw plausible habits, wider when there is little data.
         pi = self.rng.beta(intended, unintended)
@@ -60,11 +68,11 @@ class DwellLearner:
         grid = np.arange(d["min"], d["max"] + 1, d["step"], dtype=float)
         best = float(grid[np.argmax(self.score(grid, pi, g, p, tier))])
         cur = self.current.get(key, float(d["start"]))
-        cur = float(np.clip(cur + d["smoothing"] * (best - cur), d["min"], d["max"]))
+        step = float(np.clip(d["smoothing"] * (best - cur), -d["max_step"], d["max_step"]))
+        cur = float(np.clip(cur + step, d["min"], d["max"]))
         self.current[key] = cur
         self.last = {"tier": tier, "group": group, "dwell": round(cur), "best": best,
                      "stray_ms": round(g), "patience_ms": round(p), "intended": round(pi, 2)}
-        return int(round(cur))
 
     def learn(self, o: Outcome) -> None:
         n = self.obs[o.group]
@@ -79,13 +87,19 @@ class DwellLearner:
         else:
             return
         self.looks[o.group] += 1
+        if o.kind in ("worked", "accident"):
+            self.selections[o.group] += 1
+            for tier in (0, 1):
+                self._step(tier, o.group)
 
     def save(self) -> dict:
-        return {"obs": {g: v.tolist() for g, v in self.obs.items()}, "looks": self.looks, "current": self.current}
+        return {"obs": {g: v.tolist() for g, v in self.obs.items()}, "looks": self.looks,
+                "selections": self.selections, "current": self.current}
 
     def load(self, s: dict) -> None:
         self.obs = {g: np.array(s["obs"][g]) for g in GROUPS}
         self.looks = {g: int(s["looks"][g]) for g in GROUPS}
+        self.selections = {g: int(s.get("selections", {}).get(g, 0)) for g in GROUPS}
         self.current = dict(s.get("current", {}))
 
 

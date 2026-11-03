@@ -11,6 +11,24 @@ def test_warmup_uses_the_starting_dwell(config):
     assert policy.dwell_for(1, "rested+steady") == config["dwell"]["start"]
 
 
+def test_glances_alone_never_change_the_dwell(config):
+    policy = AdaptivePolicy(config, np.random.default_rng(0))
+    for _ in range(200):
+        policy.learn(Outcome("dwell", "passed_by", "key:a", 1, "rested+steady", dwell=1500, duration=150))
+    assert policy.dwell_for(1, "rested+steady") == config["dwell"]["start"]
+
+
+def test_dwell_moves_in_small_steps_after_warmup(config):
+    policy = AdaptivePolicy(config, np.random.default_rng(0))
+    seen = []
+    for _ in range(config["dwell"]["warmup_selections"] + 10):
+        policy.learn(Outcome("dwell", "worked", "key:a", 1, "rested+steady", dwell=policy.dwell_for(1, "rested+steady")))
+        seen.append(policy.dwell_for(1, "rested+steady"))
+    warm = config["dwell"]["warmup_selections"]
+    assert all(d == config["dwell"]["start"] for d in seen[:warm - 1])
+    assert max(abs(a - b) for a, b in zip(seen, seen[1:])) <= config["dwell"]["max_step"] + 1
+
+
 def test_dwell_is_longer_when_tired(config):
     rested = simulate_dwell(DWELL_PEOPLE["rested, steady gaze"], tier=1)[0]
     tired = simulate_dwell(DWELL_PEOPLE["tired"], tier=1)[0]
