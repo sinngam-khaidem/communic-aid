@@ -247,6 +247,8 @@ const SCREENS = {
 
 function render() {
   if (!state) return;
+  // During setup the whole screen belongs to the calibration and signal check dots.
+  document.body.classList.toggle("setup", state.screen === "landing");
   $("#strip").innerHTML = state.undo
     ? B(state.undo.mode, state.undo.mode === "undo" ? "Undo" : "Redo", { icon: state.undo.mode })
     : `<div class="rest">${ICON.undo}</div>`;

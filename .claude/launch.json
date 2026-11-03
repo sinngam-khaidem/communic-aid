@@ -6,6 +6,12 @@
       "runtimeExecutable": ".venv/bin/python",
       "runtimeArgs": ["-m", "communicaid", "--person", "DEMO", "--source", "mouse", "--port", "8080"],
       "port": 8080
+    },
+    {
+      "name": "communicaid-phone",
+      "runtimeExecutable": ".venv/bin/python",
+      "runtimeArgs": ["-m", "communicaid", "--person", "PHONETEST", "--port", "8080"],
+      "port": 8080
     }
   ]
 }
