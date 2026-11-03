@@ -47,6 +47,21 @@ Esc goes home.
 
 Fix the phone below the screen, front camera facing the person, 40 to 60 cm away.
 
+## Learning log
+
+The terminal shows what the learners are doing as it happens, one line per event:
+
+```
+00:19  CHOOSE   call             tier 3  tired+steady   -> say "yes"   scores: say "yes" +0.44   raise eyebrows -0.38   switch -0.82
+00:24  OUTCOME  call             tier 3  worked              reward +0.53   check: say "yes"
+00:24  ROUTER   tier 3  tired+steady   say "yes": worked 1, gave up 0, blocked an accident 0, accident 0
+00:34  OUTCOME  back             tier 0  worked              reward +0.10   dwell 1500 ms
+00:34  DWELL    tired+steady: warm-up 2 of 20 selections, staying at 1500 ms
+```
+
+Stray glances are counted and shown as one dim line. In a terminal the outcomes are coloured
+(green worked, yellow gave up, cyan blocked an accident, red accident). Add `--quiet` to turn it off.
+
 ## Study options
 
 | Option | Meaning |

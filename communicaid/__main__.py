@@ -18,6 +18,7 @@ import numpy as np
 
 from .chat import TIERS, Chat
 from .common import ROOT, SIGNALS, Bus, Clock, load_config
+from .console import Console
 from .context import Context
 from .gaze import Gaze
 from .interaction import Interaction
@@ -57,10 +58,17 @@ def build(args, bus: Bus, clock: Clock) -> dict:
     interaction = Interaction(bus, clock, config, policy, TIERS)
     outcomes = Outcomes(bus, clock, config, TIERS)
 
-    # Policy learns first, then its state is saved.
-    bus.on("outcome", lambda p: policy.learn(p["outcome"]))
-    if args.condition == "adaptive":
-        bus.on("outcome", lambda p: persist.save("learner", policy.save()))
+    console = None if args.quiet else Console(bus, clock)
+
+    # Policy learns first, then reports the reward and what changed, then its state is saved.
+    def learn(p: dict) -> None:
+        o = p["outcome"]
+        policy.learn(o)
+        bus.emit("learned", {"outcome": o, "reward": round(policy.reward(o), 3), "changes": policy.changes})
+        if args.condition == "adaptive":
+            persist.save("learner", policy.save())
+
+    bus.on("outcome", learn)
     chat = Chat(bus, clock, config)
 
     bus.on("settings", lambda p: (policy.set_preferred(p["preferred"]), persist.save("settings", p)))
@@ -88,7 +96,8 @@ def build(args, bus: Bus, clock: Clock) -> dict:
         "source": args.source, "costs": config["costs"]})
     arkit = ArkitSource(bus, clock, args.udp_port or config["server"]["udp_port"]) if args.source == "arkit" else None
     return {"config": config, "server": server, "arkit": arkit, "persist": persist, "chat": chat,
-            "browser": browser, "context": context, "outcomes": outcomes, "interaction": interaction}
+            "browser": browser, "context": context, "outcomes": outcomes, "interaction": interaction,
+            "console": console}
 
 
 def changed_since(started: float, config_path) -> bool:
@@ -110,6 +119,8 @@ async def run(args) -> None:
     print(f"  open  http://localhost:{port}  in full screen")
     if app["arkit"]:
         print(f"  phone: send to {local_ip()} port {args.udp_port or config['server']['udp_port']}")
+    if app["console"]:
+        app["console"].legend()
     app["chat"].publish()
     period = 1 / config["server"]["tick_hz"]
     started, warned, next_check = time.time(), False, 0.0
@@ -141,6 +152,7 @@ def main() -> None:
     ap.add_argument("--config", default=None, help="path to a config.toml")
     ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--raw", action="store_true", help="also log every raw frame")
+    ap.add_argument("--quiet", action="store_true", help="do not print the learning log in the terminal")
     args = ap.parse_args()
     try:
         asyncio.run(run(args))

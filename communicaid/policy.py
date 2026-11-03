@@ -16,6 +16,20 @@ GROUPS = ("rested+steady", "rested+shaky", "tired+steady", "tired+shaky")
 OUTCOMES = ("worked", "gave_up", "blocked", "accident")
 
 
+def reward(config: dict, o: Outcome, effort: float) -> float:
+    """The value of one outcome, as the learners score it (DESIGN_PLAN 6.4 to 6.6).
+
+    `effort` is how costly the signal was, used only when a signal confirmed the action.
+    A passed-by glance is worth 0: it teaches the learner, but nothing was gained or lost.
+    """
+    r, c = config["reward"], cost(config, o.tier)
+    if o.learner == "dwell":
+        return {"worked": 1 - r["time_penalty"] * o.dwell / 1000, "gave_up": r["give_up"],
+                "accident": -c, "passed_by": 0.0}.get(o.kind, 0.0)
+    worked = 1.0 if o.check == "dwell" else 1.0 - effort
+    return {"worked": worked, "gave_up": r["give_up"], "blocked": r["blocked"] * c, "accident": -c}.get(o.kind, 0.0)
+
+
 class DwellLearner:
     """Learns two habits per group: how long stray glances last, and how long the person waits.
 
@@ -32,6 +46,7 @@ class DwellLearner:
         self.selections = {g: 0 for g in GROUPS}
         self.current: dict[str, float] = {}
         self.last: dict = {}
+        self.changes: list[dict] = []     # what the last learn() changed, for the console
 
     def numbers(self, group: str) -> np.ndarray:
         d = self.config["dwell"]
@@ -60,6 +75,8 @@ class DwellLearner:
         key = f"{tier}|{group}"
         if self.selections[group] < d["warmup_selections"]:
             self.last = {"tier": tier, "group": group, "dwell": d["start"], "warmup": True}
+            self.changes.append({"tier": tier, "group": group, "warmup": self.selections[group],
+                                 "of": d["warmup_selections"], "dwell": d["start"]})
             return
         intended, unintended, passed, stray, give_ups, waiting = self.numbers(group)
         # Thompson sampling: draw plausible habits, wider when there is little data.
@@ -68,15 +85,17 @@ class DwellLearner:
         p = waiting / self.rng.gamma(give_ups)
         grid = np.arange(d["min"], d["max"] + 1, d["step"], dtype=float)
         best = float(grid[np.argmax(self.score(grid, pi, g, p, tier))])
-        cur = self.current.get(key, float(d["start"]))
+        cur = before = self.current.get(key, float(d["start"]))
         # Shorter only in small, slow steps; longer more readily, because accidents cost more than waiting.
         step = float(np.clip(d["smoothing"] * (best - cur), -d["max_step_down"], d["max_step_up"]))
         cur = float(np.clip(cur + step, d["min"], d["max"]))
         self.current[key] = cur
+        self.changes.append({"tier": tier, "group": group, "before": round(before), "after": round(cur), "best": round(best)})
         self.last = {"tier": tier, "group": group, "dwell": round(cur), "best": best,
                      "stray_ms": round(g), "patience_ms": round(p), "intended": round(pi, 2)}
 
     def learn(self, o: Outcome) -> None:
+        self.changes = []
         n = self.obs[o.group]
         if o.kind == "worked":
             n[0] += 1; n[5] += o.dwell
@@ -115,6 +134,7 @@ class Router:
         self.signal_time = {s: [float(config["reward"]["effort_start_s"]), 1] for s in SIGNALS}
         self.preferred = "blink"
         self.last: dict = {}
+        self.changes: list[dict] = []
 
     def prior(self, option: str) -> np.ndarray:
         if option == "dwell":
@@ -155,6 +175,8 @@ class Router:
             return
         key = f"{o.group}|{o.tier}|{o.check}"
         self.tally.setdefault(key, [0.0] * 4)[OUTCOMES.index(o.kind)] += 1
+        self.changes = [{"check": o.check, "tier": o.tier, "group": o.group,
+                         "tally": dict(zip(OUTCOMES, (int(x) for x in self.tally[key])))}]
         self.tries[f"{o.group}|{o.tier}"] = self.tries.get(f"{o.group}|{o.tier}", 0) + 1
         if o.kind == "worked" and o.check in self.signal_time and o.signal_time > 0:
             self.signal_time[o.check][0] += o.signal_time
@@ -189,7 +211,17 @@ class AdaptivePolicy:
         return check
 
     def learn(self, o: Outcome) -> None:
-        (self.dwell if o.learner == "dwell" else self.router).learn(o)
+        self._learner = self.dwell if o.learner == "dwell" else self.router
+        self._learner.learn(o)
+
+    @property
+    def changes(self) -> list[dict]:
+        learner = getattr(self, "_learner", None)
+        return learner.changes if learner else []
+
+    def reward(self, o: Outcome) -> float:
+        effort = self.router.effort(o.check) if o.check in self.router.signal_time else 0.0
+        return reward(self.config, o, effort)
 
     def set_preferred(self, signal: str) -> None:
         self.router.preferred = signal
@@ -230,6 +262,12 @@ class FixedPolicy:
 
     def learn(self, o: Outcome) -> None:
         pass
+
+    changes: list[dict] = []
+
+    def reward(self, o: Outcome) -> float:
+        r = self.config["reward"]
+        return reward(self.config, o, r["effort_base"] + r["effort_per_s"] * r["effort_start_s"])
 
     def set_preferred(self, signal: str) -> None:
         self.preferred = signal

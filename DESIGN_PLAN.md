@@ -575,6 +575,7 @@ Nothing flashes or moves except to give feedback. Calm first.
 | Chat | Chats, messages, draft, settings, and the action list | `fire`, `undo` | `state`, `settings` | gaze, signals, learning |
 | ViewServer | Serve the view and pass messages both ways | `state`, `gaze`, interaction events | view messages, `targets` | any rule or number from sections 4 to 6 |
 | Persist | Write logs, save and load learner state and settings | every event | files in `data/<person>/` | the meaning of events |
+| Console | Print the learning log in the terminal: choices, outcomes with rewards, what the learners changed | `choice`, `learned`, `context` | lines in the terminal | anything it does not print |
 
 **View (browser).** Draws only.
 
@@ -661,6 +662,7 @@ Screens only mark buttons with the action name: `<button data-action="send">Send
 | `fire` | Interaction | `{action, tier, dwell, check, signal_time}` | Chat, ViewServer, Outcomes |
 | `undo` | Interaction | `{action}` | Chat, Outcomes |
 | `outcome` | Outcomes | `{kind, action, tier, group, dwell, check}` | Policy, Context |
+| `learned` | `__main__.py`, after the policy learns | `{outcome, reward, changes}` | Console, Persist |
 | `state` | Chat | the app state | ViewServer |
 | `settings` | Chat (Settings screen) | signals on or off, preferred, sounds, keyboard | Signals, Interaction |
 
@@ -691,6 +693,7 @@ communic-aid-hci/
     words.txt               word list for predictions
     view_server.py          serves the view and the WebSocket
     persist.py              logs and saved state
+    console.py              the learning log in the terminal
   view/
     index.html              page shell and researcher panels
     style.css
