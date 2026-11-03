@@ -162,8 +162,6 @@ def _value(section: str, key: str, value) -> str:
 
 def print_config(config: dict, path: Path, info: dict) -> None:
     """Print every setting as a neat table per section, using rich."""
-    import re
-
     from rich import box
     from rich.columns import Columns
     from rich.console import Console as RichConsole
@@ -171,11 +169,10 @@ def print_config(config: dict, path: Path, info: dict) -> None:
     from rich.table import Table
 
     out = RichConsole()
-    keys, sections = _notes(path)
+    keys, _ = _notes(path)
     tables = []
     for section, values in config.items():
-        ref = re.search(r"Section ([\d.]+(?: and [\d.]+)?)", sections.get(section, ""))
-        title = f"[bold]{section}[/]" + (f"  [dim]plan {ref.group(1)}[/]" if ref else "")
+        title = f"[bold]{section}[/]"
         often = section in ("costs", "reward")
         if often:
             title += "  [yellow]tuned often[/]"
