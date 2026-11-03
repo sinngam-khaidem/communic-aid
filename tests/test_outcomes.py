@@ -102,6 +102,16 @@ def test_timeout_then_came_back_is_gave_up(world, config):
     assert rec.outcomes() == [("router", "gave_up")]
 
 
+def test_late_signal_after_timeout_is_gave_up(world, config):
+    bus, clock, rec = make(world, config)
+    bus.emit("timeout", {"action": "call", "check": "brows", "tier": 3, "group": "rested+steady",
+                         "attempted": False, "reason": "timeout"})
+    run(bus, clock, 1.0)
+    bus.emit("signal", {"kind": "brows", "t": clock.now()})
+    run(bus, clock, 4.0)
+    assert rec.outcomes() == [("router", "gave_up")]
+
+
 def test_timeout_and_gone_is_blocked_accident(world, config):
     bus, clock, rec = make(world, config)
     bus.emit("timeout", {"action": "delete", "check": "blink", "tier": 3, "group": "rested+steady",

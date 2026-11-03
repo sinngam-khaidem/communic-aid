@@ -36,7 +36,14 @@ class ViewServer:
             q.put_nowait(text)
 
     async def start(self) -> None:
-        app = web.Application()
+        @web.middleware
+        async def no_cache(request, handler):
+            # Local app: always serve the latest view files.
+            response = await handler(request)
+            response.headers["Cache-Control"] = "no-store"
+            return response
+
+        app = web.Application(middlewares=[no_cache])
         app.router.add_get("/", self._index)
         app.router.add_get("/ws", self._ws)
         app.router.add_static("/view/", ROOT / "view")

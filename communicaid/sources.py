@@ -91,7 +91,9 @@ class BrowserSource:
 
     def _tick(self, p: dict) -> None:
         point = self.point
-        if point is not None and self.noise > 0:
+        if point is None:
+            return      # nothing to report until the mouse has moved over the view
+        if self.noise > 0:
             dx, dy = self.rng.normal(0, self.noise, 2)
             point = (point[0] + dx, point[1] + dy)
         eyes = 1.0 if "b" in self.held else 0.02
@@ -99,4 +101,4 @@ class BrowserSource:
         self.bus.emit("frame", {"frame": Frame(
             t=self.clock.now(), point=point, blink_l=eyes, blink_r=eyes,
             brow_in=brows, brow_out_l=brows, brow_out_r=brows,
-            tracked=point is not None, dist=0.5)})
+            tracked=True, dist=0.5)})

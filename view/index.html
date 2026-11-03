@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Communic-aid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/view/style.css">
+</head>
+<body>
+  <!-- Undo strip: always in the same place. Only a button while there is something to undo. -->
+  <div id="strip"></div>
+  <div id="banner" hidden></div>
+  <div id="layout">
+    <nav id="side"></nav>
+    <main id="main"></main>
+  </div>
+
+  <div id="calib" hidden></div>
+  <div id="gaze" hidden></div>
+  <div id="notice" hidden></div>
+
+  <div id="start">
+    <div>
+      <h1>Communic-aid</h1>
+      <p>Click anywhere to start in full screen.</p>
+      <p class="muted" id="startInfo"></p>
+    </div>
+  </div>
+
+  <!-- For the researcher only: ` opens the study panel, \ opens the debug overlay. -->
+  <aside id="study" hidden>
+    <h2>Study panel</h2>
+    <p id="studyInfo" class="muted"></p>
+    <h3>Accident costs</h3>
+    <div id="costs"></div>
+    <button id="applyCosts">Apply costs</button>
+    <button id="resetLearning">Reset learning</button>
+  </aside>
+  <aside id="debug" hidden><pre id="debugText"></pre></aside>
+
+  <script src="/view/view.js"></script>
+</body>
+</html>

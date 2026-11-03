@@ -112,6 +112,11 @@ class Chat:
     def _check_done(self, p: dict) -> None:
         self.can_do.update(p["can_do"])
         self.s["check"] = p["results"]
+        if not self.can_do.get(self.settings.preferred):
+            usable = [k for k in SIGNALS if self.can_do.get(k) and self.settings.enabled.get(k)]
+            if usable:
+                self.settings.preferred = usable[0]
+                self.publish_settings()
         if self.s["screen"] == "landing":
             if self.s["return_to"]:
                 self.s.update(screen=self.s["return_to"], return_to=None)

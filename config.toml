@@ -2,7 +2,7 @@
 # Times are in milliseconds unless the name ends in _s (seconds).
 
 [server]
-http_port = 8000
+http_port = 8080
 udp_port = 5005
 tick_hz = 60
 

@@ -27,6 +27,8 @@ class Outcomes:
         bus.on("undo", lambda p: self._mark(p["seq"], True))
         bus.on("redo", self._redo)
         bus.on("timeout", self._timeout)
+        bus.on("signal", self._late_try)
+        bus.on("attempt", self._late_try)
         bus.on("tick", lambda p: self.flush(self.clock.now()))
 
     def _emit(self, outcome: Outcome) -> None:
@@ -90,6 +92,13 @@ class Outcomes:
             self._emit(Outcome("router", "gave_up", p["action"], p["tier"], p["group"], check=p["check"]))
             return
         self.timeouts.append({**p, "deadline": self.clock.now() + self.come_back_signal_s})
+
+    def _late_try(self, p: dict) -> None:
+        """A signal or a partial try just after a timeout means they meant it: the signal was too slow or hard."""
+        now = self.clock.now()
+        for t in [t for t in self.timeouts if now <= t["deadline"]]:
+            self.timeouts.remove(t)
+            self._emit(Outcome("router", "gave_up", t["action"], t["tier"], t["group"], check=t["check"]))
 
     # ---------- closing windows ----------
 
