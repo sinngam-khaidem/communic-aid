@@ -98,7 +98,9 @@ shaky_ratio = 1.5
 shaky_looks = 20
 baseline_spread_px = 20
 tracking_window_s = 5.0
-poor_fraction = 0.1
+poor_fraction = 0.1         # tracking counts as poor above this share of lost frames
+poor_recover_fraction = 0.05  # and good again only below this, so it does not flicker
+banner_hold_s = 1.0         # a banner shows or clears only after its reason has held this long
 min_dist = 0.30
 max_dist = 0.70
 

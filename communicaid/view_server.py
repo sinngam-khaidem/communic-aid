@@ -21,6 +21,7 @@ class ViewServer:
     def __init__(self, bus: Bus, port: int, init: dict) -> None:
         self.bus, self.port, self.init = bus, port, init
         self.queues: set[asyncio.Queue] = set()
+        self.sockets: set[web.WebSocketResponse] = set()
         self.latest: dict[str, dict] = {}
         for event in FORWARD:
             bus.on(event, lambda p, e=event: self._send(e, p))
@@ -52,6 +53,9 @@ class ViewServer:
         await web.TCPSite(self.runner, "localhost", self.port).start()
 
     async def stop(self) -> None:
+        # Close open pages first, so Ctrl+C does not wait for browsers to hang up.
+        for ws in list(self.sockets):
+            await ws.close()
         await self.runner.cleanup()
 
     async def _index(self, request: web.Request) -> web.FileResponse:
@@ -65,6 +69,7 @@ class ViewServer:
         for msg in self.latest.values():
             await ws.send_str(json.dumps(msg, default=str))
         self.queues.add(q)
+        self.sockets.add(ws)
         writer = asyncio.create_task(self._writer(ws, q))
         try:
             async for msg in ws:
@@ -72,6 +77,7 @@ class ViewServer:
                     self._receive(json.loads(msg.data))
         finally:
             self.queues.discard(q)
+            self.sockets.discard(ws)
             writer.cancel()
         return ws
 

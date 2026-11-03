@@ -62,6 +62,8 @@ class Chat:
         self.pending_replies: list[dict] = []
         self.next_id = 1000
         self.started = False
+        self.calib_tries = 0
+        self.calib_again_at: float | None = None
 
         bus.on("fire", self.on_fire)
         bus.on("escape", lambda p: self.escape())
@@ -103,6 +105,15 @@ class Chat:
     def _calib_done(self, p: dict) -> None:
         self.s["calib"] = {"error_px": p.get("error_px"), "ok": p.get("ok")}
         if self.s["screen"] == "landing" and self.s["landing"] == "calibrate":
+            self.calib_tries += 1
+            usable = p.get("error_px") is not None
+            # No usable fit means gaze cannot select anything, so always try again. A loose fit is
+            # retried a couple of times, then accepted so the person is never stuck here.
+            if not usable or (not p.get("ok") and self.calib_tries < 3):
+                self.calib_again_at = self.clock.now() + 3.0
+                self.publish()
+                return
+            self.calib_tries = 0
             if self.s["return_to"]:
                 self.s.update(screen=self.s["return_to"], return_to=None)
             else:
@@ -313,6 +324,9 @@ class Chat:
 
     def tick(self, now: float) -> None:
         changed = False
+        if self.calib_again_at is not None and now >= self.calib_again_at:
+            self.calib_again_at = None
+            self.bus.emit("start_calibration", {})
         if self.undo and now >= self.undo["until"]:
             self.undo = None
             changed = True

@@ -120,7 +120,7 @@ class Console:
 NO_UNIT = {"warmup_selections", "smoothing", "borrow_looks", "borrow_tries", "preferred_bonus", "tick_hz",
            "check_tries", "escape_presses", "slip_count", "slip_window", "shaky_looks", "tired_hour",
            "http_port", "udp_port", "drain_speed", "shaky_ratio", "poor_fraction", "drift_rate", "version",
-           "effort_per_s"}
+           "effort_per_s", "poor_recover_fraction"}
 
 
 def _notes(path) -> tuple[dict, dict]:

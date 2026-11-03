@@ -166,7 +166,7 @@ const SCREENS = {
   landing() {
     const s = state;
     if (s.landing === "calibrate") {
-      const c = s.calib && s.calib.ok === false ? `<p class="muted">The last try was not accurate. Keep your head still and follow the dot.</p>` : "";
+      const c = s.calib && s.calib.ok === false ? `<p class="muted">Let's try that once more. Keep your head still and follow the dot.</p>` : "";
       return `<div class="prompt"><div><h1>Let's set up your eyes</h1><p class="muted">Look at each pink dot until it moves. Keep your head still.</p>${c}</div></div>`;
     }
     if (s.landing === "about") {
