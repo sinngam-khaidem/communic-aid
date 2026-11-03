@@ -157,8 +157,10 @@ function scrollBar() {
   return (canUp ? B("scroll_up", "", { icon: "up" }) : ghost("up")) + (canDown ? B("scroll_down", "", { icon: "down" }) : ghost("down"));
 }
 
-// Send takes a quarter of the draft row. With an empty draft the space stays, so nothing moves.
-const sendOrSpace = () => (state.draft.trim() ? B("send", "Send", { cls: "w1" }) : '<div class="w1"></div>');
+// Send takes a quarter of the draft row and is always shown in the same place.
+// With an empty draft it stays visible but faded and is not a target: sending nothing should never ask for a signal.
+const sendOrSpace = () => (state.draft.trim() ? B("send", "Send", { cls: "w1" })
+  : '<div class="t ghost w1"><span class="lb"><span>Send</span></span></div>');
 
 const SCREENS = {
   landing() {
@@ -203,7 +205,7 @@ const SCREENS = {
     const draft = state.draft ? esc(state.draft) : '<span class="ph">Write a message</span>';
     return `<div class="head">${B("back", "Back", { icon: "back" })}<div class="who"><span class="av">${initial(c.name)}</span>${esc(c.name)}</div>${B("call", "Call", { icon: "phone" })}</div>
       <div class="thread"><div class="msgs">${msgs}</div></div>
-      <div class="row">${B("compose", null, { html: `<span style="font-weight:400">${draft}</span>`, cls: "w3" })}${sendOrSpace()}</div>`;
+      <div class="row">${B("compose", null, { html: `<span class="dtext">${draft}</span>`, cls: "w3" })}${sendOrSpace()}</div>`;
   },
 
   compose() {

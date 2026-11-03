@@ -69,7 +69,7 @@ body.setup #layout { inset: 0; }
 #side:empty, #rside:empty { display: none; }
 #rside { width: 132px; padding: 24px; display: flex; flex-direction: column; justify-content: center; gap: 72px; }
 #rside .t { min-height: 140px; width: 100%; padding: 8px; }
-.t.ghost { opacity: .25; --bc: var(--line-strong); color: var(--muted); }
+.t.ghost { opacity: .45; --bc: var(--line-strong); color: var(--muted); }
 #side .t { min-height: 120px; width: 100%; padding: 14px 8px; font-size: var(--fs-s); }
 #side .t .lb { flex-direction: column; gap: 8px; }
 #main { flex: 1; padding: 32px; display: flex; flex-direction: column; gap: var(--gap); min-width: 0; }
@@ -139,6 +139,9 @@ body.dim .t:not([data-action="undo"]):not([data-action="redo"]) { opacity: .35; 
 .draft .caret { display: inline-block; width: 2px; height: 30px; background: var(--ink); margin-left: 2px; animation: caret 1s step-end infinite; vertical-align: middle; }
 @keyframes caret { 50% { opacity: 0; } }
 .draft .ph { color: var(--muted); }
+/* Keep spaces exactly as typed: a trailing space must be visible, or Space looks broken. */
+.draft, .dtext { white-space: break-spaces; }
+.dtext { font-weight: 400; }
 /* The keyboard takes all the height left over, so keys grow instead of leaving space unused. */
 .keys { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr; gap: 36px 44px; }
 .keys.qwerty { grid-template-columns: repeat(10, 1fr); gap: var(--gap); }
