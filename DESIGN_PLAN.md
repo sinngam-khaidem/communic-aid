@@ -284,7 +284,7 @@ This step decides the quality of everything else. Each outcome is fixed only whe
 |---|---|
 | Worked | Right signal given in time, not undone within 5 s |
 | Accident | Right signal given, then undone within 5 s |
-| Gave up | Timed out, but they tried a wrong signal, closed their eyes for part of a blink and hold, or came back to the same button within 3 s |
+| Gave up | Timed out, but they tried a wrong signal, closed their eyes for part of a blink and hold, gave the signal late, or came back to the same button within 3 s |
 | Blocked an accident | Timed out, no attempt, did not come back |
 
 When the router picks **dwell only** on tier 2, only Worked or Accident can happen.
@@ -579,8 +579,8 @@ Nothing flashes or moves except to give feedback. Calm first.
 
 | File | One job |
 |---|---|
-| `index.html` | The 7 screens as `<template>` blocks, icons inline |
-| `view.js` | Keep the WebSocket open, draw screens from `state`, turn button events into CSS classes and sounds, report button positions after every redraw, forward key presses |
+| `index.html` | The page shell and the researcher panels |
+| `view.js` | The 7 screens as small render functions, icons inline. Also keeps the WebSocket open, turns button events into CSS classes and sounds, reports button positions after every redraw and forwards key presses |
 | `style.css` | Dark theme and every animation (section 8) |
 
 ### 9.3 The interfaces
@@ -691,23 +691,23 @@ communic-aid-hci/
     view_server.py          serves the view and the WebSocket
     persist.py              logs and saved state
   view/
-    index.html              the 7 screens as templates, icons inline
+    index.html              page shell and researcher panels
     style.css
-    view.js                 connection, drawing, feedback, sounds
+    view.js                 the 7 screens, connection, feedback, sounds
   tests/                    one test file per module, plus simulate.py
   ARKitGaze/                phone app, where it is today
   figures/
   data/                     created when the app runs, one folder per person
 ```
 
-**Run it:** `python -m communicaid --person P01`, then open `http://localhost:8000` in full screen. Add `--source mouse` to work without the phone.
+**Run it:** `python -m communicaid --person P01`, then open `http://localhost:8080` in full screen. Add `--source mouse` to work without the phone.
 
 **Where things went:**
 - **No subfolders in the core.** Each module is one file. A file can grow to a few hundred lines before it needs splitting.
 - **`common.py` is the only file every module may import.** It holds the bus, the clock and the shared data classes (`Frame`, `Outcome`, `Action`), so modules still never import each other.
 - **`__main__.py` does the wiring**, so there is no separate `main.py`.
 - **The message contract lives in this plan** (3.1 and 9.4) instead of its own folder.
-- **The screens are `<template>` blocks in `index.html`** with the icons inline. Sounds are short tones made in `view.js`, so there are no `icons/` or `sounds/` folders.
+- **The screens are small render functions in `view.js`** with the icons inline. Sounds are short tones made in `view.js`, so there are no `icons/` or `sounds/` folders.
 - **One server:** `aiohttp` serves the view and the WebSocket on one port.
 
 ### 9.7 What the separation buys us
@@ -719,7 +719,7 @@ communic-aid-hci/
 | Tune costs | `config.toml` or the study panel. Policy reads them at choice time. |
 | Move an action to another tier | One line in `chat.py`. |
 | Add a signal later | Signals, the signal check, one icon. |
-| Swap the keyboard | One template in `index.html` and the key list in `chat.py`. |
+| Swap the keyboard | One render function in `view.js` and the key list in `chat.py`. |
 | Change the look | `style.css` only. |
 
 ### 9.8 Testing each module alone (pytest)
