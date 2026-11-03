@@ -1,0 +1,23 @@
+import json
+
+from communicaid.sources import frame_from_packet
+
+
+def test_contract_v1_frame():
+    msg = json.loads('{"type":"frame","seq":1,"t":3.5,"dir":[0.1,-0.2,0.97],"blinkL":0.1,"blinkR":0.2,'
+                     '"browIn":0.3,"browOutL":0.4,"browOutR":0.5,"tracked":true,"dist":0.45}')
+    f = frame_from_packet(msg)
+    assert f.dir == (0.1, -0.2, 0.97) and f.tracked and f.dist == 0.45
+    assert (f.brow_in, f.brow_out_l, f.brow_out_r) == (0.3, 0.4, 0.5)
+
+
+def test_face_lost_frame_has_no_direction():
+    # Swift leaves out nil optionals, so "dir" is simply missing.
+    f = frame_from_packet({"type": "frame", "seq": 2, "t": 4.0, "blinkL": 0, "blinkR": 0, "tracked": False, "dist": 0})
+    assert f.dir is None and not f.tracked
+
+
+def test_older_phone_build_still_works():
+    f = frame_from_packet({"seq": 3, "t": 1.0, "eye": [0, 0, -0.4], "dir": [0, 0, 1], "dirEye": [0, 0, 1],
+                           "blinkL": 0.05, "blinkR": 0.04})
+    assert f.tracked and f.brow_in == 0.0

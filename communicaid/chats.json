@@ -1,0 +1,34 @@
+{
+  "quick": ["I am fine", "Call later", "Hi", "Ok", "Thanks"],
+  "chats": [
+    {
+      "id": "priya",
+      "name": "Priya",
+      "messages": [
+        {"id": "m1", "from": "them", "text": "Good morning Maa!"},
+        {"id": "m2", "from": "them", "text": "I spoke to the doctor today. She said the new tablets can make you sleepy, so rest after lunch."},
+        {"id": "m3", "from": "me", "text": "Yes, all good here."},
+        {"id": "m4", "from": "them", "text": "Are you ok, Maa? Call me when you can."}
+      ],
+      "replies": ["Ok Maa, take care", "Good! I will call on Sunday", "Did you eat lunch?", "Love you Maa"]
+    },
+    {
+      "id": "group",
+      "name": "Project group",
+      "messages": [
+        {"id": "m5", "from": "them", "text": "Meeting moved to 4 pm tomorrow."},
+        {"id": "m6", "from": "them", "text": "Can everyone send their part by tonight?"}
+      ],
+      "replies": ["Thanks!", "Got it", "Great, see you tomorrow"]
+    },
+    {
+      "id": "mehta",
+      "name": "Dr. Mehta",
+      "messages": [
+        {"id": "m7", "from": "them", "text": "Your next appointment is on Monday at 11 am."},
+        {"id": "m8", "from": "them", "text": "Please reply to confirm."}
+      ],
+      "replies": ["Thank you, see you on Monday.", "Noted."]
+    }
+  ]
+}

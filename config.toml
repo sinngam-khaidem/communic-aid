@@ -1,0 +1,105 @@
+# Every number in DESIGN_PLAN.md lives here.
+# Times are in milliseconds unless the name ends in _s (seconds).
+
+[server]
+http_port = 8080
+udp_port = 5005
+tick_hz = 60
+
+# Section 6.6: settings we expect to tune often.
+# Changing them never wipes learning: learners store counts, costs apply at choice time.
+[costs]
+version = "costs-v1"
+tier0 = 1.0
+tier1 = 2.0
+tier2 = 4.0
+tier3 = 8.0
+
+[reward]
+give_up = -0.5
+blocked = 0.15          # times the tier's cost
+time_penalty = 0.6      # per second of dwell, on a worked look
+effort_base = 0.35      # signal effort = base + per_s * usual seconds
+effort_per_s = 0.25
+effort_start_s = 1.2
+
+# Section 6.2: windows for reading what happened.
+[windows]
+undo_s = 5.0
+backspace_s = 3.0
+come_back_look_s = 2.0
+come_back_signal_s = 3.0
+
+# Section 6.4: dwell learner (tiers 0 and 1 only).
+[dwell]
+start = 1000
+min = 400
+max = 2000
+step = 25
+warmup_looks = 20
+smoothing = 0.2
+borrow_looks = 30
+high_tier = 1000        # fixed dwell before the signal step on tiers 2 and 3
+undo = 800              # undo strip, fixed, never learned
+fixed_condition = 1000  # dwell everywhere in the Fixed study condition
+
+# Section 6.5: router.
+[router]
+borrow_tries = 20
+preferred_bonus = 2
+
+# Section 4: from a look to an action.
+[interaction]
+margin_px = 12
+switch_ms = 100
+look_end_ms = 150
+min_look_ms = 100
+drain_speed = 2.0
+wait_s = 4.0
+cancel_wait_ms = 500
+pause_ms = 600
+lost_ms = 300
+
+# Section 3: signals.
+[signals]
+closed_level = 0.5
+raised_level = 0.5
+blink_hold_ms = 500
+brow_hold_ms = 300
+attempt_min_ms = 150
+yes_debounce_s = 1.5
+escape_presses = 3
+escape_window_s = 2.0
+switch_keys = [" ", "Enter", "s", "S"]
+check_tries = 3
+check_try_s = 6.0
+check_relax_s = 2.0
+
+# Section 3.2: gaze.
+[gaze]
+smoothing_alpha = 0.3
+drift_rate = 0.1
+drift_cap_px = 80
+drift_window_ms = 300
+calib_settle_s = 1.2
+calib_collect_s = 0.8
+calib_redo_px = 100
+mouse_noise_px = 0
+
+# Section 6.3 and 3.8: context and tracking quality.
+[context]
+tired_minutes = 20
+tired_hour = 18
+slip_count = 2
+slip_window = 6
+shaky_ratio = 1.5
+shaky_looks = 20
+baseline_spread_px = 20
+tracking_window_s = 5.0
+poor_fraction = 0.1
+min_dist = 0.30
+max_dist = 0.70
+
+[chat]
+reply_after_s = 7.0     # longer than the undo window, so a reply never follows an unsent message
+call_connect_s = 3.0

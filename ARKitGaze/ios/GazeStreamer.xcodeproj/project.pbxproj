@@ -7,16 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		715E4E8E72A9F9137C7FA099 /* GazeTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA72F078029EA7552F40EEEF /* GazeTracker.swift */; };
+		64A73E2D11440D61DCF32EE1 /* SpeechListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A6EE4AA8CDA77875B5745C /* SpeechListener.swift */; };
 		C501E6829B9F73E320A2B042 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558A6A76EAAF539B1144AE97 /* ContentView.swift */; };
 		D0888C86961B2DAB4CF71869 /* GazeStreamerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06EAF606C26DAAC21E92C5EB /* GazeStreamerApp.swift */; };
+		DA88D42C772E5CC8927C51D1 /* Sender.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C2E229EF9845DD572EC587 /* Sender.swift */; };
+		E4BDF6CEA8F208D0B686BBF3 /* FaceSensor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92D920160726550F69D58847 /* FaceSensor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		06EAF606C26DAAC21E92C5EB /* GazeStreamerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GazeStreamerApp.swift; sourceTree = "<group>"; };
+		32C2E229EF9845DD572EC587 /* Sender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sender.swift; sourceTree = "<group>"; };
 		336727EC628BD8ACC95072BC /* GazeStreamer.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = GazeStreamer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		558A6A76EAAF539B1144AE97 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		FA72F078029EA7552F40EEEF /* GazeTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GazeTracker.swift; sourceTree = "<group>"; };
+		76A6EE4AA8CDA77875B5745C /* SpeechListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechListener.swift; sourceTree = "<group>"; };
+		92D920160726550F69D58847 /* FaceSensor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceSensor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -24,8 +28,10 @@
 			isa = PBXGroup;
 			children = (
 				558A6A76EAAF539B1144AE97 /* ContentView.swift */,
+				92D920160726550F69D58847 /* FaceSensor.swift */,
 				06EAF606C26DAAC21E92C5EB /* GazeStreamerApp.swift */,
-				FA72F078029EA7552F40EEEF /* GazeTracker.swift */,
+				32C2E229EF9845DD572EC587 /* Sender.swift */,
+				76A6EE4AA8CDA77875B5745C /* SpeechListener.swift */,
 			);
 			path = GazeStreamer;
 			sourceTree = "<group>";
@@ -106,8 +112,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				C501E6829B9F73E320A2B042 /* ContentView.swift in Sources */,
+				E4BDF6CEA8F208D0B686BBF3 /* FaceSensor.swift in Sources */,
 				D0888C86961B2DAB4CF71869 /* GazeStreamerApp.swift in Sources */,
-				715E4E8E72A9F9137C7FA099 /* GazeTracker.swift in Sources */,
+				DA88D42C772E5CC8927C51D1 /* Sender.swift in Sources */,
+				64A73E2D11440D61DCF32EE1 /* SpeechListener.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +133,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "The TrueDepth camera is used to estimate where you are looking.";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Gaze data is sent to the Mac on your local network.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "The microphone listens for the word yes. Audio never leaves the phone.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Speech is recognised on this phone to hear the word yes.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
@@ -152,6 +162,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "The TrueDepth camera is used to estimate where you are looking.";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Gaze data is sent to the Mac on your local network.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "The microphone listens for the word yes. Audio never leaves the phone.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Speech is recognised on this phone to hear the word yes.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
