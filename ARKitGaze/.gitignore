@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+
+# per-machine calibration, not worth sharing
+mac/calibration.json
+
+# Xcode build output
+ios/build/
+*.xcuserdatad
+.DS_Store

@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 45 1210 535" width="1210" height="535" font-family="Helvetica Neue, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+    <style>
+      .grp{fill:#F4F4F4;stroke:#9A9A9A;stroke-width:1}
+      .box{fill:#FFF;stroke:#222;stroke-width:1.2}
+      .ext{fill:#E6E6E6;stroke:#222;stroke-width:1.2}
+      .gt{font-size:13px;font-weight:700;fill:#222}
+      .n{font-size:13px;font-weight:600;fill:#111;text-anchor:middle}
+      .s{font-size:10.5px;fill:#666;text-anchor:middle}
+      .e{font-size:11px;font-style:italic;fill:#444}
+      .ln{fill:none;stroke:#222;stroke-width:1.2;marker-end:url(#a)}
+      .dash{fill:none;stroke:#222;stroke-width:1.2;stroke-dasharray:5 4;marker-end:url(#a)}
+    </style>
+  </defs>
+
+  <rect y="45" width="1210" height="535" fill="#FFF"/>
+
+  <!-- groups -->
+  <rect class="grp" x="20" y="60" width="170" height="470" rx="6"/>
+  <text class="gt" x="32" y="82">iPhone (Swift)</text>
+  <rect class="grp" x="220" y="60" width="810" height="470" rx="6"/>
+  <text class="gt" x="232" y="82">Core (Python)</text>
+  <rect class="grp" x="1060" y="380" width="130" height="150" rx="6"/>
+  <text class="gt" x="1072" y="402">View</text>
+
+  <!-- phone -->
+  <rect class="box" x="35" y="110" width="140" height="46" rx="3"/>
+  <text class="n" x="105" y="130">FaceSensor</text>
+  <text class="s" x="105" y="146">ARKit face tracking</text>
+
+  <rect class="box" x="35" y="240" width="105" height="46" rx="3"/>
+  <text class="n" x="87.5" y="260">SpeechListener</text>
+  <text class="s" x="87.5" y="276">on-device speech</text>
+
+  <rect class="box" x="35" y="370" width="140" height="46" rx="3"/>
+  <text class="n" x="105" y="390">Sender</text>
+  <text class="s" x="105" y="406">UDP, 60 Hz</text>
+
+  <path class="ln" d="M87,156 V238"/>
+  <text class="e" x="93" y="200">audio</text>
+  <path class="ln" d="M87,286 V368"/>
+  <text class="e" x="93" y="330">yes</text>
+  <path class="ln" d="M160,156 V368"/>
+  <text class="e" transform="translate(168,240) rotate(90)">frames</text>
+
+  <path class="ln" d="M175,393 H238"/>
+  <text class="e" x="206" y="386" text-anchor="middle">UDP</text>
+
+  <!-- core boxes: columns A 240, B 390, C 540, D 730, E 890 -->
+  <rect class="box" x="240" y="370" width="120" height="46" rx="3"/>
+  <text class="n" x="300" y="390">Sources</text>
+  <text class="s" x="300" y="406">phone, browser keys</text>
+
+  <rect class="box" x="390" y="110" width="120" height="46" rx="3"/>
+  <text class="n" x="450" y="130">Input</text>
+  <text class="s" x="450" y="146">gaze point</text>
+
+  <rect class="box" x="540" y="110" width="120" height="46" rx="3"/>
+  <text class="n" x="600" y="130">Signals</text>
+  <text class="s" x="600" y="146">detects 4 signals</text>
+
+  <rect class="box" x="730" y="110" width="120" height="46" rx="3"/>
+  <text class="n" x="790" y="130">Context</text>
+  <text class="s" x="790" y="146">tired? shaky gaze?</text>
+
+  <rect class="box" x="890" y="110" width="120" height="46" rx="3"/>
+  <text class="n" x="950" y="130">Persist</text>
+  <text class="s" x="950" y="146">records every event</text>
+
+  <rect class="box" x="540" y="240" width="120" height="46" rx="3"/>
+  <text class="n" x="600" y="260">Interaction</text>
+  <text class="s" x="600" y="276">dwell, wait, undo</text>
+
+  <rect class="box" x="730" y="240" width="120" height="46" rx="3"/>
+  <text class="n" x="790" y="260">Policy</text>
+  <text class="s" x="790" y="276">two learners</text>
+
+  <rect class="box" x="390" y="370" width="120" height="46" rx="3"/>
+  <text class="n" x="450" y="390">Chat</text>
+  <text class="s" x="450" y="406">state, actions, tiers</text>
+
+  <rect class="box" x="540" y="370" width="120" height="46" rx="3"/>
+  <text class="n" x="600" y="390">ViewServer</text>
+  <text class="s" x="600" y="406">talks to the view</text>
+
+  <rect class="box" x="730" y="370" width="120" height="46" rx="3"/>
+  <text class="n" x="790" y="390">Outcomes</text>
+  <text class="s" x="790" y="406">labels what happened</text>
+
+  <!-- view -->
+  <rect class="box" x="1070" y="440" width="110" height="46" rx="3"/>
+  <text class="n" x="1125" y="460">Browser</text>
+  <text class="s" x="1125" y="476">draws, animates</text>
+
+  <rect class="ext" x="1070" y="300" width="110" height="40" rx="3"/>
+  <text class="n" x="1125" y="318">Switch</text>
+  <text class="s" x="1125" y="332">a key press</text>
+  <path class="ln" d="M1160,340 V438"/>
+
+  <!-- core arrows -->
+  <path class="ln" d="M320,370 V133 H388"/>
+  <text class="e" x="354" y="127" text-anchor="middle">frame</text>
+
+  <path class="ln" d="M280,370 V92 H600 V108"/>
+  <text class="e" x="440" y="86" text-anchor="middle">frame, yes, press</text>
+
+  <path class="ln" d="M450,156 V263 H538"/>
+  <text class="e" x="456" y="212">gaze</text>
+
+  <path class="ln" d="M600,156 V238"/>
+  <text class="e" x="606" y="200">signal</text>
+
+  <path class="ln" d="M790,156 V238"/>
+  <text class="e" x="796" y="200">group</text>
+
+  <path class="ln" d="M662,263 H728" marker-start="url(#a)"/>
+  <text class="e" x="695" y="256" text-anchor="middle">dwell, check</text>
+
+  <path class="ln" d="M660,278 H700 V393 H728"/>
+  <text class="e" x="706" y="340">events</text>
+
+  <path class="dash" d="M790,370 V288"/>
+  <text class="e" x="796" y="332">outcome</text>
+
+  <path class="ln" d="M540,278 H470 V368"/>
+  <text class="e" x="464" y="325" text-anchor="end">fire, undo</text>
+
+  <path class="ln" d="M510,393 H538"/>
+  <text class="e" x="524" y="386" text-anchor="middle">state</text>
+
+  <path class="ln" d="M585,370 V288"/>
+  <text class="e" x="579" y="330" text-anchor="end">targets</text>
+  <path class="ln" d="M615,288 V368"/>
+  <text class="e" x="621" y="330">events</text>
+
+  <path class="ln" d="M570,418 V500 H300 V418"/>
+  <text class="e" x="435" y="494" text-anchor="middle">keys, mouse</text>
+
+  <path class="ln" d="M630,420 V463 H1068" marker-start="url(#a)"/>
+  <text class="e" x="850" y="457" text-anchor="middle">WebSocket</text>
+
+  <!-- legend -->
+  <path class="ln" d="M240,558 H280"/>
+  <text class="e" x="288" y="562">data</text>
+  <path class="dash" d="M340,558 H380"/>
+  <text class="e" x="388" y="562">learning loop</text>
+</svg>
