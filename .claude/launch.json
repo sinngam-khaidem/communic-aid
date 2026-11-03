@@ -8,6 +8,12 @@
       "port": 8080
     },
     {
+      "name": "communicaid-onboarding",
+      "runtimeExecutable": ".venv/bin/python",
+      "runtimeArgs": ["-m", "communicaid", "--person", "ONBOARDTEST", "--source", "mouse", "--port", "8090"],
+      "port": 8090
+    },
+    {
       "name": "communicaid-phone",
       "runtimeExecutable": ".venv/bin/python",
       "runtimeArgs": ["-m", "communicaid", "--person", "PHONETEST", "--port", "8080"],

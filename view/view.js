@@ -165,27 +165,34 @@ const sendOrSpace = () => (state.draft.trim() ? B("send", "Send", { cls: "w1" })
 const SCREENS = {
   landing() {
     const s = state;
+    // Continue sits bottom right at a quarter of the width, like Send.
+    const next = `<div class="row onb-next"><div class="w3"></div>${B("continue", "Continue", { cls: "w1" })}</div>`;
     if (s.landing === "calibrate") {
-      const c = s.calib && s.calib.ok === false ? `<p class="muted">Let's try that once more. Keep your head still and follow the dot.</p>` : "";
-      return `<div class="prompt"><div><h1>Let's set up your eyes</h1><p class="muted">Look at each pink dot until it moves. Keep your head still.</p>${c}</div></div>`;
+      const again = s.calib && s.calib.ok === false ? "Let's try that once more. Keep your head still and follow the dot." : "";
+      return `<div class="onb-center"><h1>Let's set up your eyes</h1>
+        <p class="onb-lead">Look at each pink dot until it moves. Keep your head still.</p>
+        ${again ? `<p class="onb-lead">${again}</p>` : ""}</div>`;
     }
     if (s.landing === "about") {
       const opt = (kind, value, label, on) => B(`${kind}:${value}`, label, { cls: on ? "on" : "" });
-      const ages = [["under18", "Under 18"], ["18-30", "18 to 30"], ["31-50", "31 to 50"], ["over50", "Over 50"]];
-      const kinds = [["als", "ALS"], ["cp", "Cerebral palsy"], ["md", "Muscular dystrophy"], ["sci", "Spinal cord injury"], ["other", "Other"]];
-      const apps = [["whatsapp", "WhatsApp"], ["gmail", "Gmail"], ["instagram", "Instagram"], ["youtube", "YouTube"]];
-      return `<h2>About you <span class="muted">(all optional, look at an answer to pick it)</span></h2>
-        <div class="opts">${ages.map(([v, l]) => opt("age", v, l, s.about.age === v)).join("")}</div>
-        <div class="opts">${kinds.map(([v, l]) => opt("disability", v, l, s.about.disability.includes(v))).join("")}</div>
-        <div class="opts">${apps.map(([v, l]) => opt("app", v, l, s.about.app.includes(v))).join("")}</div>
-        <div class="row" style="justify-content:flex-end">${B("continue", "Continue")}</div>`;
+      const groups = [
+        ["Age", "age", [["under18", "Under 18"], ["18-30", "18 to 30"], ["31-50", "31 to 50"], ["over50", "Over 50"]], (v) => s.about.age === v],
+        ["Condition", "disability", [["als", "ALS"], ["cp", "Cerebral palsy"], ["md", "Muscular dystrophy"], ["sci", "Spinal cord injury"], ["other", "Other"]], (v) => s.about.disability.includes(v)],
+        ["Apps you use", "app", [["whatsapp", "WhatsApp"], ["gmail", "Gmail"], ["instagram", "Instagram"], ["youtube", "YouTube"]], (v) => s.about.app.includes(v)],
+      ];
+      const cols = Math.max(...groups.map((g) => g[2].length));   // one grid for all rows, so every answer is the same size
+      const rows = groups.map(([label, kind, options, on]) => `<div class="onb-label">${label}</div>
+        <div class="onb-opts" style="grid-template-columns: repeat(${cols}, 1fr)">${options.map(([v, l]) => opt(kind, v, l, on(v))).join("")}</div>`).join("");
+      return `<div class="onb-head"><h1>About you</h1><p class="onb-lead">All optional. Look at an answer to pick it.</p></div>
+        <div class="onb-form">${rows}</div>${next}`;
     }
     if (s.landing === "check") {
-      return `<div class="prompt"><div><p class="muted">Signal check</p>${esc(checkPrompt ? checkPrompt.text : "Getting ready...")}</div></div>`;
+      return `<div class="onb-center"><p class="onb-kicker">Signal check</p>
+        <p class="onb-prompt">${esc(checkPrompt ? checkPrompt.text : "Getting ready...")}</p></div>`;
     }
-    const found = SIGNALS.map((k) => `<div>${s.can_do[k] ? "✓" : "✗"} ${esc(NAMES[k])}${s.can_do[k] ? "" : ' <span class="muted">(will not be asked)</span>'}</div>`).join("");
-    return `<div class="prompt"><div><h1>All set</h1>${found}<p class="muted">You can change any of this in Settings.</p></div></div>
-      <div class="row" style="justify-content:flex-end">${B("continue", "Continue")}</div>`;
+    const found = SIGNALS.map((k) => `<li class="${s.can_do[k] ? "yes" : "no"}"><span class="mark">${s.can_do[k] ? "✓" : "✗"}</span>${esc(NAMES[k])}${s.can_do[k] ? "" : '<span class="muted"> will not be asked</span>'}</li>`).join("");
+    return `<div class="onb-center"><h1>All set</h1><ul class="onb-found">${found}</ul>
+      <p class="onb-lead">You can change any of this in Settings.</p></div>${next}`;
   },
 
   chats() {

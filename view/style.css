@@ -154,6 +154,21 @@ body.dim .t:not([data-action="undo"]):not([data-action="redo"]) { opacity: .35; 
 .calltop .big { font-size: 40px; font-weight: 700; }
 .calltop .av { width: 120px; height: 120px; font-size: 52px; margin: 0 auto 20px; }
 .prompt { flex: 1; display: grid; place-items: center; text-align: center; font-size: 32px; font-weight: 600; padding: 0 60px; }
+/* ---------- onboarding: big clear headings, calm guidance, room to breathe ---------- */
+.onb-head h1, .onb-center h1 { font-size: 40px; margin: 0; }
+.onb-lead { font-size: 24px; color: var(--muted); margin: 14px 0 0; line-height: 1.5; }
+.onb-center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 80px; }
+.onb-kicker { font-size: var(--fs-m); color: var(--muted); margin: 0 0 28px; }
+.onb-prompt { font-size: 40px; font-weight: 600; margin: 0; line-height: 1.35; }
+.onb-form { flex: 1; display: grid; grid-template-columns: 200px 1fr; align-content: space-evenly; gap: 36px 28px; align-items: center; }
+.onb-label { color: var(--muted); font-size: var(--fs-m); }
+.onb-opts { display: grid; gap: 28px; }
+.onb-opts .t { min-height: 110px; }
+.onb-next .t { min-height: 110px; }
+.onb-found { list-style: none; padding: 0; margin: 36px 0 12px; display: grid; gap: 18px; font-size: 28px; text-align: left; }
+.onb-found .mark { display: inline-block; width: 44px; font-weight: 700; }
+.onb-found .yes .mark { color: var(--ok); }
+.onb-found .no .mark { color: var(--risk); }
 .opts { display: flex; flex-wrap: wrap; gap: var(--gap); }
 .opts .t { min-height: 88px; min-width: 150px; }
 .settings { display: grid; grid-template-columns: 170px 1fr; gap: var(--gap); align-items: center; }
