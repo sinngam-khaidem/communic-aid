@@ -6,12 +6,22 @@ to pick them. Risky actions ask for a second signal (blink and hold, raised eyeb
 
 The design is in [DESIGN_PLAN.md](DESIGN_PLAN.md).
 
+## How it fits together
+
+![System architecture](figures/architecture.svg)
+
+*The iPhone only senses, the Python core makes every decision, and the browser view only draws.
+The dashed arrow is the learning loop: Interaction reports what happened, Outcomes labels it,
+and Policy learns from it.*
+
 ## Setup (once)
 
 ```bash
-uv venv --python 3.11 .venv
-uv pip install --python .venv/bin/python -e ".[dev]"
+./setup.sh
 ```
+
+It creates `.venv` (with [uv](https://docs.astral.sh/uv/) if you have it, otherwise Python 3.11
+or newer) and installs the app. Add `--test` to run the tests afterwards. Running it again is safe.
 
 ## Run without the phone (mouse test mode)
 
