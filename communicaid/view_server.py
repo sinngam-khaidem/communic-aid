@@ -14,20 +14,22 @@ from aiohttp import WSMsgType, web
 from .common import ROOT, Bus, Target
 
 FORWARD = ("state", "gaze", "button", "dim", "sound", "banner", "calib_dot", "calib_done",
-           "check_prompt", "check_done", "choice", "context", "dwell_now", "config", "notice")
+           "check_prompt", "check_done", "choice", "context", "dwell_now", "config", "notice", "stale",
+           "preview", "signal")
 
 
 class ViewServer:
     def __init__(self, bus: Bus, port: int, init: dict) -> None:
         self.bus, self.port, self.init = bus, port, init
         self.queues: set[asyncio.Queue] = set()
+        self.sockets: set[web.WebSocketResponse] = set()
         self.latest: dict[str, dict] = {}
         for event in FORWARD:
             bus.on(event, lambda p, e=event: self._send(e, p))
 
     def _send(self, event: str, payload: dict) -> None:
         msg = {"type": event, **payload}
-        if event in ("state", "context", "dwell_now", "config"):
+        if event in ("state", "context", "dwell_now", "config", "stale"):
             self.latest[event] = msg
         if not self.queues:
             return
@@ -52,6 +54,9 @@ class ViewServer:
         await web.TCPSite(self.runner, "localhost", self.port).start()
 
     async def stop(self) -> None:
+        # Close open pages first, so Ctrl+C does not wait for browsers to hang up.
+        for ws in list(self.sockets):
+            await ws.close()
         await self.runner.cleanup()
 
     async def _index(self, request: web.Request) -> web.FileResponse:
@@ -65,6 +70,7 @@ class ViewServer:
         for msg in self.latest.values():
             await ws.send_str(json.dumps(msg, default=str))
         self.queues.add(q)
+        self.sockets.add(ws)
         writer = asyncio.create_task(self._writer(ws, q))
         try:
             async for msg in ws:
@@ -72,6 +78,7 @@ class ViewServer:
                     self._receive(json.loads(msg.data))
         finally:
             self.queues.discard(q)
+            self.sockets.discard(ws)
             writer.cancel()
         return ws
 
@@ -83,7 +90,7 @@ class ViewServer:
     def _receive(self, m: dict) -> None:
         kind = m.get("type")
         if kind == "hello":
-            self.bus.emit("screen", {"w": m["w"], "h": m["h"]})
+            self.bus.emit("screen", {"w": m["w"], "h": m["h"], "ox": m.get("ox", 0), "oy": m.get("oy", 0)})
         elif kind == "targets":
             self.bus.emit("targets", {"targets": [Target(t["action"], t["x"], t["y"], t["w"], t["h"])
                                                   for t in m["targets"]]})

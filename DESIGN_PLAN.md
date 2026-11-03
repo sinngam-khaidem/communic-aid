@@ -212,7 +212,7 @@ Checked every frame over the last 5 s.
 
 | Step | Value |
 |---|---|
-| Starting dwell | 1000 ms |
+| Starting dwell | 1500 ms (careful at first; the learner shortens it) |
 | Grace before draining | 150 ms |
 | Drain speed | twice the fill speed |
 | Waiting window | 4 s, the pulse fades as time runs out |
@@ -337,7 +337,7 @@ The starting values mean "stray glances last about 300 ms and people wait about 
    - share of intended looks `π`: a Beta draw from #1 and #2
    - typical stray glance `g`: #4 divided by a Gamma draw with shape #3
    - typical patience `p`: #6 divided by a Gamma draw with shape #5
-2. For every dwell `d` from 400 to 2000 ms in 25 ms steps:
+2. For every dwell `d` from 800 to 2000 ms (the limits) in 25 ms steps:
 
 ```
 accident chance   A(d) = e^(-d / g)
@@ -352,13 +352,14 @@ score(d) = π × [ (1 - G) × (1 - 0.6 × d_seconds)  -  0.5 × G ]
 
 **Keeping it calm.** A dwell that jumps on every look would feel random. So:
 
-- The first 20 looks in a group use 1000 ms. The learner still records them.
-- After that, move 20% of the way towards the chosen value each time: `dwell = dwell + 0.2 × (best - dwell)`.
-- Limits: 400 to 2000 ms.
+- The first 20 **selections** in a group use 1500 ms. Stray glances never count towards this, so the warm-up cannot end just because gaze wandered. The learner still records everything.
+- After that, the dwell changes only once per selection, never on a glance. It moves 5% of the way towards the chosen value, but **shorter only very slowly** (at most 10 ms per selection, under 1%) and **longer more readily** (up to 100 ms), because an accident costs more than a little waiting: `dwell = dwell + clip(0.05 × (best - dwell), -10, +100)`.
+- From 1500 ms, a run of clean selections brings it to about 1390 ms after 30 selections and 1190 ms after 50.
+- Limits: 800 to 2000 ms. It never goes below 800 ms, however well things go.
 
 **Likely next letter (optional, from Report 2).** In Compose, letter groups holding the next letter of the top 3 predicted words get 0.8 times the dwell. Only use this if typing feels slow in the pilot.
 
-**Quick check we ran.** A simulation of this exact learner, 400 looks per case:
+**Quick check we ran.** A simulation of the learner's own preference (without the 800 ms floor and the slow-descent limit), 400 looks per case:
 
 | Simulated person | Tier 0 (starting cost 1) | Tier 1 (starting cost 2) |
 |---|---|---|
@@ -423,10 +424,10 @@ The accident costs and the other reward values are **settings we expect to chang
 | Undo window | 5 s | Rarely |
 | Backspace window | 3 s | Rarely |
 | Come-back window | 2 s for looks, 3 s for signals | Rarely |
-| Warm-up | 20 looks per group at 1000 ms | Rarely |
+| Warm-up | 20 selections per group at 1500 ms | Rarely |
 | Borrowing | under 30 looks (dwell), under 20 tries (router) | Rarely |
-| Smoothing | 20% step | Rarely |
-| Dwell limits | 400 to 2000 ms | Rarely |
+| Smoothing | 5% step once per selection: at most 10 ms shorter, up to 100 ms longer | Sometimes |
+| Dwell limits | 800 to 2000 ms | Sometimes |
 
 **Where they live.** All in `config.toml` (section 9). The costs and reward values can also be edited from the study panel, so we can change them between pilot sessions without touching code.
 
@@ -462,13 +463,13 @@ Port the simulated people from router-demo.html (Rekha, Arjun, Farhan) into `tes
 
 ## 7. Screens
 
-Layout for a 1440 × 900 screen. Undo strip on top (80 px). Sidebar on the left (Chats, Settings), hidden in Compose. Targets at least **200 px wide and 120 px tall, with 24 px gaps**. Controls stay in the same place on every screen.
+The app is designed as a 1280 × 860 frame and scaled as one piece to fill the screen height with the same aspect ratio, centred with a 16 px margin; calibration and the gaze dot still use the whole screen. Undo strip on top (80 px), hidden during setup. Sidebar on the left (Chats, Settings, well apart), hidden in Compose. Buttons at least 120 px tall with 24 px gaps (36 px between keyboard keys). The draft field and Send share their row 3 to 1. The keyboard takes all the height left over. Controls stay in the same place on every screen.
 
 | Screen | What is on it | Tiers |
 |---|---|---|
 | **1. Landing** (first time only) | a) Calibration, 9 dots. b) About you: age, disability, apps used (all optional, picked by dwell). c) Signal check (3.7) and sound preview. d) Continue. | 0 |
 | **2. Chat list** | One large row per chat (Priya, Project group, Dr. Mehta). Up and down arrows if more. | Open chat 0 |
-| **3. Chat thread** | Top: Back, name, **Call**. Middle: messages (not targets), each with a small **More** button. Up and down scroll arrows. Bottom: draft field (opens Compose), **Send**. | Back 0, More 0, Call 3, Send 2 |
+| **3. Chat thread** | Top: Back, name, **Call**. Middle: the latest 4 messages (not targets), the latest three with a small **More** button inside the bubble. Scroll up and down in a right sidebar, always in the same place (faint, and not a target, when there is nothing to scroll). Bottom: draft field (opens Compose), **Send** (always shown in the same place; faded and not a target while the draft is empty, so sending nothing never asks for a signal). | Back 0, More 0, Call 3, Send 2 |
 | **4. Compose** | Top: Close keyboard, draft, **Send**. Suggestions row: quick replies when the draft is empty ("I am fine", "Call later", "Hi", "Ok", "Thanks"), word predictions once typing starts. Keyboard. Backspace and Space. | Close 0, keys 1, Send 2 |
 | **5. Message actions** | Close nearest to the message. React, Forward, **Delete** furthest from Close. | Close 0, React 2, Forward 3, Delete 3 |
 | **6. Call** | "Calling Priya", ringing tone, then a timer after 3 s. Mute, **End call**. | Mute 1, End 2 |
@@ -513,7 +514,7 @@ Dark theme taken from router-demo.html. Dark is the only theme.
 
 **Colour only where it means something.** Outline colour shows the tier. Blue fill shows dwell. Pink dot shows gaze. Green means accepted. Teal means undo.
 
-**Type.** Atkinson Hyperlegible Next (made for low vision readers). Messages and button labels 22 px, headers 28 px, weight 600 on buttons.
+**Type.** Atkinson Hyperlegible Next (made for low vision readers). Only three sizes: 18 px for notes and small labels, 22 px for messages and buttons, 28 px for titles. Weight 600 on buttons.
 
 **Buttons.** 10 px corners, 2 px outline in the tier colour. Signal icons: closed eye (blink and hold), raised eyebrows, speech bubble with "yes", round switch. Reuse the demo's SVG icons for all four.
 
@@ -574,6 +575,7 @@ Nothing flashes or moves except to give feedback. Calm first.
 | Chat | Chats, messages, draft, settings, and the action list | `fire`, `undo` | `state`, `settings` | gaze, signals, learning |
 | ViewServer | Serve the view and pass messages both ways | `state`, `gaze`, interaction events | view messages, `targets` | any rule or number from sections 4 to 6 |
 | Persist | Write logs, save and load learner state and settings | every event | files in `data/<person>/` | the meaning of events |
+| Console | Print the learning log in the terminal: choices, outcomes with rewards, what the learners changed | `choice`, `learned`, `context` | lines in the terminal | anything it does not print |
 
 **View (browser).** Draws only.
 
@@ -660,6 +662,7 @@ Screens only mark buttons with the action name: `<button data-action="send">Send
 | `fire` | Interaction | `{action, tier, dwell, check, signal_time}` | Chat, ViewServer, Outcomes |
 | `undo` | Interaction | `{action}` | Chat, Outcomes |
 | `outcome` | Outcomes | `{kind, action, tier, group, dwell, check}` | Policy, Context |
+| `learned` | `__main__.py`, after the policy learns | `{outcome, reward, changes}` | Console, Persist |
 | `state` | Chat | the app state | ViewServer |
 | `settings` | Chat (Settings screen) | signals on or off, preferred, sounds, keyboard | Signals, Interaction |
 
@@ -690,6 +693,7 @@ communic-aid-hci/
     words.txt               word list for predictions
     view_server.py          serves the view and the WebSocket
     persist.py              logs and saved state
+    console.py              the learning log in the terminal
   view/
     index.html              page shell and researcher panels
     style.css

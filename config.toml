@@ -32,12 +32,14 @@ come_back_signal_s = 3.0
 
 # Section 6.4: dwell learner (tiers 0 and 1 only).
 [dwell]
-start = 1000
-min = 400
+start = 1500            # a careful start; the learner shortens it as it learns the person
+min = 800               # never shorter than this, however well things go
 max = 2000
 step = 25
-warmup_looks = 20
-smoothing = 0.2
+warmup_selections = 20  # selections (not glances) at the starting dwell before learning moves it
+smoothing = 0.05        # move 5% of the way towards the learner's pick, once per selection
+max_step_down = 10      # going shorter: at most 10 ms per selection (under 1%), so it stays high for long
+max_step_up = 100       # going longer: up to 100 ms per selection, so accidents are fixed quickly
 borrow_looks = 30
 high_tier = 1000        # fixed dwell before the signal step on tiers 2 and 3
 undo = 800              # undo strip, fixed, never learned
@@ -82,7 +84,7 @@ drift_rate = 0.1
 drift_cap_px = 80
 drift_window_ms = 300
 calib_settle_s = 1.2
-calib_collect_s = 0.8
+calib_collect_s = 1.0
 calib_redo_px = 100
 mouse_noise_px = 0
 
@@ -96,7 +98,9 @@ shaky_ratio = 1.5
 shaky_looks = 20
 baseline_spread_px = 20
 tracking_window_s = 5.0
-poor_fraction = 0.1
+poor_fraction = 0.1         # tracking counts as poor above this share of lost frames
+poor_recover_fraction = 0.05  # and good again only below this, so it does not flicker
+banner_hold_s = 1.0         # a banner shows or clears only after its reason has held this long
 min_dist = 0.30
 max_dist = 0.70
 

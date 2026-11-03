@@ -11,16 +11,27 @@
 </head>
 <body>
   <!-- Undo strip: always in the same place. Only a button while there is something to undo. -->
-  <div id="strip"></div>
-  <div id="banner" hidden></div>
-  <div id="layout">
-    <nav id="side"></nav>
-    <main id="main"></main>
+  <div id="app">
+    <div id="strip"></div>
+    <div id="banner" hidden></div>
+    <div id="layout">
+      <nav id="side"></nav>
+      <main id="main"></main>
+      <nav id="rside"></nav>
+    </div>
+    <div id="notice" hidden></div>
+  </div>
+
+  <!-- Calibration dots and the gaze dot use the whole screen, not just the frame. -->
+  <!-- Top right corner: a tiny live view of the face from the phone (F hides it), and the
+       signal just detected. Never a gaze target. -->
+  <div id="corner">
+    <div id="sig" hidden></div>
+    <div id="facecam" hidden><img id="faceimg" alt=""></div>
   </div>
 
   <div id="calib" hidden></div>
   <div id="gaze" hidden></div>
-  <div id="notice" hidden></div>
 
   <div id="start">
     <div>
@@ -34,6 +45,7 @@
   <aside id="study" hidden>
     <h2>Study panel</h2>
     <p id="studyInfo" class="muted"></p>
+    <p id="stale" hidden></p>
     <h3>Accident costs</h3>
     <div id="costs"></div>
     <button id="applyCosts">Apply costs</button>

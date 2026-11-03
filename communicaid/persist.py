@@ -12,7 +12,8 @@ from pathlib import Path
 from .common import Bus, Clock, Frame, Outcome
 
 # High-rate or bulky events that are not worth a line each.
-SKIP = {"frame", "gaze", "tick", "button", "dim", "targets", "state", "dwell_now", "calib_dot", "check_prompt"}
+SKIP = {"frame", "gaze", "tick", "button", "dim", "targets", "state", "dwell_now", "calib_dot", "check_prompt",
+        "preview"}   # face pictures are shown live only, never stored
 
 
 def _clean(value):

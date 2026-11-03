@@ -7,6 +7,7 @@ struct FrameMessage: Encodable {
     let seq: UInt32
     let t: TimeInterval
     let dir: [Float]?          // gaze ray in camera space; nil when the face is lost
+    let eye: [Float]?          // midpoint between the eyes in camera space, metres; nil when lost
     let blinkL: Float
     let blinkR: Float
     let browIn: Float
@@ -19,6 +20,12 @@ struct FrameMessage: Encodable {
 private struct YesMessage: Encodable {
     var type = "yes"
     let t: TimeInterval
+}
+
+private struct PreviewMessage: Encodable {
+    var type = "preview"
+    let t: TimeInterval
+    let jpg: String           // base64 JPEG, about 120 x 160
 }
 
 /// Sends messages to the Mac over UDP. Knows nothing about ARKit or speech.
@@ -52,6 +59,10 @@ final class Sender {
 
     func sendYes() {
         transmit(YesMessage(t: ProcessInfo.processInfo.systemUptime))
+    }
+
+    func sendPreview(_ jpeg: Data) {
+        transmit(PreviewMessage(t: ProcessInfo.processInfo.systemUptime, jpg: jpeg.base64EncodedString()))
     }
 
     private func transmit<T: Encodable>(_ message: T) {

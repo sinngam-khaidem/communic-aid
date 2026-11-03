@@ -24,6 +24,8 @@ class Context:
         self.invalid_since: float | None = None
         self.state: dict = {}
         self.banner: str | None = None
+        self.pending: tuple[str | None, float] = (None, 0.0)
+        self.poor = False
         self.next_eval = 0.0
 
         bus.on("frame", self._frame)
@@ -81,10 +83,15 @@ class Context:
         return statistics.median(self.spreads) > self.cfg["shaky_ratio"] * self.baseline
 
     def poor_tracking(self) -> bool:
+        """Poor above poor_fraction lost frames, good again only below poor_recover_fraction, so it does not flicker."""
         if not self.frames:
-            return False
-        lost = sum(1 for _, ok in self.frames if not ok)
-        return lost / len(self.frames) > self.cfg["poor_fraction"]
+            return self.poor
+        lost = sum(1 for _, ok in self.frames if not ok) / len(self.frames)
+        if not self.poor and lost > self.cfg["poor_fraction"]:
+            self.poor = True
+        elif self.poor and lost < self.cfg["poor_recover_fraction"]:
+            self.poor = False
+        return self.poor
 
     def evaluate(self, now: float) -> None:
         if now < self.next_eval:
@@ -104,6 +111,9 @@ class Context:
             banner = "Move a little further from the screen."
         elif self.dist is not None and self.dist > self.cfg["max_dist"]:
             banner = "Move a little closer to the screen."
-        if banner != self.banner:
+        # A banner appears, changes or clears only once that has held for banner_hold_s, so it never flickers.
+        if banner != self.pending[0]:
+            self.pending = (banner, now)
+        if banner != self.banner and now - self.pending[1] >= self.cfg["banner_hold_s"]:
             self.banner = banner
             self.bus.emit("banner", {"text": banner})

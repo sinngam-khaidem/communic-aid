@@ -22,9 +22,14 @@ final class FaceSensor: NSObject, ObservableObject, ARSessionDelegate {
     var onFrame: ((FrameMessage) -> Void)?
     /// Microphone audio captured by ARKit itself, for speech.
     var onAudio: ((CMSampleBuffer) -> Void)?
+    /// A tiny JPEG of the camera image with landmarks, about 10 a second, for the Mac's corner window.
+    var onPreview: ((Data) -> Void)?
+    var previewEnabled = true
 
     let session = ARSession()
     private var sequence: UInt32 = 0
+    private let preview = FacePreview()
+    private var lastPreview: TimeInterval = 0
 
     override init() {
         super.init()
@@ -60,8 +65,9 @@ final class FaceSensor: NSObject, ObservableObject, ARSessionDelegate {
         sequence &+= 1
 
         guard let face = frame.anchors.compactMap({ $0 as? ARFaceAnchor }).first, face.isTracked else {
-            onFrame?(FrameMessage(seq: sequence, t: frame.timestamp, dir: nil, blinkL: 0, blinkR: 0,
+            onFrame?(FrameMessage(seq: sequence, t: frame.timestamp, dir: nil, eye: nil, blinkL: 0, blinkR: 0,
                                   browIn: 0, browOutL: 0, browOutR: 0, tracked: false, dist: 0))
+            sendPreview(frame, face: nil)
             if faceVisible { DispatchQueue.main.async { self.faceVisible = false } }
             return
         }
@@ -85,6 +91,7 @@ final class FaceSensor: NSObject, ObservableObject, ARSessionDelegate {
             seq: sequence,
             t: frame.timestamp,
             dir: [direction.x, direction.y, direction.z],
+            eye: [eyeMid.x, eyeMid.y, eyeMid.z],
             blinkL: value(.eyeBlinkLeft),
             blinkR: value(.eyeBlinkRight),
             browIn: value(.browInnerUp),
@@ -94,6 +101,7 @@ final class FaceSensor: NSObject, ObservableObject, ARSessionDelegate {
             dist: simd_length(eyeMid)
         )
         onFrame?(message)
+        sendPreview(frame, face: face)
 
         // Cheap readout for the on-device UI; the Mac does the real mapping.
         let yaw = atan2(direction.x, direction.z) * 180 / .pi
@@ -107,6 +115,12 @@ final class FaceSensor: NSObject, ObservableObject, ARSessionDelegate {
             self.browLevel = brow
             self.framesSent = count
         }
+    }
+
+    private func sendPreview(_ frame: ARFrame, face: ARFaceAnchor?) {
+        guard previewEnabled, let onPreview, frame.timestamp - lastPreview >= 0.1 else { return }
+        lastPreview = frame.timestamp
+        if let jpeg = preview.jpeg(frame: frame, face: face) { onPreview(jpeg) }
     }
 
     func session(_ session: ARSession, didOutputAudioSampleBuffer audioSampleBuffer: CMSampleBuffer) {

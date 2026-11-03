@@ -6,12 +6,22 @@ to pick them. Risky actions ask for a second signal (blink and hold, raised eyeb
 
 The design is in [DESIGN_PLAN.md](DESIGN_PLAN.md).
 
+## How it fits together
+
+![System architecture](figures/architecture.svg)
+
+*The iPhone only senses, the Python core makes every decision, and the browser view only draws.
+The dashed arrow is the learning loop: Interaction reports what happened, Outcomes labels it,
+and Policy learns from it.*
+
 ## Setup (once)
 
 ```bash
-uv venv --python 3.11 .venv
-uv pip install --python .venv/bin/python -e ".[dev]"
+./setup.sh
 ```
+
+It creates `.venv` (with [uv](https://docs.astral.sh/uv/) if you have it, otherwise Python 3.11
+or newer) and installs the app. Add `--test` to run the tests afterwards. Running it again is safe.
 
 ## Run without the phone (mouse test mode)
 
@@ -36,6 +46,24 @@ Esc goes home.
 4. Open http://localhost:8080 in full screen and click to start. Calibration runs first.
 
 Fix the phone below the screen, front camera facing the person, 40 to 60 cm away.
+
+## Learning log
+
+At start the terminal prints every setting from `config.toml` as a table per section, with the
+notes from the file and units filled in. The accident costs and reward values are marked "tuned often".
+
+Then it shows what the learners are doing as it happens, one line per event:
+
+```
+00:19  CHOOSE   call             tier 3  tired+steady   -> say "yes"   scores: say "yes" +0.44   raise eyebrows -0.38   switch -0.82
+00:24  OUTCOME  call             tier 3  worked              reward +0.53   check: say "yes"
+00:24  ROUTER   tier 3  tired+steady   say "yes": worked 1, gave up 0, blocked an accident 0, accident 0
+00:34  OUTCOME  back             tier 0  worked              reward +0.10   dwell 1500 ms
+00:34  DWELL    tired+steady: warm-up 2 of 20 selections, staying at 1500 ms
+```
+
+Stray glances are counted and shown as one dim line. In a terminal the outcomes are coloured
+(green worked, yellow gave up, cyan blocked an accident, red accident). Add `--quiet` to turn it off.
 
 ## Study options
 

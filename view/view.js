@@ -141,30 +141,58 @@ const chatOf = (id) => state.chats.find((c) => c.id === id);
 const initial = (name) => esc(name.replace(/^Dr\.\s*/, "")[0]);
 const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
+// The thread shows 4 messages at a time; scrolling moves this window.
+function threadWindow(c) {
+  const end = Math.max(0, c.messages.length - state.scroll);
+  const start = Math.max(0, end - 4);
+  return { shown: c.messages.slice(start, end), canUp: start > 0, canDown: state.scroll > 0 };
+}
+
+// Right sidebar on the thread: scroll buttons in a fixed place. When there is nothing to
+// scroll, a faint outline keeps the place but is not a target.
+function scrollBar() {
+  if (state.screen !== "thread") return "";
+  const { canUp, canDown } = threadWindow(chatOf(state.chat_id));
+  const ghost = (icon) => `<div class="t ghost"><span class="lb">${ICON[icon]}</span></div>`;
+  return (canUp ? B("scroll_up", "", { icon: "up" }) : ghost("up")) + (canDown ? B("scroll_down", "", { icon: "down" }) : ghost("down"));
+}
+
+// Send takes a quarter of the draft row and is always shown in the same place.
+// With an empty draft it stays visible but faded and is not a target: sending nothing should never ask for a signal.
+const sendOrSpace = () => (state.draft.trim() ? B("send", "Send", { cls: "w1" })
+  : '<div class="t ghost w1"><span class="lb"><span>Send</span></span></div>');
+
 const SCREENS = {
   landing() {
     const s = state;
+    // Continue sits bottom right at a quarter of the width, like Send.
+    const next = `<div class="row onb-next"><div class="w3"></div>${B("continue", "Continue", { cls: "w1" })}</div>`;
     if (s.landing === "calibrate") {
-      const c = s.calib && s.calib.ok === false ? `<p class="muted">The last try was not accurate. Keep your head still and follow the dot.</p>` : "";
-      return `<div class="prompt"><div><h1>Let's set up your eyes</h1><p class="muted">Look at each pink dot until it moves. Keep your head still.</p>${c}</div></div>`;
+      const again = s.calib && s.calib.ok === false ? "Let's try that once more. Keep your head still and follow the dot." : "";
+      return `<div class="onb-center"><h1>Let's set up your eyes</h1>
+        <p class="onb-lead">Look at each pink dot until it moves. Keep your head still.</p>
+        ${again ? `<p class="onb-lead">${again}</p>` : ""}</div>`;
     }
     if (s.landing === "about") {
       const opt = (kind, value, label, on) => B(`${kind}:${value}`, label, { cls: on ? "on" : "" });
-      const ages = [["under18", "Under 18"], ["18-30", "18 to 30"], ["31-50", "31 to 50"], ["over50", "Over 50"]];
-      const kinds = [["als", "ALS"], ["cp", "Cerebral palsy"], ["md", "Muscular dystrophy"], ["sci", "Spinal cord injury"], ["other", "Other"]];
-      const apps = [["whatsapp", "WhatsApp"], ["gmail", "Gmail"], ["instagram", "Instagram"], ["youtube", "YouTube"]];
-      return `<h2>About you <span class="muted">(all optional, look at an answer to pick it)</span></h2>
-        <div class="opts">${ages.map(([v, l]) => opt("age", v, l, s.about.age === v)).join("")}</div>
-        <div class="opts">${kinds.map(([v, l]) => opt("disability", v, l, s.about.disability.includes(v))).join("")}</div>
-        <div class="opts">${apps.map(([v, l]) => opt("app", v, l, s.about.app.includes(v))).join("")}</div>
-        <div class="row" style="justify-content:flex-end">${B("continue", "Continue")}</div>`;
+      const groups = [
+        ["Age", "age", [["under18", "Under 18"], ["18-30", "18 to 30"], ["31-50", "31 to 50"], ["over50", "Over 50"]], (v) => s.about.age === v],
+        ["Condition", "disability", [["als", "ALS"], ["cp", "Cerebral palsy"], ["md", "Muscular dystrophy"], ["sci", "Spinal cord injury"], ["other", "Other"]], (v) => s.about.disability.includes(v)],
+        ["Apps you use", "app", [["whatsapp", "WhatsApp"], ["gmail", "Gmail"], ["instagram", "Instagram"], ["youtube", "YouTube"]], (v) => s.about.app.includes(v)],
+      ];
+      const cols = Math.max(...groups.map((g) => g[2].length));   // one grid for all rows, so every answer is the same size
+      const rows = groups.map(([label, kind, options, on]) => `<div class="onb-label">${label}</div>
+        <div class="onb-opts" style="grid-template-columns: repeat(${cols}, 1fr)">${options.map(([v, l]) => opt(kind, v, l, on(v))).join("")}</div>`).join("");
+      return `<div class="onb-head"><h1>About you</h1><p class="onb-lead">All optional. Look at an answer to pick it.</p></div>
+        <div class="onb-form">${rows}</div>${next}`;
     }
     if (s.landing === "check") {
-      return `<div class="prompt"><div><p class="muted">Signal check</p>${esc(checkPrompt ? checkPrompt.text : "Getting ready...")}</div></div>`;
+      return `<div class="onb-center"><p class="onb-kicker">Signal check</p>
+        <p class="onb-prompt">${esc(checkPrompt ? checkPrompt.text : "Getting ready...")}</p></div>`;
     }
-    const found = SIGNALS.map((k) => `<div>${s.can_do[k] ? "✓" : "✗"} ${esc(NAMES[k])}${s.can_do[k] ? "" : ' <span class="muted">(will not be asked)</span>'}</div>`).join("");
-    return `<div class="prompt"><div><h1>All set</h1>${found}<p class="muted">You can change any of this in Settings.</p></div></div>
-      <div class="row" style="justify-content:flex-end">${B("continue", "Continue")}</div>`;
+    const found = SIGNALS.map((k) => `<li class="${s.can_do[k] ? "yes" : "no"}"><span class="mark">${s.can_do[k] ? "✓" : "✗"}</span>${esc(NAMES[k])}${s.can_do[k] ? "" : '<span class="muted"> will not be asked</span>'}</li>`).join("");
+    return `<div class="onb-center"><h1>All set</h1><ul class="onb-found">${found}</ul>
+      <p class="onb-lead">You can change any of this in Settings.</p></div>${next}`;
   },
 
   chats() {
@@ -177,17 +205,14 @@ const SCREENS = {
 
   thread() {
     const c = chatOf(state.chat_id);
-    const end = Math.max(0, c.messages.length - state.scroll);
-    const start = Math.max(0, end - 5);
-    const shown = c.messages.slice(start, end);
+    const { shown } = threadWindow(c);
     const msgs = shown.map((m, i) => `<div class="msg ${m.from === "me" ? "me" : ""}">
-        <div class="bubble">${m.forwarded ? '<span class="fw">Forwarded</span>' : ""}${esc(m.text)}${m.reaction ? `<span class="re">${esc(m.reaction)}</span>` : ""}</div>
-        ${i >= shown.length - 3 ? B(`more:${m.id}`, "More") : ""}</div>`).join("");
-    const scroll = (start > 0 ? B("scroll_up", "", { icon: "up" }) : "") + (state.scroll > 0 ? B("scroll_down", "", { icon: "down" }) : "");
+        <div class="bubble"><span class="txt">${m.forwarded ? '<span class="fw">Forwarded</span>' : ""}${esc(m.text)}${m.reaction ? `<span class="re">${esc(m.reaction)}</span>` : ""}</span>
+        ${i >= shown.length - 3 ? B(`more:${m.id}`, "More", { cls: "more" }) : ""}</div></div>`).join("");
     const draft = state.draft ? esc(state.draft) : '<span class="ph">Write a message</span>';
     return `<div class="head">${B("back", "Back", { icon: "back" })}<div class="who"><span class="av">${initial(c.name)}</span>${esc(c.name)}</div>${B("call", "Call", { icon: "phone" })}</div>
-      <div class="thread"><div class="msgs">${msgs}</div><div class="scrollcol">${scroll}</div></div>
-      <div class="row">${B("compose", null, { html: `<span style="font-weight:400">${draft}</span>`, cls: "grow" })}${state.draft.trim() ? B("send", "Send") : '<div style="min-width:200px"></div>'}</div>`;
+      <div class="thread"><div class="msgs">${msgs}</div></div>
+      <div class="row">${B("compose", null, { html: `<span class="dtext">${draft}</span>`, cls: "w3" })}${sendOrSpace()}</div>`;
   },
 
   compose() {
@@ -198,14 +223,14 @@ const SCREENS = {
     if (s.settings.keyboard === "qwerty") {
       keys = `<div class="keys qwerty">${"qwertyuiopasdfghjklzxcvbnm".split("").map((k) => B(`key:${k}`, k.toUpperCase())).join("")}</div>`;
     } else if (s.kb_group) {
-      keys = `<div class="keys letters">${s.kb_group.split("").map((k) => B(`key:${k}`, k.toUpperCase())).join("")}${B("groups", "Back", { icon: "back" })}</div>`;
+      keys = `<div class="keys letters" style="grid-template-columns: repeat(${s.kb_group.length + 1}, 1fr)">${s.kb_group.split("").map((k) => B(`key:${k}`, k.toUpperCase())).join("")}${B("groups", "Back", { icon: "back" })}</div>`;
     } else {
       keys = `<div class="keys">${s.kb_groups.map((g) => B(`group:${g}`, g.toUpperCase())).join("")}</div>`;
     }
-    return `<div class="row">${B("close_keyboard", "Close keyboard")}<div class="draft">${esc(s.draft)}<span class="caret"></span></div>${s.draft.trim() ? B("send", "Send") : '<div style="min-width:200px"></div>'}</div>
+    return `<div class="row"><div class="draft w3">${esc(s.draft)}<span class="caret"></span></div>${sendOrSpace()}</div>
       <div class="row" style="min-height:88px">${suggestions.join("")}</div>
       ${keys}
-      <div class="row">${B("backspace", "Backspace", { icon: "backspace" })}${B("space", "Space", { cls: "grow" })}</div>`;
+      <div class="row">${B("close_keyboard", "Close keyboard", { cls: "w1" })}${B("backspace", "Backspace", { icon: "backspace", cls: "w1" })}${B("space", "Space", { cls: "w2" })}</div>`;
   },
 
   actions() {
@@ -233,7 +258,7 @@ const SCREENS = {
   settings() {
     const st = state.settings;
     const toggles = SIGNALS.map((k) => B(`toggle:${k}`, null, { cls: `short ${st.enabled[k] ? "on" : "off"}`,
-      html: `<span>${esc(NAMES[k])}<span class="sub">${st.enabled[k] ? "On" : "Off"}</span>${state.can_do[k] ? "" : '<span class="cant">not found in signal check</span>'}</span>` })).join("");
+      html: `<span>${esc(NAMES[k])}<span class="sub">${st.enabled[k] ? "On" : "Off"}</span>${state.can_do[k] ? "" : '<span class="cant">not found</span>'}</span>` })).join("");
     const prefer = SIGNALS.filter((k) => st.enabled[k]).map((k) => B(`prefer:${k}`, NAMES[k], { cls: `short ${st.preferred === k ? "on" : ""}` })).join("");
     return `<h2>Settings</h2><div class="settings">
       <div class="label">Signals</div><div class="row">${toggles}</div>
@@ -247,6 +272,8 @@ const SCREENS = {
 
 function render() {
   if (!state) return;
+  // During setup the whole screen belongs to the calibration and signal check dots.
+  document.body.classList.toggle("setup", state.screen === "landing");
   $("#strip").innerHTML = state.undo
     ? B(state.undo.mode, state.undo.mode === "undo" ? "Undo" : "Redo", { icon: state.undo.mode })
     : `<div class="rest">${ICON.undo}</div>`;
@@ -256,6 +283,7 @@ function render() {
       B("nav_settings", "Settings", { icon: "settings", cls: state.screen === "settings" ? "on" : "" })
     : "";
   $("#main").innerHTML = (SCREENS[state.screen] || SCREENS.chats)();
+  $("#rside").innerHTML = scrollBar();
   reapplyButtons();
   reportTargets();
   ring(state.call && !state.call.connected);
@@ -282,6 +310,22 @@ function showDot(x, y) {
   d.hidden = false;
   d.style.left = `${x}px`;
   d.style.top = `${y}px`;
+}
+
+// ---------- corner: face view and the signal just detected ----------
+
+let showFace = true;
+try { showFace = localStorage.getItem("showFace") !== "no"; } catch (_) { /* fine without storage */ }
+let sigTimer = null;
+function showSignal(kind) {
+  const s = $("#sig");
+  s.innerHTML = `${ICON[kind] || ""}<span>${esc(NAMES[kind] || kind)}</span>`;
+  s.hidden = false;
+  s.style.animation = "none";
+  void s.offsetWidth;
+  s.style.animation = "";
+  clearTimeout(sigTimer);
+  sigTimer = setTimeout(() => (s.hidden = true), 1600);
 }
 
 let noticeTimer = null;
@@ -349,7 +393,15 @@ function renderDebug() {
 // ---------- connection ----------
 
 function send(m) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(m)); }
-function hello() { if (started) send({ type: "hello", w: innerWidth, h: innerHeight }); }
+// The page's size and where its top left sits on the screen, so the core can keep gaze anchored
+// to the screen when the window leaves full screen or moves.
+const origin = () => ({ ox: screenX + (outerWidth - innerWidth) / 2, oy: screenY + (outerHeight - innerHeight) });
+function hello() { if (started) send({ type: "hello", w: innerWidth, h: innerHeight, ...origin() }); }
+let lastOrigin = "";
+setInterval(() => {   // moving a window fires no resize event, so check its position now and then
+  const o = JSON.stringify(origin());
+  if (o !== lastOrigin) { lastOrigin = o; hello(); }
+}, 1000);
 
 const HANDLERS = {
   init(m) {
@@ -376,10 +428,17 @@ const HANDLERS = {
     if (state && state.screen === "landing") render();
   },
   check_done() { showDot(null); checkPrompt = null; },
+  preview(m) {
+    $("#faceimg").src = `data:image/jpeg;base64,${m.jpg}`;
+    $("#facecam").hidden = !showFace;
+  },
+  signal(m) { showSignal(m.kind); },
   choice(m) { debug.choice = m; renderDebug(); },
   dwell_now(m) { debug.dwell[m.tier] = m.ms; debug.group = m.group; renderDebug(); },
   context(m) { debug.context = m; debug.group = m.group; renderDebug(); },
   config(m) { buildCosts(m.costs); },
+  // Researcher only: never shown on the participant's screen.
+  stale(m) { const s = $("#stale"); s.textContent = m.text; s.hidden = false; },
 };
 
 function connect() {
@@ -395,6 +454,12 @@ addEventListener("keydown", (e) => {
   if (e.target.closest && e.target.closest("#study")) return;
   if (e.key === "`") { $("#study").hidden = !$("#study").hidden; return; }
   if (e.key === "\\") { $("#debug").hidden = !$("#debug").hidden; renderDebug(); return; }
+  if (e.key === "f" || e.key === "F") {
+    showFace = !showFace;
+    try { localStorage.setItem("showFace", showFace ? "yes" : "no"); } catch (_) { /* fine */ }
+    $("#facecam").hidden = !showFace || !$("#faceimg").src;
+    return;
+  }
   if (e.repeat) return;
   if (e.key === " " || e.key === "Enter") e.preventDefault();
   send({ type: "key", key: e.key, down: true });
@@ -429,8 +494,18 @@ $("#start").addEventListener("click", () => {
   setTimeout(() => { hello(); reportTargets(); }, 400);
 });
 
+// Scale the 1280 x 860 frame to fill the screen height (or width, if that runs out first),
+// keeping a 16 px margin and the same aspect ratio.
+const FRAME = { w: 1280, h: 860, margin: 16 };
+function fit() {
+  const s = Math.min((innerWidth - 2 * FRAME.margin) / FRAME.w, (innerHeight - 2 * FRAME.margin) / FRAME.h);
+  document.documentElement.style.setProperty("--s", Math.max(0.5, s).toFixed(4));
+}
+fit();
+
 let resizeTimer = null;
 addEventListener("resize", () => {
+  fit();
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => { hello(); reportTargets(); }, 200);
 });
