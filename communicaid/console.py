@@ -15,7 +15,9 @@ from __future__ import annotations
 import os
 import sys
 
-from .common import Bus, Clock
+from pathlib import Path
+
+from .common import ROOT, Bus, Clock
 
 NAMES = {"dwell": "dwell only", "blink": "blink and hold", "brows": "raise eyebrows",
          "yes": 'say "yes"', "switch": "switch"}
@@ -111,3 +113,83 @@ class Console:
     def _context(self, p: dict) -> None:
         extra = ", poor tracking" if p.get("poor_tracking") else ""
         self._line("GROUP", f"now {p['group']}{extra}")
+
+
+# ---------- settings at startup ----------
+
+NO_UNIT = {"warmup_selections", "smoothing", "borrow_looks", "borrow_tries", "preferred_bonus", "tick_hz",
+           "check_tries", "escape_presses", "slip_count", "slip_window", "shaky_looks", "tired_hour",
+           "http_port", "udp_port", "drain_speed", "shaky_ratio", "poor_fraction", "drift_rate", "version",
+           "effort_per_s"}
+
+
+def _notes(path) -> tuple[dict, dict]:
+    """Read the comments in config.toml: one per setting, and the lines just above each [section]."""
+    keys, sections, above, section = {}, {}, [], None
+    for raw in open(path, encoding="utf-8"):
+        line = raw.strip()
+        if line.startswith("#"):
+            above.append(line.lstrip("# ").strip())
+        elif line.startswith("["):
+            section = line.strip("[]")
+            sections[section] = " ".join(a for a in above if a)
+            above = []
+        elif "=" in line and section:
+            key, _, rest = line.partition("=")
+            if "#" in rest and not rest.strip().startswith(("[", '"')):
+                keys[(section, key.strip())] = rest.split("#", 1)[1].strip()
+            above = []
+        else:
+            above = []
+    return keys, sections
+
+
+def _value(section: str, key: str, value) -> str:
+    if isinstance(value, list):
+        return ", ".join(repr(v) for v in value)
+    if isinstance(value, bool) or isinstance(value, str) or key in NO_UNIT:
+        return str(value)
+    if key.endswith("_s"):
+        return f"{value} s"
+    if key.endswith("_ms") or key.endswith("_px"):
+        return f"{value} {key.rsplit('_', 1)[1]}"
+    if section in ("dwell",) or key in ("start", "min", "max"):
+        return f"{value} ms"
+    if key in ("min_dist", "max_dist"):
+        return f"{value} m"
+    return str(value)
+
+
+def print_config(config: dict, path: Path, info: dict) -> None:
+    """Print every setting as a neat table per section, using rich."""
+    import re
+
+    from rich import box
+    from rich.columns import Columns
+    from rich.console import Console as RichConsole
+    from rich.panel import Panel
+    from rich.table import Table
+
+    out = RichConsole()
+    keys, sections = _notes(path)
+    tables = []
+    for section, values in config.items():
+        ref = re.search(r"Section ([\d.]+(?: and [\d.]+)?)", sections.get(section, ""))
+        title = f"[bold]{section}[/]" + (f"  [dim]plan {ref.group(1)}[/]" if ref else "")
+        often = section in ("costs", "reward")
+        if often:
+            title += "  [yellow]tuned often[/]"
+        has_notes = any((section, k) in keys for k in values)
+        table = Table(title=title, box=box.SIMPLE_HEAD, title_justify="left", show_edge=False, pad_edge=False)
+        table.add_column("setting", style="cyan", no_wrap=True)
+        table.add_column("value", style="bold yellow" if often else "bold", no_wrap=True)
+        if has_notes:
+            table.add_column("note", style="dim", max_width=44)
+        for key, value in values.items():
+            row = [key, _value(section, key, value)]
+            table.add_row(*(row + [keys.get((section, key), "")] if has_notes else row))
+        tables.append(table)
+    head = "   ".join(f"[dim]{k}[/] [bold]{v}[/]" for k, v in info.items())
+    name = path.relative_to(ROOT) if path.is_relative_to(ROOT) else path
+    out.print(Panel(head, title="[bold]Communic-aid settings[/]", subtitle=f"[dim]{name}[/]", expand=False))
+    out.print(Columns(tables, padding=(1, 4)))

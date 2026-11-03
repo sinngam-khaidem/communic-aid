@@ -18,7 +18,7 @@ import numpy as np
 
 from .chat import TIERS, Chat
 from .common import ROOT, SIGNALS, Bus, Clock, load_config
-from .console import Console
+from .console import Console, print_config
 from .context import Context
 from .gaze import Gaze
 from .interaction import Interaction
@@ -115,6 +115,10 @@ async def run(args) -> None:
     if app["arkit"]:
         await app["arkit"].start()
     port = args.port or config["server"]["http_port"]
+    if not args.quiet:
+        print_config(config, Path(args.config) if args.config else ROOT / "config.toml",
+                     {"person": args.person, "condition": args.condition, "source": args.source,
+                      "costs": config["costs"]["version"]})
     print(f"Communic-aid running for {args.person} ({args.condition}, source: {args.source})")
     print(f"  open  http://localhost:{port}  in full screen")
     if app["arkit"]:

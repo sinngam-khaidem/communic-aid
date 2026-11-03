@@ -49,7 +49,10 @@ Fix the phone below the screen, front camera facing the person, 40 to 60 cm away
 
 ## Learning log
 
-The terminal shows what the learners are doing as it happens, one line per event:
+At start the terminal prints every setting from `config.toml` as a table per section, with the
+notes from the file and units filled in. The accident costs and reward values are marked "tuned often".
+
+Then it shows what the learners are doing as it happens, one line per event:
 
 ```
 00:19  CHOOSE   call             tier 3  tired+steady   -> say "yes"   scores: say "yes" +0.44   raise eyebrows -0.38   switch -0.82
