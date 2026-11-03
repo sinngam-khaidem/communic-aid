@@ -1,17 +1,19 @@
 import SwiftUI
 
 struct ContentView: View {
-    @ObservedObject var tracker: GazeTracker
+    @ObservedObject var streamer: Streamer
+    @ObservedObject var sensor: FaceSensor
 
     @AppStorage("host") private var host = "192.168.1.34"
     @AppStorage("port") private var portText = "5005"
+    @AppStorage("listen") private var listen = true
 
     var body: some View {
         VStack(spacing: 22) {
             Text("Gaze Streamer")
                 .font(.largeTitle.bold())
 
-            if !tracker.isSupported {
+            if !sensor.isSupported {
                 Label("No TrueDepth face tracking on this device",
                       systemImage: "exclamationmark.triangle.fill")
                     .foregroundStyle(.red)
@@ -28,25 +30,27 @@ struct ContentView: View {
                 TextField("5005", text: $portText)
                     .textFieldStyle(.roundedBorder)
                     .keyboardType(.numberPad)
-            }
-            .disabled(tracker.isRunning)
 
-            Button(tracker.isRunning ? "Stop" : "Start streaming") {
-                if tracker.isRunning {
-                    tracker.stop()
+                Toggle("Listen for \"yes\"", isOn: $listen)
+            }
+            .disabled(sensor.isRunning)
+
+            Button(sensor.isRunning ? "Stop" : "Start streaming") {
+                if sensor.isRunning {
+                    streamer.stop()
                 } else {
-                    tracker.start(host: host, port: UInt16(portText) ?? 5005)
+                    streamer.start(host: host, port: UInt16(portText) ?? 5005, listen: listen)
                 }
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .disabled(!tracker.isSupported)
+            .disabled(!sensor.isSupported)
 
             statusPanel
 
             Spacer()
 
-            Text("Hold the phone steady beside the monitor, front camera facing you.")
+            Text("Fix the phone below the screen, front camera facing you, 40 to 60 cm away.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -58,29 +62,36 @@ struct ContentView: View {
         VStack(spacing: 8) {
             HStack {
                 Circle()
-                    .fill(tracker.faceVisible ? .green : .gray)
+                    .fill(sensor.faceVisible ? .green : .gray)
                     .frame(width: 12, height: 12)
-                Text(tracker.faceVisible ? "Face tracked" : "No face")
+                Text(sensor.faceVisible ? "Face tracked" : "No face")
                     .font(.headline)
             }
-            Text(tracker.status)
+            Text(streamer.error ?? sensor.status)
+                .font(.caption)
+                .foregroundStyle(streamer.error == nil ? Color.secondary : Color.red)
+                .multilineTextAlignment(.center)
+            Text(streamer.speechStatus)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
 
-            if tracker.isRunning {
+            if sensor.isRunning {
                 Grid(horizontalSpacing: 18, verticalSpacing: 4) {
                     GridRow {
                         Text("yaw").foregroundStyle(.secondary)
-                        Text(String(format: "%+.1f°", tracker.yawDegrees)).monospacedDigit()
+                        Text(String(format: "%+.1f°", sensor.yawDegrees)).monospacedDigit()
                     }
                     GridRow {
                         Text("pitch").foregroundStyle(.secondary)
-                        Text(String(format: "%+.1f°", tracker.pitchDegrees)).monospacedDigit()
+                        Text(String(format: "%+.1f°", sensor.pitchDegrees)).monospacedDigit()
                     }
                     GridRow {
-                        Text("packets").foregroundStyle(.secondary)
-                        Text("\(tracker.packetsSent)").monospacedDigit()
+                        Text("brows").foregroundStyle(.secondary)
+                        Text(String(format: "%.2f", sensor.browLevel)).monospacedDigit()
+                    }
+                    GridRow {
+                        Text("frames").foregroundStyle(.secondary)
+                        Text("\(sensor.framesSent)").monospacedDigit()
                     }
                 }
                 .font(.system(.body, design: .monospaced))
