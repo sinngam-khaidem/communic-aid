@@ -51,7 +51,8 @@ class DwellLearner:
         d = self.config["dwell"]
         if self.selections[group] < d["warmup_selections"]:
             return int(d["start"])
-        return int(round(self.current.get(f"{tier}|{group}", float(d["start"]))))
+        # Limits apply on read too, so changing min or max in the config takes effect straight away.
+        return int(round(np.clip(self.current.get(f"{tier}|{group}", float(d["start"])), d["min"], d["max"])))
 
     def _step(self, tier: int, group: str) -> None:
         """After each selection: draw plausible habits, pick the best dwell, move a little towards it."""
@@ -68,7 +69,8 @@ class DwellLearner:
         grid = np.arange(d["min"], d["max"] + 1, d["step"], dtype=float)
         best = float(grid[np.argmax(self.score(grid, pi, g, p, tier))])
         cur = self.current.get(key, float(d["start"]))
-        step = float(np.clip(d["smoothing"] * (best - cur), -d["max_step"], d["max_step"]))
+        # Shorter only in small, slow steps; longer more readily, because accidents cost more than waiting.
+        step = float(np.clip(d["smoothing"] * (best - cur), -d["max_step_down"], d["max_step_up"]))
         cur = float(np.clip(cur + step, d["min"], d["max"]))
         self.current[key] = cur
         self.last = {"tier": tier, "group": group, "dwell": round(cur), "best": best,

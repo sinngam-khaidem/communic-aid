@@ -28,9 +28,10 @@ ROUTER_PEOPLE = {
 }
 
 
-def simulate_dwell(person: dict, tier: int, looks: int = 400, seed: int = 0, group: str = "rested+steady"):
+def simulate_dwell(person: dict, tier: int, looks: int = 400, seed: int = 0, group: str = "rested+steady",
+                   config: dict | None = None):
     rng = np.random.default_rng(seed)
-    policy = AdaptivePolicy(load_config(), rng)
+    policy = AdaptivePolicy(config or load_config(), rng)
     used, accidents, give_ups = [], 0, 0
     for _ in range(looks):
         d = policy.dwell_for(tier, group)

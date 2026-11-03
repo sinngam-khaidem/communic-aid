@@ -337,7 +337,7 @@ The starting values mean "stray glances last about 300 ms and people wait about 
    - share of intended looks `π`: a Beta draw from #1 and #2
    - typical stray glance `g`: #4 divided by a Gamma draw with shape #3
    - typical patience `p`: #6 divided by a Gamma draw with shape #5
-2. For every dwell `d` from 400 to 2000 ms in 25 ms steps:
+2. For every dwell `d` from 800 to 2000 ms (the limits) in 25 ms steps:
 
 ```
 accident chance   A(d) = e^(-d / g)
@@ -353,12 +353,13 @@ score(d) = π × [ (1 - G) × (1 - 0.6 × d_seconds)  -  0.5 × G ]
 **Keeping it calm.** A dwell that jumps on every look would feel random. So:
 
 - The first 20 **selections** in a group use 1500 ms. Stray glances never count towards this, so the warm-up cannot end just because gaze wandered. The learner still records everything.
-- After that, the dwell changes only once per selection, never on a glance: move 20% of the way towards the chosen value, and at most 150 ms at a time: `dwell = dwell + clip(0.2 × (best - dwell), ±150)`.
-- Limits: 400 to 2000 ms.
+- After that, the dwell changes only once per selection, never on a glance. It moves 5% of the way towards the chosen value, but **shorter only very slowly** (at most 10 ms per selection, under 1%) and **longer more readily** (up to 100 ms), because an accident costs more than a little waiting: `dwell = dwell + clip(0.05 × (best - dwell), -10, +100)`.
+- From 1500 ms, a run of clean selections brings it to about 1390 ms after 30 selections and 1190 ms after 50.
+- Limits: 800 to 2000 ms. It never goes below 800 ms, however well things go.
 
 **Likely next letter (optional, from Report 2).** In Compose, letter groups holding the next letter of the top 3 predicted words get 0.8 times the dwell. Only use this if typing feels slow in the pilot.
 
-**Quick check we ran.** A simulation of this exact learner, 400 looks per case:
+**Quick check we ran.** A simulation of the learner's own preference (without the 800 ms floor and the slow-descent limit), 400 looks per case:
 
 | Simulated person | Tier 0 (starting cost 1) | Tier 1 (starting cost 2) |
 |---|---|---|
@@ -425,8 +426,8 @@ The accident costs and the other reward values are **settings we expect to chang
 | Come-back window | 2 s for looks, 3 s for signals | Rarely |
 | Warm-up | 20 selections per group at 1500 ms | Rarely |
 | Borrowing | under 30 looks (dwell), under 20 tries (router) | Rarely |
-| Smoothing | 20% step, at most 150 ms, once per selection | Rarely |
-| Dwell limits | 400 to 2000 ms | Rarely |
+| Smoothing | 5% step once per selection: at most 10 ms shorter, up to 100 ms longer | Sometimes |
+| Dwell limits | 800 to 2000 ms | Sometimes |
 
 **Where they live.** All in `config.toml` (section 9). The costs and reward values can also be edited from the study panel, so we can change them between pilot sessions without touching code.
 

@@ -26,18 +26,36 @@ def test_dwell_moves_in_small_steps_after_warmup(config):
         seen.append(policy.dwell_for(1, "rested+steady"))
     warm = config["dwell"]["warmup_selections"]
     assert all(d == config["dwell"]["start"] for d in seen[:warm - 1])
-    assert max(abs(a - b) for a, b in zip(seen, seen[1:])) <= config["dwell"]["max_step"] + 1
+    drops = [a - b for a, b in zip(seen, seen[1:]) if b < a]
+    assert drops and max(drops) <= config["dwell"]["max_step_down"] + 1
+
+
+def test_dwell_stays_high_after_many_successes(config):
+    """Even a long run of clean selections only brings the dwell down slowly."""
+    policy = AdaptivePolicy(config, np.random.default_rng(0))
+    for _ in range(config["dwell"]["warmup_selections"] + 30):
+        policy.learn(Outcome("dwell", "worked", "key:a", 1, "rested+steady", dwell=policy.dwell_for(1, "rested+steady")))
+    steps = 30 + 1   # the 20th selection makes the first step
+    assert policy.dwell_for(1, "rested+steady") >= config["dwell"]["start"] - steps * config["dwell"]["max_step_down"]
+    assert policy.dwell_for(1, "rested+steady") >= config["dwell"]["min"]
+
+
+def free(config):
+    """The learner's own preference, without the safety floor and the slow-descent limit."""
+    config["dwell"].update(min=400, max_step_down=150, smoothing=0.2)
+    return config
 
 
 def test_dwell_is_longer_when_tired(config):
-    rested = simulate_dwell(DWELL_PEOPLE["rested, steady gaze"], tier=1)[0]
-    tired = simulate_dwell(DWELL_PEOPLE["tired"], tier=1)[0]
+    rested = simulate_dwell(DWELL_PEOPLE["rested, steady gaze"], tier=1, config=free(config))[0]
+    tired = simulate_dwell(DWELL_PEOPLE["tired"], tier=1, config=config)[0]
     assert tired > rested + 50
 
 
 def test_dwell_is_longer_when_mistakes_cost_more(config):
     person = DWELL_PEOPLE["rested, steady gaze"]
-    assert simulate_dwell(person, tier=1)[0] > simulate_dwell(person, tier=0)[0]
+    free(config)
+    assert simulate_dwell(person, tier=1, config=config)[0] > simulate_dwell(person, tier=0, config=config)[0]
 
 
 def test_router_stops_asking_for_a_signal_that_fails():
