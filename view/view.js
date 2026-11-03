@@ -370,7 +370,15 @@ function renderDebug() {
 // ---------- connection ----------
 
 function send(m) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(m)); }
-function hello() { if (started) send({ type: "hello", w: innerWidth, h: innerHeight }); }
+// The page's size and where its top left sits on the screen, so the core can keep gaze anchored
+// to the screen when the window leaves full screen or moves.
+const origin = () => ({ ox: screenX + (outerWidth - innerWidth) / 2, oy: screenY + (outerHeight - innerHeight) });
+function hello() { if (started) send({ type: "hello", w: innerWidth, h: innerHeight, ...origin() }); }
+let lastOrigin = "";
+setInterval(() => {   // moving a window fires no resize event, so check its position now and then
+  const o = JSON.stringify(origin());
+  if (o !== lastOrigin) { lastOrigin = o; hello(); }
+}, 1000);
 
 const HANDLERS = {
   init(m) {

@@ -89,7 +89,7 @@ class ViewServer:
     def _receive(self, m: dict) -> None:
         kind = m.get("type")
         if kind == "hello":
-            self.bus.emit("screen", {"w": m["w"], "h": m["h"]})
+            self.bus.emit("screen", {"w": m["w"], "h": m["h"], "ox": m.get("ox", 0), "oy": m.get("oy", 0)})
         elif kind == "targets":
             self.bus.emit("targets", {"targets": [Target(t["action"], t["x"], t["y"], t["w"], t["h"])
                                                   for t in m["targets"]]})

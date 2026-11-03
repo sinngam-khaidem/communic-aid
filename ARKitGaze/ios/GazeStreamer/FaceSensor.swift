@@ -60,7 +60,7 @@ final class FaceSensor: NSObject, ObservableObject, ARSessionDelegate {
         sequence &+= 1
 
         guard let face = frame.anchors.compactMap({ $0 as? ARFaceAnchor }).first, face.isTracked else {
-            onFrame?(FrameMessage(seq: sequence, t: frame.timestamp, dir: nil, blinkL: 0, blinkR: 0,
+            onFrame?(FrameMessage(seq: sequence, t: frame.timestamp, dir: nil, eye: nil, blinkL: 0, blinkR: 0,
                                   browIn: 0, browOutL: 0, browOutR: 0, tracked: false, dist: 0))
             if faceVisible { DispatchQueue.main.async { self.faceVisible = false } }
             return
@@ -85,6 +85,7 @@ final class FaceSensor: NSObject, ObservableObject, ARSessionDelegate {
             seq: sequence,
             t: frame.timestamp,
             dir: [direction.x, direction.y, direction.z],
+            eye: [eyeMid.x, eyeMid.y, eyeMid.z],
             blinkL: value(.eyeBlinkLeft),
             blinkR: value(.eyeBlinkRight),
             browIn: value(.browInnerUp),

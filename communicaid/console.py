@@ -24,7 +24,7 @@ NAMES = {"dwell": "dwell only", "blink": "blink and hold", "brows": "raise eyebr
 KINDS = {"worked": "worked", "gave_up": "gave up", "blocked": "blocked an accident",
          "accident": "accident", "passed_by": "passed by"}
 COLOURS = {"worked": "32", "gave_up": "33", "blocked": "36", "accident": "31",
-           "CHOOSE": "35", "OUTCOME": "1", "DWELL": "34", "ROUTER": "34", "GROUP": "1", "dim": "2"}
+           "CHOOSE": "35", "OUTCOME": "1", "DWELL": "34", "ROUTER": "34", "GROUP": "1", "CALIB": "36", "dim": "2"}
 
 
 class Console:
@@ -35,10 +35,12 @@ class Console:
         bus.on("choice", self._choice)
         bus.on("learned", self._learned)
         bus.on("context", self._context)
+        bus.on("calib_done", self._calib)
 
     def legend(self) -> None:
         self._print("\n  Learning log", "GROUP")
-        self._print("  CHOOSE   the router's pick for a tier 2 or 3 action, with every option's score\n"
+        self._print("  CALIB    how well calibration fitted: under 100 px is good\n"
+                    "  CHOOSE   the router's pick for a tier 2 or 3 action, with every option's score\n"
                     "  OUTCOME  what happened and its reward. It appears once the 5 s undo window closes,\n"
                     "           so it can come after the next action\n"
                     "  DWELL    how the dwell moved after a selection    ROUTER  the router's updated tally\n"
@@ -109,6 +111,17 @@ class Console:
             moves = "   ".join(f"tier {c['tier']} {c['before']} -> {c['after']} ms" for c in changes)
             picks = " / ".join(f"{c['best']}" for c in changes)
             self._line("DWELL", f"{first['group']}: {moves}   (learner's picks {picks} ms)")
+
+    def _calib(self, p: dict) -> None:
+        if "dots" not in p:
+            return                                       # mouse test mode: nothing was calibrated
+        how = "head-compensated" if p.get("basis") == "plane" else "angles only (update the phone app)"
+        if p.get("error_px") is None:
+            self._line("CALIB", self._paint(f"not enough steady readings ({p.get('dots', 0)} of 9 dots)", "gave_up"))
+            return
+        quality = self._paint("good", "worked") if p["ok"] else self._paint("loose", "gave_up")
+        self._line("CALIB", f"fit error {p['error_px']:.0f} px ({quality})   steadiness {p['spread_px']:.0f} px   "
+                            f"{p['dots']} of 9 dots   {how}")
 
     def _context(self, p: dict) -> None:
         extra = ", poor tracking" if p.get("poor_tracking") else ""

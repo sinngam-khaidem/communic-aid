@@ -84,7 +84,7 @@ drift_rate = 0.1
 drift_cap_px = 80
 drift_window_ms = 300
 calib_settle_s = 1.2
-calib_collect_s = 0.8
+calib_collect_s = 1.0
 calib_redo_px = 100
 mouse_noise_px = 0
 

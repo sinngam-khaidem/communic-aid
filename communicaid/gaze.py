@@ -2,6 +2,13 @@
 
 Calibration (9 dots, quadratic fit, reused from ARKitGaze/mac/gaze_receiver.py), smoothing,
 freezing while the eyes are closed, and slow drift correction from successful selections.
+
+Two things keep it accurate in real use:
+  * Head compensation. When the phone sends the eye position, the gaze ray is intersected with
+    the phone's plane (the screen plane) and that point is mapped, so moving the head does not
+    move the gaze. Older phone builds without the eye position fall back to the ray's angles.
+  * Screen anchoring. The mapping is learned in screen pixels. The view reports where its page
+    sits on the screen, so leaving full screen or moving the window does not shift the gaze.
 """
 
 from __future__ import annotations
@@ -28,15 +35,37 @@ def angles(d: tuple[float, float, float]) -> tuple[float, float]:
     return math.degrees(math.atan2(dx, dz)), math.degrees(math.atan2(dy, dz))
 
 
-class Mapping:
-    """Yaw and pitch in degrees to screen pixels."""
+def on_plane(eye: tuple[float, float, float], d: tuple[float, float, float]) -> tuple[float, float] | None:
+    """Where the gaze ray meets the phone's plane (z = 0 in camera space), in millimetres."""
+    ex, ey, ez = eye
+    dx, dy, dz = d
+    if abs(dz) < 1e-6:
+        return None
+    t = -ez / dz
+    if t <= 0:
+        return None
+    return (ex + t * dx) * 1000, (ey + t * dy) * 1000
 
-    def __init__(self, coef_x, coef_y, mu, sigma) -> None:
+
+def reading(f: Frame, basis: str) -> tuple[float, float] | None:
+    """The two numbers the mapping uses for this frame."""
+    if f.dir is None:
+        return None
+    if basis == "plane":
+        return on_plane(f.eye, f.dir) if f.eye is not None else None
+    return angles(f.dir)
+
+
+class Mapping:
+    """Gaze readings (plane point in mm, or yaw and pitch in degrees) to screen pixels."""
+
+    def __init__(self, coef_x, coef_y, mu, sigma, basis: str = "angles") -> None:
         self.coef_x, self.coef_y = np.asarray(coef_x), np.asarray(coef_y)
         self.mu, self.sigma = np.asarray(mu), np.asarray(sigma)
+        self.basis = basis
 
     @classmethod
-    def fit(cls, observations, targets) -> tuple["Mapping", float]:
+    def fit(cls, observations, targets, basis: str = "angles") -> tuple["Mapping", float]:
         """Least squares on standardised angles with a small ridge term (same as gaze_receiver.py)."""
         obs, tgt = np.asarray(observations, float), np.asarray(targets, float)
         mu, sigma = obs.mean(axis=0), obs.std(axis=0)
@@ -44,7 +73,7 @@ class Mapping:
         z = (obs - mu) / sigma
         A = features(z[:, 0], z[:, 1])
         gram = A.T @ A + 1e-2 * np.eye(A.shape[1])
-        m = cls(np.linalg.solve(gram, A.T @ tgt[:, 0]), np.linalg.solve(gram, A.T @ tgt[:, 1]), mu, sigma)
+        m = cls(np.linalg.solve(gram, A.T @ tgt[:, 0]), np.linalg.solve(gram, A.T @ tgt[:, 1]), mu, sigma, basis)
         pred = np.array([m.predict(*o) for o in obs])
         return m, float(np.sqrt(((pred - tgt) ** 2).sum(axis=1).mean()))
 
@@ -55,7 +84,7 @@ class Mapping:
 
     def to_dict(self) -> dict:
         return {"coef_x": self.coef_x.tolist(), "coef_y": self.coef_y.tolist(),
-                "mu": self.mu.tolist(), "sigma": self.sigma.tolist()}
+                "mu": self.mu.tolist(), "sigma": self.sigma.tolist(), "basis": self.basis}
 
 
 class Gaze:
@@ -74,14 +103,19 @@ class Gaze:
         self.smoothed: tuple[float, float] | None = None
         self.offset = np.zeros(2)
         self.history: deque[tuple[float, float, float]] = deque(maxlen=120)
-        self.screen = (1440.0, 900.0)
+        self.screen = (1440.0, 900.0)       # page size
+        self.origin = np.zeros(2)           # where the page's top left sits on the screen
         self.calib: dict | None = None
 
         bus.on("frame", lambda p: self.on_frame(p["frame"]))
-        bus.on("screen", lambda p: setattr(self, "screen", (float(p["w"]), float(p["h"]))))
+        bus.on("screen", self._screen)
         bus.on("levels", lambda p: setattr(self, "closed_level", p["closed_level"]))
         bus.on("start_calibration", lambda p: self.start_calibration())
         bus.on("outcome", self._drift)
+
+    def _screen(self, p: dict) -> None:
+        self.screen = (float(p["w"]), float(p["h"]))
+        self.origin = np.array([float(p.get("ox", 0.0)), float(p.get("oy", 0.0))])
 
     # ---------- every frame ----------
 
@@ -112,14 +146,18 @@ class Gaze:
         self.bus.emit("gaze", {"t": now, "valid": True, "frozen": False, "x": x, "y": y})
 
     def _raw_point(self, f: Frame) -> tuple[float, float] | None:
+        """A point in screen pixels (or the mouse's page point in test mode)."""
         if f.point is not None:
-            return f.point
-        if f.dir is not None and self.mapping is not None:
-            return self.mapping.predict(*angles(f.dir))
-        return None
+            return f.point[0] + self.origin[0], f.point[1] + self.origin[1]
+        if self.mapping is None:
+            return None
+        r = reading(f, self.mapping.basis)
+        return self.mapping.predict(*r) if r is not None else None
 
     def _shown(self) -> tuple[float, float]:
-        return self.smoothed[0] + self.offset[0], self.smoothed[1] + self.offset[1]
+        """The smoothed screen point, corrected for drift, in the page's own pixels."""
+        return (self.smoothed[0] + self.offset[0] - self.origin[0],
+                self.smoothed[1] + self.offset[1] - self.origin[1])
 
     # ---------- drift correction ----------
 
@@ -131,7 +169,8 @@ class Gaze:
         if not pts:
             return
         mean = np.mean(pts, axis=0) + self.offset
-        self.offset += self.drift_rate * (np.asarray(o.center) - mean)
+        center = np.asarray(o.center) + self.origin          # page pixels to screen pixels
+        self.offset += self.drift_rate * (center - mean)
         size = float(np.linalg.norm(self.offset))
         if size > self.drift_cap:
             self.offset *= self.drift_cap / size
@@ -140,7 +179,7 @@ class Gaze:
     # ---------- calibration ----------
 
     def start_calibration(self) -> None:
-        self.calib = {"i": -1, "started": 0.0, "samples": [], "obs": [], "targets": [], "spreads": []}
+        self.calib = {"i": -1, "started": 0.0, "samples": [], "obs": [], "targets": [], "spreads": [], "basis": None}
         self.offset[:] = 0
         self._next_dot(self.clock.now())
 
@@ -153,7 +192,7 @@ class Gaze:
             return
         fx, fy = DOTS[c["i"]]
         x, y = fx * self.screen[0], fy * self.screen[1]
-        c["targets"].append((x, y))
+        c["targets"].append((x + self.origin[0], y + self.origin[1]))     # learned in screen pixels
         self.bus.emit("calib_dot", {"x": x, "y": y, "i": c["i"], "n": len(DOTS)})
 
     def _calibrate_step(self, f: Frame, now: float) -> None:
@@ -163,13 +202,17 @@ class Gaze:
             self.calib = None
             self.bus.emit("calib_done", {"error_px": 0.0, "spread_px": None, "ok": True})
             return
+        if c["basis"] is None and f.tracked and f.dir is not None:
+            c["basis"] = "plane" if f.eye is not None else "angles"
         elapsed = now - c["started"]
-        if elapsed >= self.settle and f.tracked and f.dir is not None:
-            c["samples"].append(angles(f.dir))
+        eyes_closed = f.blink_l > self.closed_level or f.blink_r > self.closed_level
+        r = reading(f, c["basis"]) if c["basis"] and f.tracked and not eyes_closed else None
+        if elapsed >= self.settle and r is not None:
+            c["samples"].append(r)
         if elapsed >= self.settle + self.collect:
-            if c["samples"]:
+            if len(c["samples"]) >= 5:
                 s = np.asarray(c["samples"])
-                c["obs"].append(s.mean(axis=0))
+                c["obs"].append(np.median(s, axis=0))          # median: a stray glance or blink cannot pull it
                 c["spreads"].append(s)
             else:
                 c["targets"].pop()
@@ -178,9 +221,10 @@ class Gaze:
     def _finish_calibration(self) -> None:
         c, self.calib = self.calib, None
         if len(c["obs"]) < 6:
-            self.bus.emit("calib_done", {"error_px": None, "spread_px": None, "ok": False})
+            self.bus.emit("calib_done", {"error_px": None, "spread_px": None, "ok": False,
+                                         "dots": len(c["obs"]), "basis": c["basis"]})
             return
-        self.mapping, error = Mapping.fit(c["obs"], c["targets"])
+        self.mapping, error = Mapping.fit(c["obs"], c["targets"], c["basis"])
         # Spread of gaze while holding still on a dot: the steady baseline for "shaky gaze?".
         spreads = []
         for s in c["spreads"]:
@@ -189,7 +233,7 @@ class Gaze:
         self.spread_px = float(np.median(spreads))
         self.smoothed = None
         self.bus.emit("calib_done", {"error_px": error, "spread_px": self.spread_px,
-                                     "ok": error <= self.redo_px})
+                                     "ok": error <= self.redo_px, "dots": len(c["obs"]), "basis": c["basis"]})
 
     # ---------- saving ----------
 
@@ -200,5 +244,6 @@ class Gaze:
 
     def load(self, saved: dict | None) -> None:
         if saved:
-            self.mapping = Mapping(saved["coef_x"], saved["coef_y"], saved["mu"], saved["sigma"])
+            self.mapping = Mapping(saved["coef_x"], saved["coef_y"], saved["mu"], saved["sigma"],
+                                   saved.get("basis", "angles"))
             self.spread_px = saved.get("spread_px")
