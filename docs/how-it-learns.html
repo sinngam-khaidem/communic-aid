@@ -217,7 +217,7 @@ svg text { font-family: var(--font); }
   <ul>
     <li><strong>Tired</strong> means 20 minutes into the session, after 6 pm, or 2 or more accidents or give-ups in the last 6 tries.</li>
     <li><strong>Shaky</strong> means gaze wobbles more than 1.5 times as much as it did during calibration.</li>
-    <li>The dwell learner keeps <strong>six counts per group</strong> (section 3). The signal chooser keeps <strong>a tally per group, per tier and per signal</strong> (section 4).</li>
+    <li>The dwell learner keeps <strong>six counts per group</strong> (section 3). The signal chooser keeps <strong>a tally for each option, in each group and tier</strong> (section 4).</li>
     <li>A group with little data of its own <strong>borrows</strong> the totals of all four groups: the dwell learner until the group has 30 looks, the signal chooser until it has 20 tries. A new situation never starts from nothing.</li>
   </ul>
 </section>
@@ -327,7 +327,10 @@ score(d) = share meant      × [ (1 - G) × (1 - 0.6 × d in seconds)  -  0.5 ×
   </ul>
 
   <h3>What it counts</h3>
-  <p>For every group, every tier and every option (dwell only, blink, eyebrows, "yes", switch) it keeps a <strong>tally</strong>: four numbers, how many times each outcome from section 1 happened. Each tally starts small so new options still get tried:</p>
+  <p>To remember how each option has gone, the chooser keeps a <strong>tally</strong>. A tally is four counts, one for each outcome in section 1: how many times it worked, how many times the person gave up, how many accidents it blocked, and how many accidents got through.</p>
+  <p>There is not one tally per option. Each tally belongs to <strong>one group</strong> (section 2), <strong>one tier</strong> and <strong>one option</strong>. "Blink, tier 3, tired + shaky" has its own tally, and "blink, tier 3, rested + steady" has another. That is how it can learn that blinking works in the morning but fails in the evening.</p>
+  <p>On tier 2 there are 5 options (dwell only, blink, eyebrows, "yes", switch), and on tier 3 there are 4 (dwell only is not allowed). With 4 groups, that makes at most 4 × (5 + 4) = 36 tallies. A tally is only created the first time an option is used in that situation.</p>
+  <p>A new tally does not start at zero. It starts with a few counts already in it, so an option nobody has tried yet still gets a fair chance:</p>
   <div class="scroll"><table>
     <thead><tr><th>Option</th><th class="n">worked</th><th class="n">gave up</th><th class="n">blocked</th><th class="n">accident</th></tr></thead>
     <tbody>
@@ -336,7 +339,7 @@ score(d) = share meant      × [ (1 - G) × (1 - 0.6 × d in seconds)  -  0.5 ×
       <tr><td>The signal chosen as "Try first" in Settings</td><td class="n">3</td><td class="n">1</td><td class="n">1</td><td class="n">1</td></tr>
     </tbody>
   </table></div>
-  <p>When an outcome is decided, it adds 1 to that outcome in that tally. Nothing else is stored.</p>
+  <p>After each try on a tier 2 or 3 button, it adds 1 to the matching count in the matching tally. For example, if Rekha blinks to confirm Delete in the evening and it works, the "worked" count in her tired, tier 3, blink tally goes up by 1. Nothing else is stored.</p>
 
   <h3>How it picks</h3>
   <p>A tally gives the chance of each outcome: a tally of 9, 2, 2, 1 means worked 64%, gave up 14%, blocked 14%, accident 7%. The score of an option is each chance times what that outcome is worth, added up. Like the dwell learner, it uses chances drawn at random close to the tally (wide when the tally is small), then asks for the option with the best score.</p>
