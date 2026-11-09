@@ -3,7 +3,8 @@
     python tests/plot_dwell.py                                        # the session with the most looks
     python tests/plot_dwell.py --person sinngam01 --session 20261109-203807
 
-Saves result/dwell_over_time.png: the dwell in use at each look, for tier 0 and tier 1.
+Saves result/dwell_over_time.png: the dwell in use at each look, for tier 0 and tier 1,
+with the session length, looks and give-ups per tier in a corner box.
 Undo and redo are left out, since the undo strip keeps a fixed dwell.
 """
 
@@ -25,27 +26,41 @@ FIXED = ("undo", "redo")
 TIERS = {0: ("Tier 0: letters and navigation", "#4C7DAF"), 1: ("Tier 1: words and edits", "#D08A55")}
 
 
-def load_looks(person: str | None, session: str | None):
-    """Looks of one adaptive session. Without a choice, the session with the most looks."""
+def load_session(person: str | None, session: str | None):
+    """Looks and give-ups of one adaptive session. Without a choice, the session with the most looks."""
     files = [ROOT / "data" / person / "events.jsonl"] if person else sorted((ROOT / "data").glob("*/events.jsonl"))
-    sessions: dict[tuple[str, str], list] = defaultdict(list)
+    looks: dict[tuple[str, str], list] = defaultdict(list)
+    gave_ups: dict[tuple[str, str], list] = defaultdict(list)
     for f in files:
         for line in f.open():
             r = json.loads(line)
-            if r.get("event") == "look" and r.get("condition") == "adaptive" and r["action"] not in FIXED:
-                sessions[(f.parent.name, r["session"])].append(r)
+            if r.get("condition") != "adaptive":
+                continue
+            key = (f.parent.name, r["session"])
+            if r["event"] == "look" and r["action"] not in FIXED:
+                looks[key].append(r)
+            elif r["event"] == "outcome" and r["outcome"]["learner"] == "dwell" and r["outcome"]["kind"] == "gave_up":
+                gave_ups[key].append(r["outcome"])
     if session:
-        sessions = {k: v for k, v in sessions.items() if k[1] == session}
-    if not sessions:
+        looks = {k: v for k, v in looks.items() if k[1] == session}
+    if not looks:
         raise SystemExit("No logged session found with looks in it.")
-    key = max(sessions, key=lambda k: len(sessions[k]))
-    return key, sessions[key]
+    key = max(looks, key=lambda k: len(looks[k]))
+    return key, looks[key], gave_ups[key]
 
 
 def plot(person: str | None, session: str | None) -> None:
-    (who, sid), looks = load_looks(person, session)
+    (who, sid), looks, gave_ups = load_session(person, session)
     d = load_config()["dwell"]
     end = max(r["t"] for r in looks) / 60
+    count = lambda rows, tier: sum(1 for r in rows if r["tier"] == tier)
+    info = "\n".join([
+        f"Session duration   {end:.0f} min",
+        f"Tier 0 looks       {count(looks, 0)}",
+        f"Tier 1 looks       {count(looks, 1)}",
+        f"Tier 0 gave ups    {count(gave_ups, 0)}",
+        f"Tier 1 gave ups    {count(gave_ups, 1)}",
+    ])
 
     fig, ax = plt.subplots(figsize=(8, 3.8), constrained_layout=True)
     for y in (d["start"], d["min"]):
@@ -63,6 +78,9 @@ def plot(person: str | None, session: str | None) -> None:
     ax.set_title("Dwell time over one session", loc="left", fontsize=12, pad=10)
     ax.spines[["top", "right"]].set_visible(False)
     ax.legend(frameon=False, loc="upper right")
+    ax.text(0.02, 0.04, info, transform=ax.transAxes, ha="left", va="bottom", fontsize=9,
+            family="monospace", color="#444444", linespacing=1.5,
+            bbox={"boxstyle": "round,pad=0.6", "facecolor": "#F7F7F7", "edgecolor": "#E2E2E2"})
 
     OUT.mkdir(exist_ok=True)
     path = OUT / "dwell_over_time.png"
