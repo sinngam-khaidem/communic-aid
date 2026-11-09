@@ -15,7 +15,7 @@ from .common import ROOT, Bus, Target
 
 FORWARD = ("state", "gaze", "button", "dim", "sound", "banner", "calib_dot", "calib_done",
            "check_prompt", "check_done", "choice", "context", "dwell_now", "config", "notice", "stale",
-           "preview", "signal")
+           "preview", "signal", "link")
 
 
 class ViewServer:
@@ -29,7 +29,7 @@ class ViewServer:
 
     def _send(self, event: str, payload: dict) -> None:
         msg = {"type": event, **payload}
-        if event in ("state", "context", "dwell_now", "config", "stale"):
+        if event in ("state", "context", "dwell_now", "config", "stale", "link"):
             self.latest[event] = msg
         if not self.queues:
             return

@@ -21,3 +21,14 @@ def test_older_phone_build_still_works():
     f = frame_from_packet({"seq": 3, "t": 1.0, "eye": [0, 0, -0.4], "dir": [0, 0, 1], "dirEye": [0, 0, 1],
                            "blinkL": 0.05, "blinkR": 0.04})
     assert f.tracked and f.brow_in == 0.0
+
+
+def test_phone_link_is_reported(world):
+    from communicaid.sources import ArkitSource
+    from conftest import run
+    bus, clock, rec = world
+    src = ArkitSource(bus, clock, 0)
+    src.datagram_received(b'{"type":"frame","t":1,"dir":[0,0,1],"tracked":true}', ("10.7.34.50", 5555))
+    assert rec.of("link")[-1] == {"phone": True, "address": "10.7.34.50"}
+    run(bus, clock, 2.5)                      # the phone stops sending
+    assert rec.of("link")[-1]["phone"] is False

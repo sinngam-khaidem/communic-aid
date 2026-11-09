@@ -291,6 +291,12 @@ function render() {
 
 // ---------- gaze dot, calibration dot, banners ----------
 
+// Phone link: until phone data arrives, say so calmly instead of showing a dot that never moves.
+let phoneLinked = null;
+function showWaiting() {
+  $("#waiting").hidden = !(started && INIT.source === "arkit" && phoneLinked === false);
+}
+
 let gazeFrozen = false;
 function onGaze(m) {
   const g = $("#gaze");
@@ -433,6 +439,7 @@ const HANDLERS = {
     $("#facecam").hidden = !showFace;
   },
   signal(m) { showSignal(m.kind); },
+  link(m) { phoneLinked = m.phone; showWaiting(); },
   choice(m) { debug.choice = m; renderDebug(); },
   dwell_now(m) { debug.dwell[m.tier] = m.ms; debug.group = m.group; renderDebug(); },
   context(m) { debug.context = m; debug.group = m.group; renderDebug(); },
@@ -491,6 +498,7 @@ $("#start").addEventListener("click", () => {
   if (fs) fs.call(document.documentElement).catch(() => {});
   $("#start").hidden = true;
   started = true;
+  showWaiting();
   setTimeout(() => { hello(); reportTargets(); }, 400);
 });
 

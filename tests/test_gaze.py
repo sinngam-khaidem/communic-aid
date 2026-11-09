@@ -97,3 +97,20 @@ def test_blinks_during_calibration_are_ignored(world, config):
                       blink_l=0.9, blink_r=0.9, dist=0.5)
         gaze.on_frame(f)
     assert rec.of("calib_done")[-1]["error_px"] < 10
+
+
+def test_calibration_waits_through_a_pause(world, config):
+    """Phone data stops for 3 s in the middle of calibration: no dot is skipped."""
+    bus, clock, rec, gaze = setup(world, config)
+    eye = (0.0, 0.02, -0.5)
+    gaze.start_calibration()
+    n = 0
+    while gaze.calib is not None:
+        dot = gaze.calib["targets"][-1]
+        clock.advance(1 / 60)
+        n += 1
+        if n == 300:
+            clock.advance(3.0)               # nothing arrives for 3 s
+        gaze.on_frame(frame(clock.now(), eye, dot))
+    done = rec.of("calib_done")[-1]
+    assert done["dots"] == 9 and done["ok"]

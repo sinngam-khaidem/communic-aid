@@ -59,6 +59,9 @@ svg { display: block; }
 
 #banner { position: absolute; top: 92px; left: 50%; transform: translateX(-50%); z-index: 20; padding: 12px 22px;
   border-radius: 10px; background: color-mix(in srgb, var(--warn) 22%, var(--bg)); border: 1px solid var(--warn); font-weight: 600; }
+#waiting { position: absolute; top: 92px; left: 50%; transform: translateX(-50%); z-index: 20; padding: 12px 22px;
+  border-radius: 10px; background: var(--soft); border: 1px solid var(--line-strong); color: var(--muted); font-weight: 600; white-space: nowrap; }
+body.setup #waiting { top: 28px; }
 #notice { position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 20; padding: 12px 22px;
   border-radius: 10px; background: var(--soft); border: 1px solid var(--line-strong); }
 

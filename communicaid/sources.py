@@ -32,14 +32,27 @@ def frame_from_packet(msg: dict) -> Frame:
 
 
 class ArkitSource(asyncio.DatagramProtocol):
+    """Reads the phone's UDP packets, and reports when the phone starts or stops sending ('link')."""
+
+    QUIET_S = 2.0      # no packet for this long means the phone is not sending
+
     def __init__(self, bus: Bus, clock: Clock, port: int) -> None:
         self.bus, self.clock, self.port = bus, clock, port
         self.transport = None
         self.packets = 0
+        self.last_packet: float | None = None
+        self.linked = False
+        bus.on("tick", self._tick)
 
     async def start(self) -> None:
         loop = asyncio.get_running_loop()
         self.transport, _ = await loop.create_datagram_endpoint(lambda: self, local_addr=("0.0.0.0", self.port))
+        self.bus.emit("link", {"phone": False, "address": None})
+
+    def _tick(self, p: dict) -> None:
+        if self.linked and (self.last_packet is None or self.clock.now() - self.last_packet > self.QUIET_S):
+            self.linked = False
+            self.bus.emit("link", {"phone": False, "address": None})
 
     def stop(self) -> None:
         if self.transport:
@@ -51,6 +64,10 @@ class ArkitSource(asyncio.DatagramProtocol):
         except ValueError:
             return
         self.packets += 1
+        self.last_packet = self.clock.now()
+        if not self.linked:
+            self.linked = True
+            self.bus.emit("link", {"phone": True, "address": addr[0]})
         kind = msg.get("type", "frame")
         if kind == "frame":
             self.bus.emit("frame", {"frame": frame_from_packet(msg)})

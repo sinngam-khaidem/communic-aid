@@ -106,6 +106,7 @@ class Gaze:
         self.screen = (1440.0, 900.0)       # page size
         self.origin = np.zeros(2)           # where the page's top left sits on the screen
         self.calib: dict | None = None
+        self.last_frame: float | None = None
 
         bus.on("frame", lambda p: self.on_frame(p["frame"]))
         bus.on("screen", self._screen)
@@ -201,6 +202,12 @@ class Gaze:
             # Mouse test mode has nothing to calibrate.
             self.calib = None
             self.bus.emit("calib_done", {"error_px": 0.0, "spread_px": None, "ok": True})
+            return
+        # If phone data paused or the face was lost, this dot starts over instead of being skipped.
+        paused = self.last_frame is None or now - self.last_frame > 0.5
+        self.last_frame = now
+        if paused or not f.tracked:
+            c["started"], c["samples"] = now, []
             return
         if c["basis"] is None and f.tracked and f.dir is not None:
             c["basis"] = "plane" if f.eye is not None else "angles"
