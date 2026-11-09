@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How Communic-Aid Learns</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: one readable column, tables and figures may run wider inside their own scroll boxes.
+   Palette and type are the app's own (view/style.css), with a light version for reading. */
+:root {
+  --bg: #FFFFFF; --surface: #F4F5F7; --line: #E4E6EA; --line-strong: #C8CCD2;
+  --ink: #1B1E23; --muted: #5E636B;
+  --learn: #2F54D6; --gaze: #D8316B; --ok: #2E8B57; --warn: #A86A0C; --save: #2A8686; --risk: #C23E34;
+  --font: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1C1E22; --surface: #25282D; --line: #30333A; --line-strong: #474B53;
+    --ink: #E9E7E3; --muted: #A2A6AD;
+    --learn: #93A5FF; --gaze: #FF6597; --ok: #63C18F; --warn: #E3A546; --save: #5FC0C0; --risk: #EF7268;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1C1E22; --surface: #25282D; --line: #30333A; --line-strong: #474B53;
+  --ink: #E9E7E3; --muted: #A2A6AD;
+  --learn: #93A5FF; --gaze: #FF6597; --ok: #63C18F; --warn: #E3A546; --save: #5FC0C0; --risk: #EF7268;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--font); font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+}
+.page {
+  max-width: 760px; margin: 0 auto;
+  padding-block: 56px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 56px;
+}
+header { display: flex; flex-direction: column; gap: 12px; }
+.eyebrow { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+h1 { font-size: 40px; line-height: 1.15; margin: 0; text-wrap: balance; }
+h2 { font-size: 26px; line-height: 1.25; margin: 0; text-wrap: balance; }
+h3 { font-size: 19px; margin: 8px 0 0; }
+p { margin: 0; max-width: 65ch; }
+.lead { font-size: 20px; color: var(--muted); }
+section { display: flex; flex-direction: column; gap: 16px; }
+.num { color: var(--muted); font-weight: 400; margin-right: 8px; font-variant-numeric: tabular-nums; }
+strong { font-weight: 700; }
+code, .formula { font-family: var(--mono); font-size: 15px; }
+code { background: var(--surface); padding: 1px 6px; border-radius: 5px; }
+.formula {
+  background: var(--surface); border-radius: 10px; padding: 16px 18px; white-space: pre; line-height: 1.7;
+  overflow-x: auto; max-width: 100%;
+}
+ul { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; max-width: 65ch; }
+
+/* tables */
+.scroll { overflow-x: auto; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-size: 16px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); font-size: 14px; letter-spacing: .02em; border-bottom-color: var(--line-strong); }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* outcome pills, coloured the same way as the terminal log */
+.pill { display: inline-block; font-weight: 600; font-size: 14px; padding: 1px 10px; border-radius: 999px; white-space: nowrap;
+  border: 1px solid currentColor; }
+.worked { color: var(--ok); } .gave { color: var(--warn); } .blocked { color: var(--save); }
+.accident { color: var(--risk); } .passed { color: var(--muted); }
+
+/* the four context groups */
+.groups { display: grid; grid-template-columns: auto 1fr 1fr; gap: 8px; align-items: stretch; font-size: 16px; }
+.groups .h { color: var(--muted); font-size: 14px; font-weight: 600; padding: 6px 4px; align-self: end; }
+.groups .g { background: var(--surface); border-radius: 10px; padding: 12px 14px; font-weight: 600; }
+.groups .g span { display: block; font-weight: 400; color: var(--muted); font-size: 14px; }
+
+/* figures */
+figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+figure .scroll svg { display: block; min-width: 560px; width: 100%; height: auto; }
+figcaption { font-size: 14px; color: var(--muted); max-width: 65ch; }
+svg text { font-family: var(--font); }
+.box { fill: var(--surface); stroke: var(--line-strong); }
+.box-learn { fill: var(--surface); stroke: var(--learn); }
+.t-main { fill: var(--ink); font-size: 14px; font-weight: 600; }
+.t-sub { fill: var(--muted); font-size: 12px; }
+.arrow { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+.arrow-learn { stroke: var(--learn); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.head { fill: var(--muted); } .head-learn { fill: var(--learn); }
+.grid { stroke: var(--line); stroke-width: 1; }
+.axis { stroke: var(--line-strong); stroke-width: 1; }
+.tick { fill: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.curve { stroke: var(--learn); stroke-width: 2.5; fill: none; }
+.dot { fill: var(--learn); }
+.floor { stroke: var(--risk); stroke-width: 1.2; stroke-dasharray: 6 5; }
+.floor-t { fill: var(--risk); font-size: 12px; }
+.warm { fill: var(--learn); opacity: .08; }
+.warm-t { fill: var(--muted); font-size: 12px; }
+
+/* sample terminal output */
+.log {
+  font-family: var(--mono); font-size: 13.5px; line-height: 1.75; background: var(--surface); border-radius: 10px;
+  padding: 16px 18px; overflow-x: auto; white-space: pre; max-width: 100%;
+}
+.log .tag { font-weight: 700; }
+.log .c { color: var(--gaze); } .log .o { color: var(--ink); } .log .d { color: var(--learn); }
+
+.note { border-left: 3px solid var(--learn); padding: 4px 0 4px 16px; color: var(--ink); max-width: 65ch; }
+
+@media (max-width: 520px) {
+  h1 { font-size: 32px; }
+  .groups { grid-template-columns: 1fr 1fr; }
+  .groups .h.row { display: none; }
+}
+</style>
+</head>
+<body>
+<main class="page">
+
+<header>
+  <div class="eyebrow">Communic-Aid · design plan, section 6</div>
+  <h1>How Communic-Aid learns</h1>
+  <p class="lead">Two small learners watch what each person does and adjust to them. Nobody is ever asked to rate anything: everything is read from behaviour.</p>
+</header>
+
+<section>
+  <p>The <strong>dwell learner</strong> sets how long a person has to look at an everyday button (tiers 0 and 1: navigation and typing). The <strong>signal chooser</strong> decides, for risky buttons (tiers 2 and 3: sending, calling, deleting), whether to ask for a second signal and which one: blink and hold, raised eyebrows, saying "yes", or the switch.</p>
+  <figure>
+    <div class="scroll">
+      <svg viewBox="0 0 760 176" role="img" aria-label="The learning loop: situation, choose, person acts, what happened, reward, then update the counts and start again">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="head"/></marker>
+          <marker id="al" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="head-learn"/></marker>
+        </defs>
+        <rect class="box" x="8" y="24" width="128" height="68" rx="10"/>
+        <text class="t-main" x="72" y="54" text-anchor="middle">Situation</text>
+        <text class="t-sub" x="72" y="72" text-anchor="middle">tier, tired?, shaky?</text>
+
+        <rect class="box" x="160" y="24" width="128" height="68" rx="10"/>
+        <text class="t-main" x="224" y="54" text-anchor="middle">Choose</text>
+        <text class="t-sub" x="224" y="72" text-anchor="middle">dwell, signal</text>
+
+        <rect class="box" x="312" y="24" width="128" height="68" rx="10"/>
+        <text class="t-main" x="376" y="54" text-anchor="middle">Person acts</text>
+        <text class="t-sub" x="376" y="72" text-anchor="middle">looks, signals, undoes</text>
+
+        <rect class="box" x="464" y="24" width="128" height="68" rx="10"/>
+        <text class="t-main" x="528" y="54" text-anchor="middle">What happened</text>
+        <text class="t-sub" x="528" y="72" text-anchor="middle">after its window</text>
+
+        <rect class="box-learn" x="616" y="24" width="136" height="68" rx="10"/>
+        <text class="t-main" x="684" y="54" text-anchor="middle">Reward</text>
+        <text class="t-sub" x="684" y="72" text-anchor="middle">scored by tier cost</text>
+
+        <path class="arrow" d="M136,58 H158" marker-end="url(#ah)"/>
+        <path class="arrow" d="M288,58 H310" marker-end="url(#ah)"/>
+        <path class="arrow" d="M440,58 H462" marker-end="url(#ah)"/>
+        <path class="arrow" d="M592,58 H614" marker-end="url(#ah)"/>
+        <path class="arrow-learn" d="M684,92 V140 H224 V96" marker-end="url(#al)"/>
+        <text class="t-sub" x="454" y="160" text-anchor="middle">update the counts, so the next choice is better</text>
+      </svg>
+    </div>
+    <figcaption>The loop runs on every look and every risky action. Both learners keep only counts of what happened; nothing else is stored.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2><span class="num">1</span>Reading what happened</h2>
+  <p>Every look and every request for a signal ends in one of four outcomes. An outcome is only decided once its time window has closed, so the learner never learns from a guess.</p>
+
+  <h3>A look at an everyday button</h3>
+  <div class="scroll"><table>
+    <thead><tr><th>Outcome</th><th>How the app knows</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill worked">worked</span></td><td>The button fired and was not undone within 5 s. For a letter, the next key was not Backspace within 3 s.</td></tr>
+      <tr><td><span class="pill accident">accident</span></td><td>It fired, then was undone within 5 s, or a letter was followed straight away by Backspace.</td></tr>
+      <tr><td><span class="pill gave">gave up</span></td><td>The person looked away before the fill finished, then came back to the same button within 2 s. They meant it, but the wait felt too long.</td></tr>
+      <tr><td><span class="pill passed">passed by</span></td><td>They looked away and did not come back. A stray glance; the app notes how long it lasted.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>A request for a second signal</h3>
+  <div class="scroll"><table>
+    <thead><tr><th>Outcome</th><th>How the app knows</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill worked">worked</span></td><td>The right signal came in time and the action was not undone.</td></tr>
+      <tr><td><span class="pill accident">accident</span></td><td>The signal came, then the action was undone within 5 s.</td></tr>
+      <tr><td><span class="pill gave">gave up</span></td><td>It timed out, but the person tried: a wrong signal, a half blink, a late signal, or a look back within 3 s.</td></tr>
+      <tr><td><span class="pill blocked">blocked an accident</span></td><td>It timed out with no attempt and no return. The look was probably a mistake, and the signal stopped it.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Undo, then Redo, counts as <strong>worked</strong>: the undo was the mistake, not the action.</p>
+</section>
+
+<section>
+  <h2><span class="num">2</span>The situation</h2>
+  <p>The same person needs different settings when tired or when their gaze is shaky. Two yes or no questions give four groups, and each learner keeps separate counts for each group.</p>
+  <div class="groups" role="table" aria-label="Four context groups">
+    <div class="h row" role="columnheader"></div>
+    <div class="h" role="columnheader">Steady gaze</div>
+    <div class="h" role="columnheader">Shaky gaze</div>
+    <div class="h row" role="rowheader">Rested</div>
+    <div class="g">rested + steady<span>a fresh morning</span></div>
+    <div class="g">rested + shaky<span>alert, but tremor</span></div>
+    <div class="h row" role="rowheader">Tired</div>
+    <div class="g">tired + steady<span>evening, or slips piling up</span></div>
+    <div class="g">tired + shaky<span>the hardest case</span></div>
+  </div>
+  <ul>
+    <li><strong>Tired</strong> means 20 minutes into the session, after 6 pm, or 2 or more accidents or give-ups in the last 6 tries.</li>
+    <li><strong>Shaky</strong> means gaze wobbles more than 1.5 times as much as it did during calibration.</li>
+    <li>A group with little data of its own <strong>borrows</strong> the totals of all groups, so a new situation does not start from nothing.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="num">3</span>The dwell learner</h2>
+  <p>It learns two habits of the person, then picks the dwell that balances them against how costly a mistake is on that tier.</p>
+  <ul>
+    <li><strong>Stray glances:</strong> how long do looks that were not meant usually last? If they are short, a shorter dwell is safe.</li>
+    <li><strong>Patience:</strong> how long will the person wait before looking away? If not long, a long dwell causes give-ups.</li>
+  </ul>
+  <p>Both habits come from six running counts per group, updated by simple addition after each outcome. To choose, the learner draws plausible values for the two habits (a wide spread when it has seen little, a narrow one later; this is called Thompson sampling) and scores every dwell from 800 to 2000 ms:</p>
+  <div class="formula">accident chance   A(d) = e^(-d / stray glance)
+give-up chance    G(d) = 1 - e^(-d / patience)
+
+score(d) = meant  × [ (1 - G) × (1 - 0.6 × d in seconds)  -  0.5 × G ]
+         - not meant × A × accident cost</div>
+  <p>In words: a look that worked is worth 1, minus a little for each second waited. A give-up costs 0.5. An accident costs the tier's accident cost.</p>
+
+  <h3>Staying calm</h3>
+  <p>A dwell that jumps around feels random and stressful, so it moves slowly and only after real selections.</p>
+  <ul>
+    <li>The first <strong>20 selections</strong> in a group stay at <strong>1500 ms</strong>. Stray glances never count towards this.</li>
+    <li>After that, each selection moves the dwell 5% towards the learner's pick, but <strong>at most 10 ms shorter</strong> or up to 100 ms longer. Accidents are fixed quickly; speed comes slowly.</li>
+    <li>It never goes below <strong>800 ms</strong> or above 2000 ms.</li>
+  </ul>
+  <figure>
+    <div class="scroll">
+      <svg viewBox="0 0 640 262" role="img" aria-label="Dwell time over clean selections: flat at 1500 ms for the first 20, then down slowly to 1190 ms at 50, 914 ms at 80 and the 800 ms floor by 200">
+        <rect class="warm" x="56" y="20" width="56.4" height="200"/>
+        <text class="warm-t" x="62" y="36">warm-up</text>
+        <line class="grid" x1="56" y1="20" x2="620" y2="20"/>
+        <line class="grid" x1="56" y1="64.4" x2="620" y2="64.4"/>
+        <line class="grid" x1="56" y1="108.9" x2="620" y2="108.9"/>
+        <line class="grid" x1="56" y1="153.3" x2="620" y2="153.3"/>
+        <line class="axis" x1="56" y1="220" x2="620" y2="220"/>
+        <line class="floor" x1="56" y1="197.8" x2="620" y2="197.8"/>
+        <text class="floor-t" x="616" y="191" text-anchor="end">floor 800 ms</text>
+        <text class="tick" x="48" y="24" text-anchor="end">1600</text>
+        <text class="tick" x="48" y="68.4" text-anchor="end">1400</text>
+        <text class="tick" x="48" y="112.9" text-anchor="end">1200</text>
+        <text class="tick" x="48" y="157.3" text-anchor="end">1000</text>
+        <text class="tick" x="48" y="201.8" text-anchor="end">800</text>
+        <text class="tick" x="56" y="238" text-anchor="middle">0</text>
+        <text class="tick" x="197" y="238" text-anchor="middle">50</text>
+        <text class="tick" x="338" y="238" text-anchor="middle">100</text>
+        <text class="tick" x="479" y="238" text-anchor="middle">150</text>
+        <text class="tick" x="620" y="238" text-anchor="middle">200</text>
+        <text class="tick" x="338" y="256" text-anchor="middle">clean selections in a row</text>
+        <polyline class="curve" points="56,42.2 109.6,42.2 112.4,44.4 140.6,66.7 197,111.1 281.6,172.4 394.4,194.4 620,197.8"/>
+        <circle class="dot" cx="112.4" cy="44.4" r="4"/>
+        <circle class="dot" cx="140.6" cy="66.7" r="4"/>
+        <circle class="dot" cx="197" cy="111.1" r="4"/>
+        <circle class="dot" cx="281.6" cy="172.4" r="4"/>
+        <circle class="dot" cx="394.4" cy="194.4" r="4"/>
+        <circle class="dot" cx="620" cy="197.8" r="4"/>
+      </svg>
+    </div>
+    <figcaption>Dwell in ms over a run of clean selections, measured from the learner: 1490 ms at 20, 1390 at 30, 1190 at 50, 914 at 80, 815 at 120, and the 800 ms floor by 200. One accident can lift it by up to 100 ms at once.</figcaption>
+  </figure>
+  <p>Risky buttons (tiers 2 and 3) keep a fixed 1000 ms fill before asking for a signal. The undo strip is fixed at 800 ms.</p>
+</section>
+
+<section>
+  <h2><span class="num">4</span>The signal chooser</h2>
+  <p>For Send, React and End call (tier 2) it can choose <strong>dwell only</strong> or a signal. For Call, Delete and Forward (tier 3) a signal is always required, and it only chooses which.</p>
+
+  <h3>First, rule out what is not allowed</h3>
+  <ul>
+    <li>Signals the person switched off in Settings, or that failed their signal check.</li>
+    <li>Blink and eyebrows while tracking is poor (the camera cannot see them reliably).</li>
+    <li>Dwell only on tier 3.</li>
+  </ul>
+
+  <h3>Then, score what is left</h3>
+  <p>For each group, tier and option it keeps a tally of the four outcomes. It draws a plausible set of chances from each tally (again, wide when the tally is small), multiplies by what each outcome is worth, and asks for the option with the best score.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Outcome</th><th class="n">Worth</th><th>Example, tier 3 Call (cost 8)</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill worked">worked</span>, dwell only</td><td class="n">+1</td><td>only possible on tier 2</td></tr>
+      <tr><td><span class="pill worked">worked</span>, with a signal</td><td class="n">1 - effort</td><td>+0.35 for a signal that takes 1.2 s</td></tr>
+      <tr><td><span class="pill gave">gave up</span></td><td class="n">-0.5</td><td>-0.5</td></tr>
+      <tr><td><span class="pill blocked">blocked an accident</span></td><td class="n">+0.15 × cost</td><td>+1.2</td></tr>
+      <tr><td><span class="pill accident">accident</span></td><td class="n">- cost</td><td>-8</td></tr>
+    </tbody>
+  </table></div>
+  <p>Effort is 0.35 plus 0.25 for each second the person usually takes to give that signal, so a quick switch press costs less than a slow "yes".</p>
+
+  <h3>A worked example</h3>
+  <p>Rekha deletes a message in the evening. After about 10 tries of each, her tallies look like this:</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Option</th><th class="n">worked</th><th class="n">gave up</th><th class="n">blocked</th><th class="n">accident</th><th class="n">Average score</th></tr></thead>
+    <tbody>
+      <tr><td>Blink and hold</td><td class="n">3</td><td class="n">7</td><td class="n">2</td><td class="n">2</td><td class="n">-1.15</td></tr>
+      <tr><td>Raise eyebrows</td><td class="n">9</td><td class="n">2</td><td class="n">2</td><td class="n">1</td><td class="n"><strong>-0.25</strong></td></tr>
+    </tbody>
+  </table></div>
+  <p>Her blinks often fail when she is tired, so eyebrows win clearly. The random draw still picks blink now and then, so if her blinks get better, the chooser will notice. In the morning she is in a different group with its own tallies, where blink may win.</p>
+</section>
+
+<section>
+  <h2><span class="num">5</span>Settings you tune</h2>
+  <p>All of these live in <code>config.toml</code>, and the costs can also be changed from the study panel during a pilot.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Setting</th><th class="n">Now</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>Accident cost, tiers 0 to 3</td><td class="n">1, 2, 4, 8</td><td>How much a mistake hurts on each tier. Higher means slower, safer choices.</td></tr>
+      <tr><td>Give-up value</td><td class="n">-0.5</td><td>How much waiting too long hurts.</td></tr>
+      <tr><td>Blocked accident value</td><td class="n">0.15 × cost</td><td>How much credit a signal gets for stopping a mistake.</td></tr>
+      <tr><td>Time penalty</td><td class="n">0.6 per s</td><td>How much each second of dwell costs on a look that worked.</td></tr>
+      <tr><td>Starting dwell and warm-up</td><td class="n">1500 ms, 20</td><td>A careful start before learning moves anything.</td></tr>
+      <tr><td>Step down, step up</td><td class="n">10 ms, 100 ms</td><td>How fast the dwell may shorten or grow per selection.</td></tr>
+      <tr><td>Dwell limits</td><td class="n">800 to 2000 ms</td><td>Never shorter or longer than this.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Changing a cost never wipes what was learned. The learners store only counts of what happened; costs are applied at the moment of choosing, so a new value takes effect on the very next choice.</p>
+</section>
+
+<section>
+  <h2><span class="num">6</span>Watching it live</h2>
+  <p>While the core runs, the terminal prints one line per learning event:</p>
+<div class="log"><span class="tag c">CHOOSE </span>  call        tier 3  tired+steady  -> say "yes"   scores: say "yes" +0.44   raise eyebrows -0.38   switch -0.82
+<span class="tag o">OUTCOME</span>  open priya  tier 0  <span class="worked">worked</span>   reward +0.10   dwell 1500 ms
+<span class="tag d">DWELL  </span>  tired+steady: warm-up 1 of 20 selections, staying at 1500 ms
+<span class="tag o">OUTCOME</span>  call        tier 3  <span class="worked">worked</span>   reward +0.53   check: say "yes"
+<span class="tag d">ROUTER </span>  tier 3  tired+steady  say "yes": worked 1, gave up 0, blocked an accident 0, accident 0</div>
+  <p>The same events, with their rewards, are saved in <code>data/&lt;person&gt;/events.jsonl</code> for analysis after the study.</p>
+</section>
+
+</main>
+</body>
+</html>
