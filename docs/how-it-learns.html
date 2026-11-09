@@ -66,7 +66,7 @@ ul { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 
 
 /* tables */
 .scroll { overflow-x: auto; max-width: 100%; }
-table { border-collapse: collapse; width: 100%; font-size: 16px; }
+table { border-collapse: collapse; width: 100%; min-width: 600px; font-size: 16px; }
 th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { font-weight: 600; color: var(--muted); font-size: 14px; letter-spacing: .02em; border-bottom-color: var(--line-strong); }
 td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -202,7 +202,7 @@ svg text { font-family: var(--font); }
 
 <section>
   <h2><span class="num">2</span>The situation</h2>
-  <p>The same person needs different settings when tired or when their gaze is shaky. Two yes or no questions give four groups, and each learner keeps separate counts for each group.</p>
+  <p>The same person needs different settings when tired or when their gaze is shaky. Two yes or no questions sort every moment into one of four <strong>groups</strong>. Each learner keeps a separate set of numbers for each group, so what it learns on a tired evening never overrides a fresh morning.</p>
   <div class="groups" role="table" aria-label="Four context groups">
     <div class="h row" role="columnheader"></div>
     <div class="h" role="columnheader">Steady gaze</div>
@@ -217,24 +217,59 @@ svg text { font-family: var(--font); }
   <ul>
     <li><strong>Tired</strong> means 20 minutes into the session, after 6 pm, or 2 or more accidents or give-ups in the last 6 tries.</li>
     <li><strong>Shaky</strong> means gaze wobbles more than 1.5 times as much as it did during calibration.</li>
-    <li>A group with little data of its own <strong>borrows</strong> the totals of all groups, so a new situation does not start from nothing.</li>
+    <li>The dwell learner keeps <strong>six counts per group</strong> (section 3). The signal chooser keeps <strong>a tally per group, per tier and per signal</strong> (section 4).</li>
+    <li>A group with little data of its own <strong>borrows</strong> the totals of all four groups: the dwell learner until the group has 30 looks, the signal chooser until it has 20 tries. A new situation never starts from nothing.</li>
   </ul>
 </section>
 
 <section>
   <h2><span class="num">3</span>The dwell learner</h2>
-  <p>It learns two habits of the person, then picks the dwell that balances them against how costly a mistake is on that tier.</p>
+  <p>It decides how long a person has to look at an everyday button (tiers 0 and 1). To do that it learns two habits of the person:</p>
   <ul>
     <li><strong>Stray glances:</strong> how long do looks that were not meant usually last? If they are short, a shorter dwell is safe.</li>
-    <li><strong>Patience:</strong> how long will the person wait before looking away? If not long, a long dwell causes give-ups.</li>
+    <li><strong>Patience:</strong> how long will the person keep looking at a button they want before giving up? If not long, a long dwell causes give-ups.</li>
   </ul>
-  <p>Both habits come from six running counts per group, updated by simple addition after each outcome. To choose, the learner draws plausible values for the two habits (a wide spread when it has seen little, a narrow one later; this is called Thompson sampling) and scores every dwell from 800 to 2000 ms:</p>
-  <div class="formula">accident chance   A(d) = e^(-d / stray glance)
-give-up chance    G(d) = 1 - e^(-d / patience)
 
-score(d) = meant  × [ (1 - G) × (1 - 0.6 × d in seconds)  -  0.5 × G ]
-         - not meant × A × accident cost</div>
-  <p>In words: a look that worked is worth 1, minus a little for each second waited. A give-up costs 0.5. An accident costs the tier's accident cost.</p>
+  <h3>What it counts</h3>
+  <p>For each of the four groups it keeps these six numbers. They start at small guesses so the first choices are sensible, and every outcome from section 1 adds to them.</p>
+  <div class="scroll"><table>
+    <thead><tr><th class="n">#</th><th>Count</th><th class="n">Starts at</th><th>Grows when</th></tr></thead>
+    <tbody>
+      <tr><td class="n">1</td><td>Looks that were meant</td><td class="n">2</td><td>+1 for each <span class="pill worked">worked</span> or <span class="pill gave">gave up</span></td></tr>
+      <tr><td class="n">2</td><td>Looks that were not meant</td><td class="n">2</td><td>+1 for each <span class="pill accident">accident</span> or <span class="pill passed">passed by</span></td></tr>
+      <tr><td class="n">3</td><td>Stray glances seen</td><td class="n">3</td><td>+1 for each <span class="pill passed">passed by</span></td></tr>
+      <tr><td class="n">4</td><td>Total stray glance time</td><td class="n">900 ms</td><td>+ the glance's length for each <span class="pill passed">passed by</span>; + the dwell for each <span class="pill accident">accident</span> (that glance lasted at least the dwell)</td></tr>
+      <tr><td class="n">5</td><td>Give-ups seen</td><td class="n">1</td><td>+1 for each <span class="pill gave">gave up</span></td></tr>
+      <tr><td class="n">6</td><td>Total waiting time</td><td class="n">5000 ms</td><td>+ how long they looked before each <span class="pill gave">gave up</span>; + the dwell for each <span class="pill worked">worked</span> (they waited at least that long)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>What it works out from the counts</h3>
+  <div class="formula">share of looks meant   = #1 / (#1 + #2)
+typical stray glance   = #4 / #3      (average length of a stray glance)
+typical patience       = #6 / #5      (average wait before giving up)</div>
+
+  <h3>Example: one morning</h3>
+  <p>A person in the <em>rested + steady</em> group makes 40 selections that work, undoes 2, gives up 6 times, and their eyes pass over buttons 110 times by accident, for about a quarter of a second each. Adding those to the starting values:</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Count</th><th class="n">Value</th><th>Worked out</th><th class="n">Value</th></tr></thead>
+    <tbody>
+      <tr><td>#1 meant, #2 not meant</td><td class="n">48, 114</td><td>share of looks meant</td><td class="n">0.30</td></tr>
+      <tr><td>#3 stray glances, #4 their total time</td><td class="n">113, 32,565 ms</td><td>typical stray glance</td><td class="n">288 ms</td></tr>
+      <tr><td>#5 give-ups, #6 total waiting time</td><td class="n">7, 71,300 ms</td><td>typical patience</td><td class="n">10.2 s</td></tr>
+    </tbody>
+  </table></div>
+  <p>Stray glances are short and the person is patient, so a shorter dwell is safe. The learner's pick is <strong>800 ms</strong> for tier 0 (navigation) and <strong>950 ms</strong> for tier 1 (typing), which costs more when it goes wrong. The dwell then moves towards these picks slowly, as described below.</p>
+
+  <h3>How it picks a dwell</h3>
+  <p>It tries every dwell <code>d</code> from 800 to 2000 ms and gives each a score, using the three numbers above:</p>
+  <div class="formula">chance a stray glance lasts d or longer   A(d) = e^(-d / typical stray glance)
+chance a meant look gives up before d     G(d) = 1 - e^(-d / typical patience)
+
+score(d) = share meant      × [ (1 - G) × (1 - 0.6 × d in seconds)  -  0.5 × G ]
+         - share not meant  × A × accident cost of the tier</div>
+  <p>In words: a look that worked is worth 1, minus 0.6 for each second waited. A give-up costs 0.5. An accident costs the tier's accident cost. The dwell with the best score is its pick.</p>
+  <p>One detail keeps it learning: instead of using the three numbers exactly, it uses values drawn at random close to them, wider apart when it has seen little (this is called Thompson sampling). With only the 3 starting stray glances, the typical stray glance could be drawn anywhere from about 140 to 1090 ms. After 113 glances, it stays between about 250 and 340 ms. So it tries different dwells while unsure and settles as it learns.</p>
 
   <h3>Staying calm</h3>
   <p>A dwell that jumps around feels random and stressful, so it moves slowly and only after real selections.</p>
@@ -291,8 +326,20 @@ score(d) = meant  × [ (1 - G) × (1 - 0.6 × d in seconds)  -  0.5 × G ]
     <li>Dwell only on tier 3.</li>
   </ul>
 
-  <h3>Then, score what is left</h3>
-  <p>For each group, tier and option it keeps a tally of the four outcomes. It draws a plausible set of chances from each tally (again, wide when the tally is small), multiplies by what each outcome is worth, and asks for the option with the best score.</p>
+  <h3>What it counts</h3>
+  <p>For every group, every tier and every option (dwell only, blink, eyebrows, "yes", switch) it keeps a <strong>tally</strong>: four numbers, how many times each outcome from section 1 happened. Each tally starts small so new options still get tried:</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Option</th><th class="n">worked</th><th class="n">gave up</th><th class="n">blocked</th><th class="n">accident</th></tr></thead>
+    <tbody>
+      <tr><td>Dwell only (tier 2)</td><td class="n">1</td><td class="n">0</td><td class="n">0</td><td class="n">1</td></tr>
+      <tr><td>Each signal</td><td class="n">1</td><td class="n">1</td><td class="n">1</td><td class="n">1</td></tr>
+      <tr><td>The signal chosen as "Try first" in Settings</td><td class="n">3</td><td class="n">1</td><td class="n">1</td><td class="n">1</td></tr>
+    </tbody>
+  </table></div>
+  <p>When an outcome is decided, it adds 1 to that outcome in that tally. Nothing else is stored.</p>
+
+  <h3>How it picks</h3>
+  <p>A tally gives the chance of each outcome: a tally of 9, 2, 2, 1 means worked 64%, gave up 14%, blocked 14%, accident 7%. The score of an option is each chance times what that outcome is worth, added up. Like the dwell learner, it uses chances drawn at random close to the tally (wide when the tally is small), then asks for the option with the best score.</p>
   <div class="scroll"><table>
     <thead><tr><th>Outcome</th><th class="n">Worth</th><th>Example, tier 3 Call (cost 8)</th></tr></thead>
     <tbody>
@@ -314,7 +361,13 @@ score(d) = meant  × [ (1 - G) × (1 - 0.6 × d in seconds)  -  0.5 × G ]
       <tr><td>Raise eyebrows</td><td class="n">9</td><td class="n">2</td><td class="n">2</td><td class="n">1</td><td class="n"><strong>-0.25</strong></td></tr>
     </tbody>
   </table></div>
-  <p>Her blinks often fail when she is tired, so eyebrows win clearly. The random draw still picks blink now and then, so if her blinks get better, the chooser will notice. In the morning she is in a different group with its own tallies, where blink may win.</p>
+  <p>The score for raise eyebrows, using the worths above:</p>
+  <div class="formula">  9/14 × 0.35   (worked)
++ 2/14 × -0.5   (gave up)
++ 2/14 × 1.2    (blocked an accident)
++ 1/14 × -8     (accident)
+= -0.25</div>
+  <p>Scores are negative here only because an accident on tier 3 costs so much; what matters is which option scores higher. Her blinks often fail when she is tired, so eyebrows win clearly. The random draw still picks blink now and then, so if her blinks get better, the chooser will notice. In the morning she is in a different group with its own tallies, where blink may win.</p>
 </section>
 
 <section>
