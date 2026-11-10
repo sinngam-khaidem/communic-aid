@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How Communic-Aid Senses</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: one readable column, tables and figures may run wider inside their own scroll boxes.
+   Palette and type are the app's own (view/style.css), with a light version for reading. */
+:root {
+  --bg: #FFFFFF; --surface: #F4F5F7; --line: #E4E6EA; --line-strong: #C8CCD2;
+  --ink: #1B1E23; --muted: #5E636B;
+  --learn: #2F54D6; --gaze: #D8316B; --ok: #2E8B57; --warn: #A86A0C; --save: #2A8686; --risk: #C23E34;
+  --font: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1C1E22; --surface: #25282D; --line: #30333A; --line-strong: #474B53;
+    --ink: #E9E7E3; --muted: #A2A6AD;
+    --learn: #93A5FF; --gaze: #FF6597; --ok: #63C18F; --warn: #E3A546; --save: #5FC0C0; --risk: #EF7268;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1C1E22; --surface: #25282D; --line: #30333A; --line-strong: #474B53;
+  --ink: #E9E7E3; --muted: #A2A6AD;
+  --learn: #93A5FF; --gaze: #FF6597; --ok: #63C18F; --warn: #E3A546; --save: #5FC0C0; --risk: #EF7268;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--font); font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+}
+.page {
+  max-width: 760px; margin: 0 auto;
+  padding-block: 56px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 56px;
+}
+header { display: flex; flex-direction: column; gap: 12px; }
+.eyebrow { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+h1 { font-size: 40px; line-height: 1.15; margin: 0; text-wrap: balance; }
+h2 { font-size: 26px; line-height: 1.25; margin: 0; text-wrap: balance; }
+h3 { font-size: 19px; margin: 8px 0 0; }
+p { margin: 0; max-width: 65ch; }
+.lead { font-size: 20px; color: var(--muted); }
+section { display: flex; flex-direction: column; gap: 16px; }
+.num { color: var(--muted); font-weight: 400; margin-right: 8px; font-variant-numeric: tabular-nums; }
+strong { font-weight: 700; }
+code, .formula { font-family: var(--mono); font-size: 15px; }
+code { background: var(--surface); padding: 1px 6px; border-radius: 5px; }
+.formula {
+  background: var(--surface); border-radius: 10px; padding: 16px 18px; white-space: pre; line-height: 1.7;
+  overflow-x: auto; max-width: 100%;
+}
+ul { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; max-width: 65ch; }
+
+/* tables */
+.scroll { overflow-x: auto; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; min-width: 600px; font-size: 16px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); font-size: 14px; letter-spacing: .02em; border-bottom-color: var(--line-strong); }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* outcome pills, coloured the same way as the terminal log */
+.pill { display: inline-block; font-weight: 600; font-size: 14px; padding: 1px 10px; border-radius: 999px; white-space: nowrap;
+  border: 1px solid currentColor; }
+.worked { color: var(--ok); } .gave { color: var(--warn); } .blocked { color: var(--save); }
+.accident { color: var(--risk); } .passed { color: var(--muted); }
+
+/* the four context groups */
+.groups { display: grid; grid-template-columns: auto 1fr 1fr; gap: 8px; align-items: stretch; font-size: 16px; }
+.groups .h { color: var(--muted); font-size: 14px; font-weight: 600; padding: 6px 4px; align-self: end; }
+.groups .g { background: var(--surface); border-radius: 10px; padding: 12px 14px; font-weight: 600; }
+.groups .g span { display: block; font-weight: 400; color: var(--muted); font-size: 14px; }
+
+/* figures */
+figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+figure .scroll svg { display: block; min-width: 560px; width: 100%; height: auto; }
+figcaption { font-size: 14px; color: var(--muted); max-width: 65ch; }
+svg text { font-family: var(--font); }
+.box { fill: var(--surface); stroke: var(--line-strong); }
+.box-learn { fill: var(--surface); stroke: var(--learn); }
+.t-main { fill: var(--ink); font-size: 14px; font-weight: 600; }
+.t-sub { fill: var(--muted); font-size: 12px; }
+.arrow { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+.arrow-learn { stroke: var(--learn); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.head { fill: var(--muted); } .head-learn { fill: var(--learn); }
+.grid { stroke: var(--line); stroke-width: 1; }
+.axis { stroke: var(--line-strong); stroke-width: 1; }
+.tick { fill: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.curve { stroke: var(--learn); stroke-width: 2.5; fill: none; }
+.dot { fill: var(--learn); }
+.floor { stroke: var(--risk); stroke-width: 1.2; stroke-dasharray: 6 5; }
+.floor-t { fill: var(--risk); font-size: 12px; }
+.warm { fill: var(--learn); opacity: .08; }
+.warm-t { fill: var(--muted); font-size: 12px; }
+
+/* sample terminal output */
+.log {
+  font-family: var(--mono); font-size: 13.5px; line-height: 1.75; background: var(--surface); border-radius: 10px;
+  padding: 16px 18px; overflow-x: auto; white-space: pre; max-width: 100%;
+}
+.log .tag { font-weight: 700; }
+.log .c { color: var(--gaze); } .log .o { color: var(--ink); } .log .d { color: var(--learn); }
+
+.note { border-left: 3px solid var(--learn); padding: 4px 0 4px 16px; color: var(--ink); max-width: 65ch; }
+
+@media (max-width: 520px) {
+  h1 { font-size: 32px; }
+  .groups { grid-template-columns: 1fr 1fr; }
+  .groups .h.row { display: none; }
+}
+
+/* extras for this page */
+.ray { stroke: var(--gaze); stroke-width: 2.2; fill: none; }
+.ray-moved { stroke: var(--gaze); stroke-width: 1.6; fill: none; stroke-dasharray: 6 5; opacity: .7; }
+.head-gaze { fill: var(--gaze); }
+.eye { fill: var(--gaze); }
+.eye-moved { fill: none; stroke: var(--gaze); stroke-width: 1.6; }
+.plane { stroke: var(--line-strong); stroke-width: 1.2; stroke-dasharray: 4 5; }
+.hit { fill: var(--bg); stroke: var(--gaze); stroke-width: 2.5; }
+.t-gaze { fill: var(--gaze); font-size: 13px; font-weight: 600; }
+.trace { stroke: var(--learn); stroke-width: 2.5; fill: none; stroke-linejoin: round; }
+.trace-quiet { stroke: var(--muted); stroke-width: 2; fill: none; stroke-linejoin: round; }
+.thr { stroke: var(--risk); stroke-width: 1.2; stroke-dasharray: 6 5; }
+.thr-t { fill: var(--risk); font-size: 12px; }
+.held { fill: var(--learn); opacity: .08; }
+.mark { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 4; }
+.mark-on { stroke: var(--learn); stroke-width: 1.5; }
+.t-learn { fill: var(--learn); font-size: 12px; font-weight: 600; }
+
+.signals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.sig { background: var(--surface); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.sig h3 { margin: 0; font-size: 18px; }
+.sig .rule { font-family: var(--mono); font-size: 14px; color: var(--ink); }
+.sig p { font-size: 15px; color: var(--muted); }
+.steps { counter-reset: s; list-style: none; padding-left: 0; gap: 10px; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 28px 1fr; gap: 8px; }
+.steps li::before { content: counter(s); font-weight: 700; color: var(--learn); font-variant-numeric: tabular-nums; }
+.refs { font-size: 14px; color: var(--muted); gap: 8px; }
+@media (max-width: 520px) {
+  .signals { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<main class="page">
+
+<header>
+  <div class="eyebrow">Communic-Aid · design plan</div>
+  <h1>How Communic-Aid senses</h1>
+  <p class="lead">An iPhone below the monitor watches the face. The Mac turns what it sees into a point on the screen and four confirmation signals: blink and hold, raised eyebrows, "yes" and the switch.</p>
+</header>
+
+<section>
+  <h2>From the phone to the Mac</h2>
+  <figure>
+    <div class="scroll">
+      <svg viewBox="0 0 760 190" role="img" aria-label="The iPhone sends packets over Wi-Fi to the receiver on the Mac, which feeds gaze and signals, which feed the buttons">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="head"/></marker>
+        </defs>
+        <rect class="box" x="8" y="56" width="128" height="68" rx="10"/>
+        <text class="t-main" x="72" y="86" text-anchor="middle">iPhone</text>
+        <text class="t-sub" x="72" y="104" text-anchor="middle">ARKit face tracking</text>
+
+        <rect class="box" x="160" y="56" width="128" height="68" rx="10"/>
+        <text class="t-main" x="224" y="86" text-anchor="middle">UDP packet</text>
+        <text class="t-sub" x="224" y="104" text-anchor="middle">JSON, port 5005</text>
+
+        <rect class="box" x="312" y="56" width="128" height="68" rx="10"/>
+        <text class="t-main" x="376" y="86" text-anchor="middle">Receiver</text>
+        <text class="t-sub" x="376" y="104" text-anchor="middle">on the Mac</text>
+
+        <rect class="box" x="464" y="12" width="136" height="64" rx="10"/>
+        <text class="t-main" x="532" y="40" text-anchor="middle">Gaze</text>
+        <text class="t-sub" x="532" y="58" text-anchor="middle">a point on the screen</text>
+
+        <rect class="box" x="464" y="104" width="136" height="64" rx="10"/>
+        <text class="t-main" x="532" y="132" text-anchor="middle">Signals</text>
+        <text class="t-sub" x="532" y="150" text-anchor="middle">blink, brows, yes, switch</text>
+
+        <rect class="box-learn" x="624" y="56" width="128" height="68" rx="10"/>
+        <text class="t-main" x="688" y="86" text-anchor="middle">Buttons</text>
+        <text class="t-sub" x="688" y="104" text-anchor="middle">fill, wait, fire</text>
+
+        <path class="arrow" d="M136,90 H158" marker-end="url(#ah)"/>
+        <path class="arrow" d="M288,90 H310" marker-end="url(#ah)"/>
+        <path class="arrow" d="M440,80 L462,50" marker-end="url(#ah)"/>
+        <path class="arrow" d="M440,100 L462,130" marker-end="url(#ah)"/>
+        <path class="arrow" d="M600,50 L622,78" marker-end="url(#ah)"/>
+        <path class="arrow" d="M600,130 L622,102" marker-end="url(#ah)"/>
+        <text class="t-sub" x="532" y="186" text-anchor="middle">the switch comes from the keyboard instead</text>
+      </svg>
+    </div>
+    <figcaption>The phone only senses. Every decision is made on the Mac.</figcaption>
+  </figure>
+
+  <h3>On the phone</h3>
+  <p>The phone runs Apple's face tracking on the front camera, about 60 times a second. For each frame it works out where the eyes are and which way they look, then writes both in the phone's own coordinates. The phone sits still below the monitor, so its coordinates are a fixed reference for the screen. Each frame goes to the Mac as one small message:</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Field</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td><code>eye</code></td><td>The point between the two eyes, in metres from the camera</td></tr>
+      <tr><td><code>dir</code></td><td>The direction the eyes are looking, as an arrow of length 1</td></tr>
+      <tr><td><code>blinkL</code>, <code>blinkR</code></td><td>How closed each eye is, from 0 (open) to 1 (shut)</td></tr>
+      <tr><td><code>browIn</code>, <code>browOutL</code>, <code>browOutR</code></td><td>How raised the inner brows and each outer brow are, from 0 to 1</td></tr>
+      <tr><td><code>tracked</code></td><td>Whether a face is visible. When it is lost, the phone still sends a frame saying so.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Speech is handled on the phone too. When it hears "yes", it sends a separate "yes" message. The sound itself never leaves the phone.</p>
+
+  <h3>On the Mac</h3>
+  <p>The receiver listens on port 5005 and passes each message on: frames go to gaze and signals, "yes" goes to signals. It uses UDP, which never waits or resends, so a lost packet is simply skipped. At 60 frames a second, nobody notices one missing frame.</p>
+  <p>The receiver also notices when the phone goes quiet. If no packet arrives for 2 seconds, the screen says the phone has stopped sending, so a changed Wi-Fi address or a sleeping phone is easy to spot.</p>
+</section>
+
+<section>
+  <h2>Turning gaze into a point on the screen</h2>
+
+  <h3>1. Find where the gaze meets the phone's plane</h3>
+  <p>Picture a flat sheet standing upright through the phone's camera. The monitor sits just above the phone, in nearly the same sheet. Starting at the eyes, follow the gaze direction until it hits that sheet. That hit point, in millimetres from the camera, is where the person is looking.</p>
+  <div class="formula">steps = -eye.z ÷ dir.z
+hit   = eye + steps × dir        (keep x and y, in mm)</div>
+  <figure>
+    <div class="scroll">
+      <svg viewBox="0 0 760 270" role="img" aria-label="Side view: a gaze ray from the eye reaches the plane of the phone at the monitor. A moved head gives a different ray that reaches the same point.">
+        <defs>
+          <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="head-gaze"/></marker>
+        </defs>
+        <line class="plane" x1="600" y1="8" x2="600" y2="236"/>
+        <rect class="box" x="594" y="20" width="12" height="150" rx="3"/>
+        <rect class="box" x="593" y="184" width="14" height="44" rx="4"/>
+        <circle cx="600" cy="190" r="2.5" class="head"/>
+        <text class="t-main" x="616" y="34">Monitor</text>
+        <text class="t-main" x="616" y="204">iPhone</text>
+        <text class="t-sub" x="616" y="222">camera at 0, 0</text>
+        <text class="t-sub" x="600" y="256" text-anchor="middle">the phone's plane (z = 0)</text>
+
+        <path class="ray" d="M146,118 L592,71" marker-end="url(#ag)"/>
+        <path class="ray-moved" d="M186,176 L592,73"/>
+        <circle class="eye" cx="140" cy="119" r="7"/>
+        <circle class="eye-moved" cx="180" cy="178" r="7"/>
+        <circle class="hit" cx="600" cy="70" r="6"/>
+
+        <text class="t-gaze" x="140" y="100" text-anchor="middle">eye</text>
+        <text class="t-sub" x="180" y="204" text-anchor="middle">head moved</text>
+        <text class="t-gaze" x="380" y="80" text-anchor="middle">dir</text>
+        <text class="t-main" x="616" y="74">hit point</text>
+        <text class="t-sub" x="616" y="92">same for both</text>
+      </svg>
+    </div>
+    <figcaption>Side view. If the head moves but the person keeps looking at the same spot, the eye and the direction both change, but the hit point stays put. So moving the head does not move the cursor.</figcaption>
+  </figure>
+  <p>An older phone build that does not send <code>eye</code> falls back to two angles: how far the gaze turns left or right, and up or down. That works, but moving the head shifts the point.</p>
+
+  <h3>2. Calibrate: learn how hit points line up with pixels</h3>
+  <p>The hit point is in millimetres on the phone's plane, but the screen needs pixels. The phone is not exactly in the monitor's plane, and the face tracker has its own small biases. So instead of measuring the setup, the system learns the link from the person:</p>
+  <ul class="steps">
+    <li><span>A dot appears at 9 spots: a 3 by 3 grid at 10%, 50% and 90% of the width and height.</span></li>
+    <li><span>At each dot it waits 1.2 seconds for the eyes to settle, then collects hit points for 1 second. Frames with closed eyes are skipped.</span></li>
+    <li><span>It keeps the <strong>median</strong> of those points, so one stray glance or blink cannot pull the result.</span></li>
+    <li><span>If the phone pauses or the face is lost during a dot, that dot starts over instead of being skipped.</span></li>
+  </ul>
+
+  <h3>3. Fit a gentle curve from millimetres to pixels</h3>
+  <p>With 9 pairs of "hit point, dot position", it fits one small formula for the screen's x and another for its y. Each uses the two hit numbers <code>u</code> and <code>v</code> (scaled to a similar size first), their product and their squares:</p>
+  <div class="formula">screen x = a0 + a1·u + a2·v + a3·u·v + a4·u² + a5·v²
+screen y = b0 + b1·u + b2·v + b3·u·v + b4·u² + b5·v²</div>
+  <p>The 12 numbers <code>a</code> and <code>b</code> are chosen by least squares: the ones that put the predicted points closest to the 9 dots. A tiny extra term keeps them from growing wild when the data is thin. The squared terms let the mapping bend a little, which absorbs a tilted phone, lens distortion and a mirrored axis. This kind of second order mapping is a common choice in eye trackers (Cerrolaza and others, 2012).</p>
+  <p>Two checks come out of calibration:</p>
+  <ul>
+    <li><strong>Error:</strong> the average distance between where it now predicts each dot and the dot itself. Over 100 px, it asks to calibrate again.</li>
+    <li><strong>Spread:</strong> how much the gaze wobbles while holding still on a dot. This is the person's steady baseline. Later, gaze that wobbles 1.5 times more than this counts as shaky.</li>
+  </ul>
+  <p>It needs at least 6 good dots to fit. Fewer than that, and calibration fails rather than guessing.</p>
+
+  <h3>4. Every frame after that</h3>
+  <ul>
+    <li><strong>No face:</strong> the gaze is marked as missing until the face is back.</li>
+    <li><strong>Eyes closed:</strong> the point is frozen where it was. The tracker's gaze swings as the eyelids come down, so without this a blink would drag the cursor. It also means a blink and hold confirms the button that was being looked at.</li>
+    <li><strong>Smoothing:</strong> each new point moves the cursor 30% of the way toward it: <code>shown = 0.3 × new + 0.7 × shown</code>. This calms the jitter while still following real eye movements quickly.</li>
+    <li><strong>Drift correction:</strong> after each selection that worked, it compares where the gaze was in the 300 ms before firing with the centre of that button. It then moves a small correction 10% of the way to close the gap. The correction never grows past 80 px, so one odd selection cannot drag the cursor away. This uses the idea that people look at what they select (Hornof and Halverson, 2002).</li>
+    <li><strong>Moving the window:</strong> calibration is learned in pixels of the whole screen, not of the page. The page reports where its top left corner sits on the screen, checked every second. Leaving full screen or moving the window therefore does not shift the gaze.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>The four signals</h2>
+  <p>A signal is the second step on a risky button. The button fills with gaze, then waits up to 4 seconds for the signal it asked for. The right signal fires it. A different signal is shown as the wrong one, and the button keeps waiting. Looking away for half a second, or running out of time, cancels it.</p>
+
+  <div class="signals">
+    <div class="sig">
+      <h3>Blink and hold</h3>
+      <div class="rule">both eyes closed for 500 ms</div>
+      <p>Both eyes must be more closed than the person's closed level. A natural blink lasts well under half a second, and a wink only closes one eye, so neither fires.</p>
+    </div>
+    <div class="sig">
+      <h3>Raised eyebrows</h3>
+      <div class="rule">brows up for 300 ms, eyes open</div>
+      <p>The brow level is the average of the three brow values. It must be above the person's raised level while the eyes are open, so one movement never counts as two signals.</p>
+    </div>
+    <div class="sig">
+      <h3>"Yes"</h3>
+      <div class="rule">the word "yes", once per 1.5 s</div>
+      <p>Apple's speech recognition runs on the phone, with Indian English when the phone has it. If the phone cannot recognise speech on its own, "yes" stays off instead of sending audio to a server. A second "yes" within 1.5 seconds is ignored, so one word is never counted twice.</p>
+    </div>
+    <div class="sig">
+      <h3>Switch</h3>
+      <div class="rule">Space, Enter or S</div>
+      <p>An accessibility switch that types a key. Each press is a signal at once. Three presses within 2 seconds is the way out: it goes back to the chat list from anywhere and keeps the draft.</p>
+    </div>
+  </div>
+
+  <h3>Holding, and trying</h3>
+  <p>Blink and eyebrows use the same hold rule. The clock starts when the value crosses the person's level. The signal fires once, when the hold is long enough. If the person lets go after at least 150 ms but before the hold is reached, it is noted as an <strong>attempt</strong>. Attempts tell the learner "they tried but could not finish", which is different from "they never meant to press this".</p>
+  <figure>
+    <div class="scroll">
+      <svg viewBox="0 0 760 230" role="img" aria-label="Eye closure over time. A natural blink crosses the closed level briefly and is ignored. A held closure crosses it, passes the 150 ms attempt mark, and fires the signal at 500 ms.">
+        <line class="axis" x1="60" y1="170" x2="720" y2="170"/>
+        <line class="axis" x1="60" y1="30" x2="60" y2="170"/>
+        <text class="tick" x="52" y="174" text-anchor="end">open</text>
+        <text class="tick" x="52" y="34" text-anchor="end">shut</text>
+        <text class="tick" x="60" y="190" text-anchor="middle">0</text>
+        <text class="tick" x="192" y="190" text-anchor="middle">200</text>
+        <text class="tick" x="324" y="190" text-anchor="middle">400</text>
+        <text class="tick" x="456" y="190" text-anchor="middle">600</text>
+        <text class="tick" x="588" y="190" text-anchor="middle">800</text>
+        <text class="tick" x="720" y="190" text-anchor="middle">1000 ms</text>
+
+        <rect class="held" x="272" y="30" width="330" height="140"/>
+        <line class="thr" x1="60" y1="100" x2="720" y2="100"/>
+        <text class="thr-t" x="176" y="94">closed level</text>
+
+        <path class="trace-quiet" d="M60,163 L86,163 L106,86 L126,41 L146,86 L166,163 L258,163"/>
+        <text class="t-sub" x="126" y="26" text-anchor="middle">natural blink: too short</text>
+
+        <path class="trace" d="M258,163 L278,72 L291,44 L654,44 L674,86 L694,163 L720,163"/>
+        <line class="mark" x1="370" y1="30" x2="370" y2="170"/>
+        <text class="t-sub" x="374" y="62">150 ms: letting go now</text>
+        <text class="t-sub" x="374" y="78">counts as an attempt</text>
+        <line class="mark-on" x1="602" y1="30" x2="602" y2="170"/>
+        <text class="t-learn" x="598" y="62" text-anchor="end">500 ms: signal</text>
+        <text class="t-sub" x="390" y="214" text-anchor="middle">time</text>
+      </svg>
+    </div>
+    <figcaption>A blink and hold. The shaded part is the hold. Raised eyebrows work the same way, with a 300 ms hold.</figcaption>
+  </figure>
+
+  <h3>Fitting the levels to each person: the signal check</h3>
+  <p>Faces differ. One person's relaxed eyes already read 0.2; another's brows barely move. So before use, a short check sets each person's own levels:</p>
+  <ul class="steps">
+    <li><span><strong>Relax, looking at the middle</strong> for 2 seconds. This records how open the eyes and how high the brows are at rest.</span></li>
+    <li><span><strong>Relax, looking at a dot at the top</strong> for 2 seconds. Looking up lifts the brows on its own, so the higher of the two brow readings becomes the rest level. Looking up should never count as raised eyebrows.</span></li>
+    <li><span><strong>Close both eyes</strong> until a tone, 3 times. <strong>Raise the eyebrows</strong>, 3 times. <strong>Say "yes"</strong>, 3 times. <strong>Press the switch</strong>, 3 times. Each try has 6 seconds, and only counts if the face was relaxed first.</span></li>
+  </ul>
+  <p>From the tries it sets:</p>
+  <ul>
+    <li><strong>Closed level:</strong> halfway between the relaxed eyes and the average of the closed tries.</li>
+    <li><strong>Raised level:</strong> halfway between the brows at rest and the average of the raised tries.</li>
+    <li><strong>Which signals this person can use:</strong> those that worked in at least 2 of 3 tries. The others are never asked for.</li>
+  </ul>
+  <p>Until someone does the check, both levels start at 0.5.</p>
+</section>
+
+<section>
+  <h2>The numbers in one place</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Setting</th><th class="n">Value</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>Phone goes quiet</td><td class="n">2 s</td><td>No packet for this long shows "phone stopped sending"</td></tr>
+      <tr><td>Calibration dots</td><td class="n">9</td><td>3 by 3 grid, at least 6 needed</td></tr>
+      <tr><td>Settle, then collect</td><td class="n">1.2 s, 1 s</td><td>Time at each dot</td></tr>
+      <tr><td>Redo calibration above</td><td class="n">100 px</td><td>Average error at the dots</td></tr>
+      <tr><td>Smoothing</td><td class="n">0.3</td><td>Share of each new point that is used</td></tr>
+      <tr><td>Drift correction</td><td class="n">10%, 80 px</td><td>Step per selection, and the most it can ever move</td></tr>
+      <tr><td>Blink hold</td><td class="n">500 ms</td><td>Both eyes closed</td></tr>
+      <tr><td>Eyebrow hold</td><td class="n">300 ms</td><td>Brows up, eyes open</td></tr>
+      <tr><td>Shortest attempt</td><td class="n">150 ms</td><td>A shorter closure or lift is ignored</td></tr>
+      <tr><td>"Yes" gap</td><td class="n">1.5 s</td><td>A second "yes" sooner than this is ignored</td></tr>
+      <tr><td>Way out</td><td class="n">3 in 2 s</td><td>Switch presses that go back to the chat list</td></tr>
+      <tr><td>Wait for a signal</td><td class="n">4 s</td><td>After the button has filled</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>Sources</h2>
+  <ul class="refs">
+    <li>Cerrolaza, J. J., Villanueva, A., and Cabeza, R. (2012). Study of polynomial mapping functions in video-oculography eye trackers. <em>ACM Transactions on Computer-Human Interaction</em>, 19(2), article 10.</li>
+    <li>Hornof, A. J., and Halverson, T. (2002). Cleaning up systematic error in eye-tracking data by using required fixation locations. <em>Behavior Research Methods, Instruments, and Computers</em>, 34(4), 592-604.</li>
+    <li>Apple. ARKit face tracking: <code>ARFaceAnchor</code> (eye transforms, <code>lookAtPoint</code>, blend shapes). Speech framework: on device recognition.</li>
+  </ul>
+</section>
+
+</main>
+</body>
+</html>
