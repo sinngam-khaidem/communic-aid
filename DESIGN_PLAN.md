@@ -275,8 +275,9 @@ This step decides the quality of everything else. Each outcome is fixed only whe
 |---|---|---|
 | Worked | Fired, not undone within 5 s, and for a letter, the next key was not Backspace within 3 s | Meant it, got it |
 | Accident | Fired, then undone within 5 s, or a letter followed by Backspace within 3 s | Did not mean it. The glance lasted at least the dwell. |
-| Gave up | Left before the fill finished, then looked back at the same button within 2 s | Meant it, but the dwell felt too long |
-| Passed by | Left before the fill finished, did not come back within 2 s | A stray glance. We record how long it lasted. |
+| Gave up | Looked at least half the dwell, left, and chose the same button within 5 s with a fresh fill | Meant it, but the dwell felt too long |
+| (no label) | A shorter look, or a slip where the old fill carried over, before choosing that button | Part of the selection |
+| Passed by | Left before the fill finished, and that button was not chosen within 5 s | A stray glance. We record how long it lasted. |
 
 **For a signal request (router)**
 

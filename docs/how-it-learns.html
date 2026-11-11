@@ -182,8 +182,8 @@ svg text { font-family: var(--font); }
     <tbody>
       <tr><td><span class="pill worked">worked</span></td><td>The button fired and was not undone within 5 s. For a letter, the next key was not Backspace within 3 s.</td></tr>
       <tr><td><span class="pill accident">accident</span></td><td>It fired, then was undone within 5 s, or a letter was followed straight away by Backspace.</td></tr>
-      <tr><td><span class="pill gave">gave up</span></td><td>The person looked away before the fill finished, then came back to the same button within 2 s. They meant it, but the wait felt too long.</td></tr>
-      <tr><td><span class="pill passed">passed by</span></td><td>They looked away and did not come back. A stray glance; the app notes how long it lasted.</td></tr>
+      <tr><td><span class="pill gave">gave up</span></td><td>The person looked for at least half the dwell, looked away, then chose that same button within 5 s, starting the fill again. They meant it, but the wait felt too long. Shorter looks, or slips where the old fill carried over, are part of the selection and get no label.</td></tr>
+      <tr><td><span class="pill passed">passed by</span></td><td>They looked away and did not choose that button within 5 s. A stray glance; the app notes how long it lasted.</td></tr>
     </tbody>
   </table></div>
 

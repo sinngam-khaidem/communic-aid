@@ -167,7 +167,8 @@ class Interaction:
         if duration >= self.min_look_s:
             self.bus.emit("look", {"action": action, "tier": tier_of(action, self.tiers),
                                    "start": self.look_start, "end": left_at,
-                                   "filled": self.look_filled, "dwell": self.look_dwell, "group": self.group})
+                                   "filled": self.look_filled, "dwell": self.look_dwell, "group": self.group,
+                                   "fill": round(self.progress.get(action, 0.0) / self.look_dwell, 3) if self.look_dwell else 0.0})
 
     def _dwell_of(self, action: str) -> float:
         if action in UNDO:

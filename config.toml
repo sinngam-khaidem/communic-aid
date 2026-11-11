@@ -27,7 +27,8 @@ effort_start_s = 1.2
 [windows]
 undo_s = 5.0
 backspace_s = 3.0
-come_back_look_s = 2.0
+give_up_min_fill = 0.5      # an unfilled look counts as a give-up only if it got this far
+give_up_confirm_s = 5.0     # and the same button was chosen within this many seconds after it
 come_back_signal_s = 3.0
 
 # Section 6.4: dwell learner (tiers 0 and 1 only).

@@ -8,9 +8,9 @@ from conftest import run
 seq = iter(range(1, 10_000))
 
 
-def fire(bus, clock, action, tier, check="dwell"):
+def fire(bus, clock, action, tier, check="dwell", dwell=600):
     n = next(seq)
-    bus.emit("fire", {"seq": n, "action": action, "tier": tier, "group": "rested+steady", "dwell": 600,
+    bus.emit("fire", {"seq": n, "action": action, "tier": tier, "group": "rested+steady", "dwell": dwell,
                       "check": check, "signal_time": 0.8, "center": (10, 10), "t": clock.now()})
     return n
 
@@ -65,25 +65,55 @@ def test_next_action_closes_the_window(world, config):
     assert rec.outcomes() == [("dwell", "worked")]
 
 
-def look(bus, action, start, end, filled=False, tier=0):
-    bus.emit("look", {"action": action, "tier": tier, "start": start, "end": end,
-                      "filled": filled, "dwell": 900, "group": "rested+steady"})
+def look(bus, action, start, end, filled=False, tier=0, fill=None):
+    bus.emit("look", {"action": action, "tier": tier, "start": start, "end": end, "filled": filled, "dwell": 900,
+                      "group": "rested+steady", "fill": (end - start) / 0.9 if fill is None else fill})
 
 
-def test_left_and_came_back_is_gave_up(world, config):
+def choose(bus, clock, action, after, look_for=0.9):
+    """Come back after `after` seconds, look for `look_for` seconds, and the button fires."""
+    run(bus, clock, after)
+    bus.emit("look_start", {"action": action, "t": clock.now()})
+    run(bus, clock, look_for)
+    fire(bus, clock, action, 0, dwell=900)
+
+
+def test_long_look_then_chosen_with_a_fresh_fill_is_gave_up(world, config):
     bus, clock, rec = make(world, config)
-    look(bus, "open:priya", 0.0, 0.7)
-    run(bus, clock, 1.5)
-    bus.emit("look_start", {"action": "open:priya", "t": clock.now()})
+    look(bus, "open:priya", 0.0, 0.7)                  # 78% of the fill, then looked away
+    choose(bus, clock, "open:priya", after=2.0)
     assert rec.outcomes() == [("dwell", "gave_up")]
     assert rec.of("outcome")[0]["outcome"].duration == 700
 
 
-def test_left_and_never_came_back_is_passed_by(world, config):
+def test_short_glance_before_choosing_is_not_a_give_up(world, config):
+    bus, clock, rec = make(world, config)
+    look(bus, "open:priya", 0.0, 0.2)                  # 22% of the fill
+    choose(bus, clock, "open:priya", after=1.0)
+    run(bus, clock, 6.0)
+    assert rec.outcomes() == [("dwell", "worked")]
+
+
+def test_slip_with_the_fill_carried_over_is_not_a_give_up(world, config):
+    bus, clock, rec = make(world, config)
+    look(bus, "open:priya", 0.0, 0.7)
+    choose(bus, clock, "open:priya", after=0.2, look_for=0.25)   # the old fill finished it
+    run(bus, clock, 6.0)
+    assert rec.outcomes() == [("dwell", "worked")]
+
+
+def test_never_chosen_is_passed_by(world, config):
     bus, clock, rec = make(world, config)
     look(bus, "open:priya", 0.0, 0.3)
-    run(bus, clock, 3.0)
+    run(bus, clock, 6.0)
     assert rec.outcomes() == [("dwell", "passed_by")]
+
+
+def test_chosen_too_late_is_passed_by(world, config):
+    bus, clock, rec = make(world, config)
+    look(bus, "open:priya", 0.0, 0.7)
+    choose(bus, clock, "open:priya", after=6.0)
+    assert rec.outcomes()[0] == ("dwell", "passed_by")
 
 
 def test_timeout_with_an_attempt_is_gave_up(world, config):
