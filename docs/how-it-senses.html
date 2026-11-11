@@ -159,7 +159,7 @@ svg text { font-family: var(--font); }
 <header>
   <div class="eyebrow">Communic-Aid · design plan</div>
   <h1>How Communic-Aid senses</h1>
-  <p class="lead">An iPhone below the monitor watches the face. The Mac turns what it sees into a point on the screen and four confirmation signals: blink and hold, raised eyebrows, "yes" and the switch.</p>
+  <p class="lead">An iPhone below the monitor watches the face. The Mac turns what it sees into a point on the screen and four confirmation signals: blink and hold, raised eyebrows, saying "proceed" and the switch.</p>
 </header>
 
 <section>
@@ -219,10 +219,10 @@ svg text { font-family: var(--font); }
       <tr><td><code>tracked</code></td><td>Whether a face is visible. When it is lost, the phone still sends a frame saying so.</td></tr>
     </tbody>
   </table></div>
-  <p>Speech is handled on the phone too. When it hears "yes", it sends a separate "yes" message. The sound itself never leaves the phone.</p>
+  <p>Speech is handled on the phone too. When it hears "proceed", it sends a short message saying so. The sound itself never leaves the phone.</p>
 
   <h3>On the Mac</h3>
-  <p>The receiver listens on port 5005 and passes each message on: frames go to gaze and signals, "yes" goes to signals. It uses UDP, which never waits or resends, so a lost packet is simply skipped. At 60 frames a second, nobody notices one missing frame.</p>
+  <p>The receiver listens on port 5005 and passes each message on: frames go to gaze and signals, the spoken word goes to signals. It uses UDP, which never waits or resends, so a lost packet is simply skipped. At 60 frames a second, nobody notices one missing frame.</p>
   <p>The receiver also notices when the phone goes quiet. If no packet arrives for 2 seconds, the screen says the phone has stopped sending, so a changed Wi-Fi address or a sleeping phone is easy to spot.</p>
 </section>
 
@@ -313,9 +313,9 @@ screen y = b0 + b1·u + b2·v + b3·u·v + b4·u² + b5·v²</div>
       <p>The brow level is the average of the three brow values. It must be above the person's raised level while the eyes are open, so one movement never counts as two signals.</p>
     </div>
     <div class="sig">
-      <h3>"Yes"</h3>
-      <div class="rule">the word "yes", once per 1.5 s</div>
-      <p>Apple's speech recognition runs on the phone, with Indian English when the phone has it. If the phone cannot recognise speech on its own, "yes" stays off instead of sending audio to a server. A second "yes" within 1.5 seconds is ignored, so one word is never counted twice.</p>
+      <h3>"Proceed"</h3>
+      <div class="rule">the word "proceed", once per 1.5 s</div>
+      <p>Apple's speech recognition runs on the phone, with Indian English when the phone has it. If the phone cannot recognise speech on its own, "proceed" stays off instead of sending audio to a server. A second "proceed" within 1.5 seconds is ignored, so one word is never counted twice.</p>
     </div>
     <div class="sig">
       <h3>Switch</h3>
@@ -364,7 +364,7 @@ screen y = b0 + b1·u + b2·v + b3·u·v + b4·u² + b5·v²</div>
   <ul class="steps">
     <li><span><strong>Relax, looking at the middle</strong> for 2 seconds. This records how open the eyes and how high the brows are at rest.</span></li>
     <li><span><strong>Relax, looking at a dot at the top</strong> for 2 seconds. Looking up lifts the brows on its own, so the higher of the two brow readings becomes the rest level. Looking up should never count as raised eyebrows.</span></li>
-    <li><span><strong>Close both eyes</strong> until a tone, 3 times. <strong>Raise the eyebrows</strong>, 3 times. <strong>Say "yes"</strong>, 3 times. <strong>Press the switch</strong>, 3 times. Each try has 6 seconds, and only counts if the face was relaxed first.</span></li>
+    <li><span><strong>Close both eyes</strong> until a tone, 3 times. <strong>Raise the eyebrows</strong>, 3 times. <strong>Say "proceed"</strong>, 3 times. <strong>Press the switch</strong>, 3 times. Each try has 6 seconds, and only counts if the face was relaxed first.</span></li>
   </ul>
   <p>From the tries it sets:</p>
   <ul>
@@ -389,7 +389,7 @@ screen y = b0 + b1·u + b2·v + b3·u·v + b4·u² + b5·v²</div>
       <tr><td>Blink hold</td><td class="n">500 ms</td><td>Both eyes closed</td></tr>
       <tr><td>Eyebrow hold</td><td class="n">300 ms</td><td>Brows up, eyes open</td></tr>
       <tr><td>Shortest attempt</td><td class="n">150 ms</td><td>A shorter closure or lift is ignored</td></tr>
-      <tr><td>"Yes" gap</td><td class="n">1.5 s</td><td>A second "yes" sooner than this is ignored</td></tr>
+      <tr><td>"Proceed" gap</td><td class="n">1.5 s</td><td>A second "proceed" sooner than this is ignored</td></tr>
       <tr><td>Way out</td><td class="n">3 in 2 s</td><td>Switch presses that go back to the chat list</td></tr>
       <tr><td>Wait for a signal</td><td class="n">4 s</td><td>After the button has filled</td></tr>
     </tbody>

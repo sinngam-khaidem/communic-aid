@@ -32,7 +32,7 @@ struct ContentView: View {
                     .textFieldStyle(.roundedBorder)
                     .keyboardType(.numberPad)
 
-                Toggle("Listen for \"yes\"", isOn: $listen)
+                Toggle("Listen for \"proceed\"", isOn: $listen)
                 Toggle("Show my face on the Mac", isOn: $preview)
             }
             .disabled(sensor.isRunning)

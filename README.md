@@ -2,7 +2,7 @@
 
 A gaze and multimodal chat interface for people with motor impairments. People look at buttons
 to pick them. Risky actions ask for a second signal (blink and hold, raised eyebrows, saying
-"yes", or a switch). Two learners adapt the dwell time and the signal to each person.
+"proceed", or a switch). Two learners adapt the dwell time and the signal to each person.
 
 
 ## How it fits together?
@@ -29,7 +29,7 @@ or newer) and installs the app. Add `--test` to run the tests afterwards. Runnin
 ```
 
 Open http://localhost:8080 and click to start. The mouse is your gaze. Hold **B** to blink and
-hold, hold **E** to raise eyebrows, press **Y** to say "yes", and **S** or Space for the switch.
+hold, hold **E** to raise eyebrows, press **Y** to say "proceed", and **S** or Space for the switch.
 Esc goes home.
 
 ## Run with the iPhone.
@@ -54,9 +54,9 @@ notes from the file and units filled in. The accident costs and reward values ar
 Then it shows what the learners are doing as it happens, one line per event:
 
 ```
-00:19  CHOOSE   call             tier 3  tired+steady   -> say "yes"   scores: say "yes" +0.44   raise eyebrows -0.38   switch -0.82
-00:24  OUTCOME  call             tier 3  worked              reward +0.53   check: say "yes"
-00:24  ROUTER   tier 3  tired+steady   say "yes": worked 1, gave up 0, blocked an accident 0, accident 0
+00:19  CHOOSE   call             tier 3  tired+steady   -> say "proceed"   scores: say "proceed" +0.44   raise eyebrows -0.38   switch -0.82
+00:24  OUTCOME  call             tier 3  worked              reward +0.53   check: say "proceed"
+00:24  ROUTER   tier 3  tired+steady   say "proceed": worked 1, gave up 0, blocked an accident 0, accident 0
 00:34  OUTCOME  back             tier 0  worked              reward +0.10   dwell 1500 ms
 00:34  DWELL    tired+steady: warm-up 2 of 20 selections, staying at 1500 ms
 ```

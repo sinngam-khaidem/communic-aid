@@ -20,7 +20,7 @@ from pathlib import Path
 from .common import ROOT, Bus, Clock
 
 NAMES = {"dwell": "dwell only", "blink": "blink and hold", "brows": "raise eyebrows",
-         "yes": 'say "yes"', "switch": "switch"}
+         "yes": 'say "proceed"', "switch": "switch"}
 KINDS = {"worked": "worked", "gave_up": "gave up", "blocked": "blocked an accident",
          "accident": "accident", "passed_by": "passed by"}
 COLOURS = {"worked": "32", "gave_up": "33", "blocked": "36", "accident": "31",

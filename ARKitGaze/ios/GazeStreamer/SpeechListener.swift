@@ -1,14 +1,14 @@
 import Foundation
 import Speech
 
-/// Listens for "yes" with Apple's Speech framework, fully on device (DESIGN_PLAN 3.5).
+/// Listens for the confirmation word "proceed" with Apple's Speech framework, fully on device (DESIGN_PLAN 3.5).
 ///
 /// Audio comes from ARKit (`providesAudioData`), so nothing else touches the microphone.
-/// Audio never leaves the phone: only a "yes" event is reported. If this phone cannot
+/// Audio never leaves the phone: only a "yes" event (the confirmation signal) is reported. If this phone cannot
 /// recognise speech on device, the listener stays off rather than sending audio to a server.
 final class SpeechListener {
-    /// Words that count as "yes". Add "haan" or "okay" per person if needed.
-    var words: Set<String> = ["yes"]
+    /// Words that count as the confirmation. Add others per person if needed.
+    var words: Set<String> = ["proceed"]
     var onYes: (() -> Void)?
     var onStatus: ((String) -> Void)?
 
@@ -43,7 +43,7 @@ final class SpeechListener {
         }
         running = true
         restart()
-        onStatus?("Listening for \"yes\"")
+        onStatus?("Listening for \"proceed\"")
     }
 
     func stop() {
