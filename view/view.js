@@ -221,7 +221,9 @@ const SCREENS = {
       : s.quick.map((q, i) => B(`quick:${i}`, q, { cls: "short" }));
     let keys;
     if (s.settings.keyboard === "qwerty") {
-      keys = `<div class="keys qwerty">${"qwertyuiopasdfghjklzxcvbnm".split("").map((k) => B(`key:${k}`, k.toUpperCase())).join("")}</div>`;
+      // Three rows like a real keyboard, each centred, so the shorter rows sit in the middle.
+      const row = (letters) => `<div class="krow">${letters.split("").map((k) => B(`key:${k}`, k.toUpperCase())).join("")}</div>`;
+      keys = `<div class="keys qwerty">${row("qwertyuiop")}${row("asdfghjkl")}${row("zxcvbnm")}</div>`;
     } else if (s.kb_group) {
       keys = `<div class="keys letters" style="grid-template-columns: repeat(${s.kb_group.length + 1}, 1fr)">${s.kb_group.split("").map((k) => B(`key:${k}`, k.toUpperCase())).join("")}${B("groups", "Back", { icon: "back" })}</div>`;
     } else {

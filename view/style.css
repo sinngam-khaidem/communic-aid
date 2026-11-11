@@ -147,8 +147,10 @@ body.dim .t:not([data-action="undo"]):not([data-action="redo"]) { opacity: .35; 
 .dtext { font-weight: 400; }
 /* The keyboard takes all the height left over, so keys grow instead of leaving space unused. */
 .keys { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr; gap: 36px 44px; }
-.keys.qwerty { grid-template-columns: repeat(10, 1fr); gap: var(--gap); }
-.keys.qwerty .t { min-height: 0; padding: 6px; }
+.keys.qwerty { display: flex; flex-direction: column; gap: var(--gap); }
+.keys.qwerty .krow { flex: 1; min-height: 0; display: flex; justify-content: center; gap: var(--gap); }
+/* Every key is a tenth of the row (less the gaps), so all rows share one key size and the shorter rows centre. */
+.keys.qwerty .krow .t { flex: 0 0 calc((100% - 9 * var(--gap)) / 10); min-height: 0; padding: 6px; }
 .keys .t { min-height: 0; font-size: 30px; letter-spacing: .05em; }
 .keys.letters { grid-template-columns: repeat(5, 1fr); }
 .keys.letters .t { font-size: 44px; }
