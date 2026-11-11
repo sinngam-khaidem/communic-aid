@@ -4,7 +4,7 @@ Listens to every event. Nothing listens to Persist. Message text is never logged
 
 Three files per person in data/<person>/:
   events.jsonl  one line per event, plus a "layout" line whenever the buttons on screen change
-  gaze.jsonl    the gaze point GAZE_HZ times a second, with the screen name and eye position (heatmaps)
+  gaze.jsonl    the gaze point GAZE_HZ times a second, with the screen name, eye position and head angles
   frames.jsonl  every raw phone frame, only with --raw
 """
 
@@ -16,6 +16,7 @@ from dataclasses import asdict, is_dataclass
 from pathlib import Path
 
 from .common import Bus, Clock, Frame, Outcome
+from .gaze import angles
 
 # High-rate or bulky events that are not worth a line each.
 SKIP = {"frame", "gaze", "tick", "button", "dim", "targets", "state", "dwell_now", "calib_dot", "check_prompt",
@@ -48,15 +49,18 @@ class Persist:
         self.gaze = open(self.dir / "gaze.jsonl", "a", buffering=1)
         self.screen: str | None = None           # the app screen being shown, from the chat state
         self.eye: tuple | None = None            # last eye position from the phone
+        self.head: tuple | None = None           # last head direction (where the nose points)
         self.last_gaze = -1e9
         self.last_layout: list | None = None
         bus.on_all(self._log)
 
     def _log(self, event: str, payload: dict) -> None:
         if event == "frame":
-            self.eye = payload["frame"].eye
+            f = payload["frame"]
+            self.eye, self.head = f.eye, f.head
             if self.frames:
-                self.frames.write(json.dumps({"t": self.clock.now(), **payload["frame"].__dict__}) + "\n")
+                # "t" is the Mac's clock, like every other log; the phone's own timestamp is kept as phone_t.
+                self.frames.write(json.dumps({**f.__dict__, "t": round(self.clock.now(), 3), "phone_t": f.t}) + "\n")
         elif event == "state":
             self.screen = payload["state"].get("screen")
         elif event == "gaze":
@@ -85,7 +89,9 @@ class Persist:
         if p.get("valid"):
             line.update(x=round(p["x"], 1), y=round(p["y"], 1), frozen=bool(p.get("frozen")))
         if self.eye is not None:
-            line["eye_mm"] = [round(v * 1000, 1) for v in self.eye]     # to check the head stayed still
+            line["eye_mm"] = [round(v * 1000, 1) for v in self.eye]     # head position: leaning, shifting
+        if self.head is not None:
+            line["head_deg"] = [round(a, 1) for a in angles(self.head)]   # head turning: left/right, up/down
         self.gaze.write(json.dumps(line) + "\n")
 
     def _layout(self, targets) -> None:

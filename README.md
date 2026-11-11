@@ -99,8 +99,8 @@ Everything for a person goes to `data/<person>/`:
 | File | What it holds |
 |---|---|
 | `events.jsonl` | One line per event: looks, selections, outcomes, learning, signals, calibration, and the buttons on each screen (`layout`) |
-| `gaze.jsonl` | The gaze point 30 times a second, with the screen name and eye position (for heatmaps, and to check the head stayed still) |
-| `frames.jsonl` | Every raw phone frame, only with `--raw` |
+| `gaze.jsonl` | The gaze point 30 times a second, with the screen name (for heatmaps), the eye position in mm (`eye_mm`, the head moving) and the head angles in degrees (`head_deg`, left/right and up/down, the head turning) |
+| `frames.jsonl` | Every raw phone frame, only with `--raw`. `t` is the Mac clock, `phone_t` the phone's |
 | `learner.json`, `calibration.json`, `signals.json`, `settings.json` | What was learned and set up, reused next time |
 
 No message text, video or audio is ever saved. Speech is recognised on the phone, and only the
@@ -120,8 +120,8 @@ each, and saves into `result/P01/`:
 - `<mode>/heatmap_<screen>.png`: where the person looked on each screen, over the real buttons.
 - `<mode>/dwell.png`: how the dwell changed during the session.
 - `summary.md` and `summary.csv`: one column per mode, with selections, accidents, undos,
-  give-ups, wrong signals, the final dwell, head movement, and how often each signal was asked
-  for and confirmed.
+  give-ups, wrong signals, the final dwell, how much the head moved and turned, and how often each
+  signal was asked for and confirmed.
 
 Task times, SUS, NASA-TLX and the ratings are collected on paper. Single plots for one folder:
 `tests/plot_heatmap.py --person P01-gaze` and `tests/plot_dwell.py --person P01-gaze`.

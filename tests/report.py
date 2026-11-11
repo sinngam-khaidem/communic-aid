@@ -54,12 +54,15 @@ def main_session(events: list[dict]) -> str | None:
     return looks.most_common(1)[0][0] if looks else None
 
 
-def head_movement(gaze: list[dict]) -> tuple[str, str]:
-    """How far the eyes moved from their usual place, in mm: typical, and the largest 5%."""
-    eye = np.array([g["eye_mm"] for g in gaze if g.get("eye_mm")])
-    if len(eye) < 10:
+def spread(gaze: list[dict], key: str) -> tuple[str, str]:
+    """How far a value moved from its usual place: typical, and the largest 5%.
+
+    eye_mm (mm) shows the head moving: leaning or shifting. head_deg (degrees) shows it turning.
+    """
+    values = np.array([g[key] for g in gaze if g.get(key)])
+    if len(values) < 10:
         return "n/a", "n/a"
-    dist = np.linalg.norm(eye - np.median(eye, axis=0), axis=1)
+    dist = np.linalg.norm(values - np.median(values, axis=0), axis=1)
     return f"{np.median(dist):.0f}", f"{np.percentile(dist, 95):.0f}"
 
 
@@ -75,7 +78,8 @@ def summarise(events: list[dict], gaze: list[dict]) -> dict[str, str]:
         if e["event"] == "look" and e["action"] not in FIXED and e["tier"] in (0, 1):
             last_dwell[e["tier"]] = e["dwell"]
     minutes = (events[-1]["t"] - events[0]["t"]) / 60 if events else 0
-    typical, largest = head_movement(gaze)
+    moved, moved_most = spread(gaze, "eye_mm")
+    turned, turned_most = spread(gaze, "head_deg")
     row = {
         "Pointing": events[0].get("pointing", "gaze") if events else "",
         "Condition": events[0].get("condition", "") if events else "",
@@ -91,8 +95,10 @@ def summarise(events: list[dict], gaze: list[dict]) -> dict[str, str]:
         "Signal timeouts": str(sum(e["event"] == "timeout" and e.get("reason") != "lost" for e in events)),
         "Dwell at end, tier 0 (ms)": str(last_dwell.get(0, "n/a")),
         "Dwell at end, tier 1 (ms)": str(last_dwell.get(1, "n/a")),
-        "Head movement, typical (mm)": typical,
-        "Head movement, largest 5% (mm)": largest,
+        "Head movement, typical (mm)": moved,
+        "Head movement, largest 5% (mm)": moved_most,
+        "Head turning, typical (deg)": turned,
+        "Head turning, largest 5% (deg)": turned_most,
     }
     for key, name in SIGNALS.items():
         row[f"{name}: asked / confirmed"] = f"{asked[key]} / {confirmed[key]}"
