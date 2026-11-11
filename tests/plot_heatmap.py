@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import json
 from collections import defaultdict
+from pathlib import Path
 
 import matplotlib
 
@@ -28,6 +29,7 @@ OUT = ROOT / "result"
 BIN_PX = 4            # heatmap cell size
 BLUR_PX = 24          # how far one gaze point spreads
 MIN_SECONDS = 3       # skip screens looked at for less than this
+SETUP = ("landing",)  # calibration and the signal check: not part of using the app
 
 
 def read(path):
@@ -44,7 +46,7 @@ def load(person: str, session: str | None):
     points = defaultdict(list)
     pointing = "gaze"
     for g in gaze:
-        if g["session"] == session and g.get("valid") and not g.get("frozen") and g.get("screen"):
+        if g["session"] == session and g.get("valid") and not g.get("frozen") and g.get("screen") not in (None, *SETUP):
             points[g["screen"]].append((g["x"], g["y"]))
             pointing = g.get("pointing", pointing)
     # A screen can change its buttons (the keyboard opens a letter group), so draw the layout it showed longest.
@@ -76,10 +78,11 @@ def blur(grid: np.ndarray, sigma: float) -> np.ndarray:
     return np.apply_along_axis(lambda col: np.convolve(col, k, mode="same"), 0, grid)
 
 
-def plot(person: str, session: str | None) -> None:
+def plot(person: str, session: str | None, out_dir: Path | None = None) -> list[Path]:
     session, pointing, (w, h), points, layouts = load(person, session)
-    OUT.mkdir(exist_ok=True)
-    saved = 0
+    folder = Path(out_dir) if out_dir else OUT
+    folder.mkdir(parents=True, exist_ok=True)
+    saved = []
     for screen, pts in sorted(points.items()):
         seconds = len(pts) / GAZE_HZ
         if seconds < MIN_SECONDS:
@@ -102,13 +105,14 @@ def plot(person: str, session: str | None) -> None:
             side.set_color("#D5D5D5")
         ax.set_title(f"Where {person} looked: {screen} screen  ({seconds:.0f} s of gaze, {pointing} pointing)",
                      loc="left", fontsize=11)
-        path = OUT / f"heatmap_{person}_{screen}.png"
+        path = folder / (f"heatmap_{screen}.png" if out_dir else f"heatmap_{person}_{screen}.png")
         fig.savefig(path, dpi=160)
         plt.close(fig)
-        saved += 1
+        saved.append(path)
         print(f"saved {path.relative_to(ROOT)}")
     if not saved:
         print(f"No screen had {MIN_SECONDS} s or more of gaze in session {session}.")
+    return saved
 
 
 if __name__ == "__main__":

@@ -83,6 +83,10 @@ The gaze point is saved 30 times a second in `data/<person>/gaze.jsonl`, with th
 the buttons on each screen are logged as `layout` events. Draw heatmaps with
 `python tests/plot_heatmap.py --person P01-gaze` (saved in `result/`).
 
+For a whole participant, `python tests/report.py --person P01` finds `data/P01-gaze`, `data/P01-head`
+and so on, and saves heatmaps, a dwell plot per mode and a summary table (`summary.md`, `summary.csv`)
+in `result/P01/`.
+
 ## Tests
 
 ```bash

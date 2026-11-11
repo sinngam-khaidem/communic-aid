@@ -3,7 +3,7 @@
     python tests/plot_dwell.py                                        # the session with the most looks
     python tests/plot_dwell.py --person sinngam01 --session 20261109-203807
 
-Saves result/dwell_over_time.png: the dwell in use at each look, for tier 0 and tier 1,
+Saves result/dwell_<person>.png: the dwell in use at each look, for tier 0 and tier 1,
 with the session length, looks and give-ups per tier in a corner box.
 Undo and redo are left out, since the undo strip keeps a fixed dwell.
 """
@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import json
 from collections import defaultdict
+from pathlib import Path
 
 import matplotlib
 
@@ -49,7 +50,7 @@ def load_session(person: str | None, session: str | None):
     return key, looks[key], gave_ups[key]
 
 
-def plot(person: str | None, session: str | None) -> None:
+def plot(person: str | None, session: str | None, out: Path | None = None) -> Path:
     (who, sid), looks, gave_ups = load_session(person, session)
     d = load_config()["dwell"]
     end = max(r["t"] for r in looks) / 60
@@ -82,11 +83,12 @@ def plot(person: str | None, session: str | None) -> None:
             family="monospace", color="#444444", linespacing=1.5,
             bbox={"boxstyle": "round,pad=0.6", "facecolor": "#F7F7F7", "edgecolor": "#E2E2E2"})
 
-    OUT.mkdir(exist_ok=True)
-    path = OUT / "dwell_over_time.png"
+    path = Path(out) if out else OUT / f"dwell_{who}.png"
+    path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=200)
     plt.close(fig)
     print(f"saved {path.relative_to(ROOT)} ({who}, session {sid}, {len(looks)} looks, {end:.0f} minutes)")
+    return path
 
 
 if __name__ == "__main__":
