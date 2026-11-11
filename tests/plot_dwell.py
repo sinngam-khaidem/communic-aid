@@ -11,9 +11,9 @@ events.jsonl, which give the dwell before and after each selection. So:
 - The learner keeps a separate dwell for each group (for example tired+steady and tired+shaky),
   so each group gets its own panel, with one line per tier.
 - Each line starts where the learner really was when the first session in the folder began.
-- The shaded part is the warmup, when the dwell stays at its start. Light marks along the bottom
-  are this group's selections, so a flat line with no marks means the group was not in use.
-  Dark marks are accidents, which make the dwell go back up.
+- The shaded part is the warmup: the group's first selections, when its dwell stays at the start.
+  Light marks along the bottom are this group's selections, so a flat line with no marks means the
+  group was not in use. Dark marks are accidents, which make the dwell go back up.
 
 Only the adaptive condition is plotted. In the Fixed condition the dwell never changes.
 """
@@ -33,7 +33,7 @@ import matplotlib.pyplot as plt
 from communicaid.common import ROOT, load_config
 
 OUT = ROOT / "result"
-TIERS = {0: ("Tier 0: letters and navigation", "#4C7DAF"), 1: ("Tier 1: words and edits", "#D08A55")}
+TIERS = {0: ("Tier 0: navigation", "#4C7DAF"), 1: ("Tier 1: typing and settings", "#D08A55")}
 INK, MUTED, RULE = "#333333", "#777777", "#D5D5D5"
 
 
@@ -95,7 +95,7 @@ def plot(person: str, out: Path | None = None) -> Path:
         for x, _, _ in data["sessions"][1:]:
             ax.axvline(x, color=MUTED, lw=0.8, ls=(0, (2, 3)), zorder=0)
         if group in data["warmup"]:
-            ax.axvspan(0, data["warm_from"].get(group, n), color="#EEEEEE", lw=0, zorder=0)
+            ax.axvspan(data["selections"][group][0] - 0.5, data["warm_from"].get(group, n), color="#EEEEEE", lw=0, zorder=0)
         for tier, (label, colour) in TIERS.items():
             pts = data["lines"].get((tier, group))
             if pts:
