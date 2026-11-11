@@ -14,6 +14,7 @@ import json
 from dataclasses import asdict
 
 from .common import ROOT, SIGNALS, Bus, Clock, Settings
+from .typing_test import load_phrases, score
 
 # The single place where tiers live (DESIGN_PLAN 5). Keys are the action name before any ':'.
 TIERS: dict[str, int] = {
@@ -24,13 +25,14 @@ TIERS: dict[str, int] = {
     # 1 Typing and settings
     "key": 1, "group": 1, "space": 1, "backspace": 1, "predict": 1, "quick": 1, "mute": 1,
     "toggle": 1, "prefer": 1, "sounds": 1, "keyboard": 1, "recalibrate": 1, "check_signals": 1,
+    "next": 1,      # typing test: finish this phrase
     # 2 Sending
     "send": 2, "react": 2, "end_call": 2,
     # 3 Irreversible
     "call": 3, "delete": 3, "forward_to": 3,
 }
 
-NOT_UNDOABLE = {"undo", "redo", "continue", "age", "disability", "app", "recalibrate", "check_signals"}
+NOT_UNDOABLE = {"undo", "redo", "continue", "age", "disability", "app", "recalibrate", "check_signals", "next"}
 
 KEY_GROUPS = ["abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"]
 
@@ -56,6 +58,7 @@ class Chat:
             "chats": [{"id": c["id"], "name": c["name"], "messages": c["messages"]} for c in data["chats"]],
             "chat_id": None, "draft": "", "kb_group": None, "selected": None, "picker": False,
             "call": None, "scroll": 0, "calib": None, "check": None,
+            "typing": None,      # the typing test, when the app was started with --typing
         }
         self.undo: dict | None = None
         self.last: tuple | None = None       # (seq, before, after)
@@ -78,11 +81,19 @@ class Chat:
     def load_settings(self, saved: dict | None, has_calibration: bool, needs_calibration: bool) -> None:
         if saved:
             self.settings = Settings(**{**asdict(Settings()), **saved})
-        if self.settings.onboarded:
+        # The typing test skips the onboarding questions and the signal check: it only needs calibration.
+        home = "typing" if self.s["typing"] else "chats"
+        if self.settings.onboarded or self.s["typing"]:
             if needs_calibration and not has_calibration:
-                self.s.update(screen="landing", landing="calibrate", return_to="chats")
+                self.s.update(screen="landing", landing="calibrate", return_to=home)
             else:
-                self.s.update(screen="chats")
+                self.s.update(screen=home)
+
+    def start_typing(self, keyboard: str) -> None:
+        """Typing test mode: copy each phrase with the chosen keyboard, no word suggestions."""
+        self.s["typing"] = {"keyboard": keyboard, "phrases": load_phrases(keyboard), "i": 0, "typed": "",
+                            "kb_group": None, "first": None, "last": None, "selections": 0, "backspaces": 0,
+                            "results": [], "done": False}
 
     def publish(self) -> None:
         state = {**self.s, "settings": asdict(self.settings), "can_do": self.can_do,
@@ -175,6 +186,9 @@ class Chat:
     def apply(self, action: str, now: float) -> None:
         name, _, arg = action.partition(":")
         s = self.s
+        if s["screen"] == "typing":
+            self._typing(name, arg, now)
+            return
         if name == "open":
             s.update(chat_id=arg, screen="thread", scroll=0)
         elif name == "back":
@@ -279,6 +293,42 @@ class Chat:
                 self.settings.onboarded = True
                 s.update(screen="chats")
 
+    def _typing(self, name: str, arg: str, now: float) -> None:
+        """One pick in the typing test. Time runs from the first character entered to the last."""
+        t = self.s["typing"]
+        if t["done"]:
+            return
+        if name in ("key", "space", "backspace", "group", "groups"):
+            t["selections"] += 1
+        if name == "group":
+            t["kb_group"] = arg
+        elif name == "groups":
+            t["kb_group"] = None
+        elif name in ("key", "space"):
+            t["typed"] += arg if name == "key" else " "
+            t["kb_group"] = None
+            t["first"] = now if t["first"] is None else t["first"]
+            t["last"] = now
+        elif name == "backspace":
+            t["typed"] = t["typed"][:-1]
+            t["backspaces"] += 1
+            t["last"] = now
+        elif name == "next" and t["typed"].strip():
+            result = score(t["phrases"][t["i"]], t["typed"].strip(), t["first"], t["last"],
+                           t["selections"], t["backspaces"])
+            result.update(n=t["i"] + 1, of=len(t["phrases"]), keyboard=t["keyboard"])
+            t["results"].append(result)
+            self.bus.emit("typing_trial", result)
+            t.update(i=t["i"] + 1, typed="", kb_group=None, first=None, last=None, selections=0, backspaces=0)
+            if t["i"] >= len(t["phrases"]):
+                t["done"] = True
+                done = t["results"]
+                self.bus.emit("typing_done", {
+                    "keyboard": t["keyboard"], "phrases": len(done),
+                    "wpm": round(sum(r["wpm"] for r in done) / len(done), 2),
+                    "error_rate": round(sum(r["error_rate"] for r in done) / len(done), 3),
+                    "kspc": round(sum(r["kspc"] or 0 for r in done) / len(done), 2)})
+
     def _toggle(self, signal: str) -> None:
         enabled = self.settings.enabled
         if enabled.get(signal) and sum(enabled.values()) == 1:
@@ -298,7 +348,7 @@ class Chat:
 
     def escape(self) -> None:
         """Calm way out from anywhere: go to the chat list, keep the draft (Scenario 4)."""
-        if self.s["screen"] == "landing":
+        if self.s["screen"] in ("landing", "typing"):
             return
         self.s.update(screen="chats", kb_group=None, picker=False, call=None)
         self.undo = None

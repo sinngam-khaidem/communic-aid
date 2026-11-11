@@ -14,6 +14,12 @@
       "port": 8090
     },
     {
+      "name": "communicaid-typing",
+      "runtimeExecutable": ".venv/bin/python",
+      "runtimeArgs": ["-m", "communicaid", "--person", "TYPINGTEST", "--source", "mouse", "--port", "8090", "--typing", "grouped"],
+      "port": 8090
+    },
+    {
       "name": "communicaid-phone",
       "runtimeExecutable": ".venv/bin/python",
       "runtimeArgs": ["-m", "communicaid", "--person", "PHONETEST", "--port", "8080"],

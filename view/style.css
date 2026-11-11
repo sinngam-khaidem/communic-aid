@@ -155,6 +155,9 @@ body.dim .t:not([data-action="undo"]):not([data-action="redo"]) { opacity: .35; 
 .keys.letters { grid-template-columns: repeat(5, 1fr); }
 .keys.letters .t { font-size: 44px; }
 .selected { padding: 20px 24px; border-radius: 16px; background: var(--soft); }
+/* Typing test: the phrase to copy sits above the typed text, calm and easy to read. */
+.typing-head { display: flex; justify-content: space-between; color: var(--muted); font-size: var(--fs-s); }
+.target { padding: 18px 24px; border-radius: 12px; background: var(--soft); font-size: var(--fs-m); letter-spacing: .02em; }
 .calltop { flex: 1; display: grid; place-items: center; text-align: center; }
 .calltop .big { font-size: 40px; font-weight: 700; }
 .calltop .av { width: 120px; height: 120px; font-size: 52px; margin: 0 auto 20px; }

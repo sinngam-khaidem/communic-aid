@@ -71,6 +71,8 @@ def build(args, bus: Bus, clock: Clock) -> dict:
 
     bus.on("outcome", learn)
     chat = Chat(bus, clock, config)
+    if args.typing:
+        chat.start_typing(args.typing)
 
     bus.on("settings", lambda p: (policy.set_preferred(p["preferred"]), persist.save("settings", p)))
     bus.on("calib_done", lambda p: persist.save("calibration", gaze.save()))
@@ -121,6 +123,8 @@ async def run(args) -> None:
                      {"person": args.person, "condition": args.condition, "source": args.source, "pointing": args.pointing,
                       "costs": config["costs"]["version"]})
     print(f"Communic-aid running for {args.person} ({args.condition}, source: {args.source}, pointing: {args.pointing})")
+    if args.typing:
+        print(f"  typing test with the {args.typing} keyboard")
     print(f"  open  http://localhost:{port}  in full screen")
     if app["arkit"]:
         print(f"  phone: send to {local_ip()} port {args.udp_port or config['server']['udp_port']}")
@@ -152,6 +156,8 @@ def main() -> None:
     ap.add_argument("--person", default="P00", help="participant ID, used for the data folder")
     ap.add_argument("--source", choices=("arkit", "mouse"), default="arkit")
     ap.add_argument("--condition", choices=("adaptive", "fixed"), default="adaptive")
+    ap.add_argument("--typing", choices=("grouped", "qwerty"), default=None,
+                    help="typing speed test with this keyboard, instead of the chat app")
     ap.add_argument("--pointing", choices=("gaze", "head"), default="gaze",
                     help="what moves the cursor: the eyes (gaze) or where the nose points (head)")
     ap.add_argument("--port", type=int, default=None, help="web port (default from config.toml)")

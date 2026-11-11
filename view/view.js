@@ -162,6 +162,19 @@ function scrollBar() {
 const sendOrSpace = () => (state.draft.trim() ? B("send", "Send", { cls: "w1" })
   : '<div class="t ghost w1"><span class="lb"><span>Send</span></span></div>');
 
+// The letter keys, shared by compose and the typing test.
+function keyboardHtml(keyboard, group) {
+  if (keyboard === "qwerty") {
+    // Three rows like a real keyboard, each centred, so the shorter rows sit in the middle.
+    const row = (letters) => `<div class="krow">${letters.split("").map((k) => B(`key:${k}`, k.toUpperCase())).join("")}</div>`;
+    return `<div class="keys qwerty">${row("qwertyuiop")}${row("asdfghjkl")}${row("zxcvbnm")}</div>`;
+  }
+  if (group) {
+    return `<div class="keys letters" style="grid-template-columns: repeat(${group.length + 1}, 1fr)">${group.split("").map((k) => B(`key:${k}`, k.toUpperCase())).join("")}${B("groups", "Back", { icon: "back" })}</div>`;
+  }
+  return `<div class="keys">${state.kb_groups.map((g) => B(`group:${g}`, g.toUpperCase())).join("")}</div>`;
+}
+
 const SCREENS = {
   landing() {
     const s = state;
@@ -219,20 +232,27 @@ const SCREENS = {
     const s = state;
     const suggestions = s.draft ? s.predictions.map((w) => B(`predict:${w}`, w, { cls: "short" }))
       : s.quick.map((q, i) => B(`quick:${i}`, q, { cls: "short" }));
-    let keys;
-    if (s.settings.keyboard === "qwerty") {
-      // Three rows like a real keyboard, each centred, so the shorter rows sit in the middle.
-      const row = (letters) => `<div class="krow">${letters.split("").map((k) => B(`key:${k}`, k.toUpperCase())).join("")}</div>`;
-      keys = `<div class="keys qwerty">${row("qwertyuiop")}${row("asdfghjkl")}${row("zxcvbnm")}</div>`;
-    } else if (s.kb_group) {
-      keys = `<div class="keys letters" style="grid-template-columns: repeat(${s.kb_group.length + 1}, 1fr)">${s.kb_group.split("").map((k) => B(`key:${k}`, k.toUpperCase())).join("")}${B("groups", "Back", { icon: "back" })}</div>`;
-    } else {
-      keys = `<div class="keys">${s.kb_groups.map((g) => B(`group:${g}`, g.toUpperCase())).join("")}</div>`;
-    }
+    const keys = keyboardHtml(s.settings.keyboard, s.kb_group);
     return `<div class="row"><div class="draft w3">${esc(s.draft)}<span class="caret"></span></div>${sendOrSpace()}</div>
       <div class="row" style="min-height:88px">${suggestions.join("")}</div>
       ${keys}
       <div class="row">${B("close_keyboard", "Close keyboard", { cls: "w1" })}${B("backspace", "Backspace", { icon: "backspace", cls: "w1" })}${B("space", "Space", { cls: "w2" })}</div>`;
+  },
+
+  // Typing test: copy the phrase shown, with no word suggestions. Next ends the phrase.
+  typing() {
+    const t = state.typing;
+    if (t.done) {
+      return `<div class="onb-center"><h1>All done</h1><p class="onb-lead">Thank you. The typing test is finished.</p></div>`;
+    }
+    const last = t.i === t.phrases.length - 1;
+    const next = t.typed.trim() ? B("next", last ? "Done" : "Next", { cls: "w1" })
+      : `<div class="t ghost w1"><span class="lb"><span>${last ? "Done" : "Next"}</span></span></div>`;
+    return `<div class="typing-head"><span>Type this message</span><span>${t.i + 1} of ${t.phrases.length}</span></div>
+      <div class="target">${esc(t.phrases[t.i])}</div>
+      <div class="row"><div class="draft w3">${esc(t.typed)}<span class="caret"></span></div>${next}</div>
+      ${keyboardHtml(t.keyboard, t.kb_group)}
+      <div class="row">${B("backspace", "Backspace", { icon: "backspace", cls: "w1" })}${B("space", "Space", { cls: "w2" })}</div>`;
   },
 
   actions() {
@@ -279,7 +299,7 @@ function render() {
   $("#strip").innerHTML = state.undo
     ? B(state.undo.mode, state.undo.mode === "undo" ? "Undo" : "Redo", { icon: state.undo.mode })
     : `<div class="rest">${ICON.undo}</div>`;
-  const side = !["landing", "compose"].includes(state.screen);
+  const side = !["landing", "compose", "typing"].includes(state.screen);
   $("#side").innerHTML = side
     ? B("nav_chats", "Chats", { icon: "chats", cls: state.screen === "chats" ? "on" : "" }) +
       B("nav_settings", "Settings", { icon: "settings", cls: state.screen === "settings" ? "on" : "" })

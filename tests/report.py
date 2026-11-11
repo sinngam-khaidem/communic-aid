@@ -8,6 +8,8 @@ For each folder it uses the session with the most looks, and saves into result/P
     <mode>/heatmap_<screen>.png   where the person looked on each screen
     <mode>/dwell.png              how the dwell changed over the session
     summary.csv, summary.md       one column per mode, one row per measure
+    typing.csv                    every typing test phrase, when a folder holds a typing test
+                                  (for example P01-grouped from --typing grouped)
 
 Task times, SUS, NASA-TLX and ratings are on paper and are not part of this.
 """
@@ -27,6 +29,8 @@ import plot_heatmap
 from communicaid.common import ROOT
 
 FIXED = ("undo", "redo")
+TYPING_FIELDS = ["keyboard", "n", "target", "typed", "exact", "chars", "seconds", "wpm", "error_rate", "kspc",
+                 "selections", "backspaces"]
 SIGNALS = {"blink": "Blink and hold", "brows": "Raise eyebrows", "yes": 'Say "go"', "switch": "Switch"}
 
 
@@ -102,6 +106,17 @@ def summarise(events: list[dict], gaze: list[dict]) -> dict[str, str]:
     }
     for key, name in SIGNALS.items():
         row[f"{name}: asked / confirmed"] = f"{asked[key]} / {confirmed[key]}"
+    trials = [e for e in events if e["event"] == "typing_trial"]
+    if trials:
+        mean = lambda k: sum(t[k] or 0 for t in trials) / len(trials)
+        row.update({
+            "Typing: keyboard": trials[0]["keyboard"],
+            "Typing: phrases done": str(len(trials)),
+            "Typing: copied exactly": str(sum(t["exact"] for t in trials)),
+            "Typing: words per minute (mean)": f"{mean('wpm'):.2f}",
+            "Typing: errors left (%)": f"{100 * mean('error_rate'):.1f}",
+            "Typing: picks per character": f"{mean('kspc'):.2f}",
+        })
     return row
 
 
@@ -109,6 +124,7 @@ def report(person: str) -> None:
     out = ROOT / "result" / person
     out.mkdir(parents=True, exist_ok=True)
     table: dict[str, dict[str, str]] = {}
+    typing: list[dict] = []
     for mode, folder in folders(person).items():
         everything = read(folder / "events.jsonl")
         session = main_session(everything)
@@ -119,6 +135,7 @@ def report(person: str) -> None:
         gaze = [g for g in read(folder / "gaze.jsonl") if g.get("session") == session]
         print(f"{folder.name}: session {session}")
         table[mode] = summarise(events, gaze)
+        typing += [{"mode": mode, **{k: e[k] for k in TYPING_FIELDS}} for e in events if e["event"] == "typing_trial"]
         if gaze:
             plot_heatmap.plot(folder.name, session, out / mode)
         else:
@@ -131,14 +148,19 @@ def report(person: str) -> None:
         raise SystemExit("Nothing to report.")
 
     modes = list(table)
-    rows = list(next(iter(table.values())))
+    rows = list(dict.fromkeys(r for m in modes for r in table[m]))     # typing rows only exist for typing tests
+    if typing:
+        with (out / "typing.csv").open("w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=["mode", *TYPING_FIELDS])
+            w.writeheader()
+            w.writerows(typing)
     with (out / "summary.csv").open("w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["Measure", *modes])
         for r in rows:
-            w.writerow([r, *(table[m][r] for m in modes)])
+            w.writerow([r, *(table[m].get(r, "") for m in modes)])
     lines = [f"# {person}", "", "| Measure | " + " | ".join(modes) + " |", "|---|" + "---|" * len(modes)]
-    lines += [f"| {r} | " + " | ".join(table[m][r] for m in modes) + " |" for r in rows]
+    lines += [f"| {r} | " + " | ".join(table[m].get(r, "") for m in modes) + " |" for r in rows]
     (out / "summary.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
     print(f"\nsaved {out.relative_to(ROOT)}/")

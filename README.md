@@ -76,11 +76,34 @@ the second and third mode, copy `signals.json` and `settings.json` from the firs
 into the next mode's folder before starting it. Calibration still runs, as each mode needs its own.
 The tasks and forms are in [docs/evaluation-plan.docx](docs/evaluation-plan.docx).
 
+### Typing speed test
+
+A separate test measures typing speed with each keyboard. It shows a short message, the person
+types it by gaze exactly like composing a message but with no word suggestions, then picks Next.
+Five messages per keyboard; each keyboard has its own five, so the second test is not helped by the
+first. It skips the onboarding questions and the signal check, and only calibrates.
+
+| Keyboard | Command |
+|---|---|
+| Grouped | `.venv/bin/python -m communicaid --person P01-grouped --typing grouped --condition fixed` |
+| QWERTY | `.venv/bin/python -m communicaid --person P01-qwerty --typing qwerty --condition fixed` |
+
+`--condition fixed` keeps the dwell at 1000 ms, so both keyboards are timed with the same dwell.
+Each message gets a line in the terminal and a `typing_trial` event in the log, with:
+
+- **words per minute:** (characters typed - 1) / seconds × 60 / 5, timed from the first character to the last
+- **errors left:** letters that differ from the message (edit distance), as a share of its length
+- **picks per character:** every selection (letters, groups, Back, Space, Backspace) per character typed
+
+The messages are in [communicaid/phrases.txt](communicaid/phrases.txt). `tests/report.py` adds the
+averages to the summary and saves every message in `result/P01/typing.csv`.
+
 ### Options
 
 | Option | Meaning |
 |---|---|
 | `--pointing head` | Head only: the cursor follows the nose, not the eyes. Needs its own calibration. Default `gaze`. |
+| `--typing grouped` or `--typing qwerty` | The typing speed test with that keyboard, instead of the chat app |
 | `--condition fixed` | Fixed baseline: 1000 ms dwell, tier 2 dwell only, tier 3 the preferred signal. Default `adaptive`. |
 | `--source mouse` | Mouse test mode, no phone |
 | `--raw` | Also log every raw phone frame |

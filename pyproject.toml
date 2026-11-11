@@ -20,7 +20,7 @@ build-backend = "setuptools.build_meta"
 packages = ["communicaid"]
 
 [tool.setuptools.package-data]
-communicaid = ["chats.json", "words.txt"]
+communicaid = ["chats.json", "words.txt", "phrases.txt"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
