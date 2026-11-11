@@ -23,7 +23,7 @@ const ICON = {
   settings: SV('<circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/>'),
   backspace: SV('<path d="M21 5H9l-6 7 6 7h12z"/><path d="M12 9l6 6M18 9l-6 6"/>'),
 };
-const NAMES = { blink: "Blink and hold", brows: "Raise eyebrows", yes: 'Say "proceed"', switch: "Switch" };
+const NAMES = { blink: "Blink and hold", brows: "Raise eyebrows", yes: 'Say "go"', switch: "Switch" };
 
 let TIERS = {}, SIGNALS = [], INIT = {};
 let state = null;

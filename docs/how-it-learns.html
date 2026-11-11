@@ -132,7 +132,7 @@ svg text { font-family: var(--font); }
 </header>
 
 <section>
-  <p>The <strong>dwell learner</strong> sets how long a person has to look at an everyday button (tiers 0 and 1: navigation and typing). The <strong>signal chooser</strong> decides, for risky buttons (tiers 2 and 3: sending, calling, deleting), whether to ask for a second signal and which one: blink and hold, raised eyebrows, saying "proceed", or the switch.</p>
+  <p>The <strong>dwell learner</strong> sets how long a person has to look at an everyday button (tiers 0 and 1: navigation and typing). The <strong>signal chooser</strong> decides, for risky buttons (tiers 2 and 3: sending, calling, deleting), whether to ask for a second signal and which one: blink and hold, raised eyebrows, saying "go", or the switch.</p>
   <figure>
     <div class="scroll">
       <svg viewBox="0 0 760 176" role="img" aria-label="The learning loop: situation, choose, person acts, what happened, reward, then update the counts and start again">
@@ -352,7 +352,7 @@ score(d) = share meant      × [ (1 - G) × (1 - 0.6 × d in seconds)  -  0.5 ×
       <tr><td><span class="pill accident">accident</span></td><td class="n">- cost</td><td>-8</td></tr>
     </tbody>
   </table></div>
-  <p>Effort is 0.35 plus 0.25 for each second the person usually takes to give that signal, so a quick switch press costs less than a slow "proceed".</p>
+  <p>Effort is 0.35 plus 0.25 for each second the person usually takes to give that signal, so a quick switch press costs less than a slow "go".</p>
 
   <h3>A worked example</h3>
   <p>Rekha deletes a message in the evening. After about 10 tries of each, her tallies look like this:</p>
@@ -393,11 +393,11 @@ score(d) = share meant      × [ (1 - G) × (1 - 0.6 × d in seconds)  -  0.5 ×
 <section>
   <h2><span class="num">6</span>Watching it live</h2>
   <p>While the core runs, the terminal prints one line per learning event:</p>
-<div class="log"><span class="tag c">CHOOSE </span>  call        tier 3  tired+steady  -> say "proceed"   scores: say "proceed" +0.44   raise eyebrows -0.38   switch -0.82
+<div class="log"><span class="tag c">CHOOSE </span>  call        tier 3  tired+steady  -> say "go"   scores: say "go" +0.44   raise eyebrows -0.38   switch -0.82
 <span class="tag o">OUTCOME</span>  open priya  tier 0  <span class="worked">worked</span>   reward +0.10   dwell 1500 ms
 <span class="tag d">DWELL  </span>  tired+steady: warm-up 1 of 20 selections, staying at 1500 ms
-<span class="tag o">OUTCOME</span>  call        tier 3  <span class="worked">worked</span>   reward +0.53   check: say "proceed"
-<span class="tag d">ROUTER </span>  tier 3  tired+steady  say "proceed": worked 1, gave up 0, blocked an accident 0, accident 0</div>
+<span class="tag o">OUTCOME</span>  call        tier 3  <span class="worked">worked</span>   reward +0.53   check: say "go"
+<span class="tag d">ROUTER </span>  tier 3  tired+steady  say "go": worked 1, gave up 0, blocked an accident 0, accident 0</div>
   <p>The same events, with their rewards, are saved in <code>data/&lt;person&gt;/events.jsonl</code> for analysis after the study.</p>
 </section>
 

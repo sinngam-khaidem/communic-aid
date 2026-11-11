@@ -27,7 +27,7 @@ import plot_heatmap
 from communicaid.common import ROOT
 
 FIXED = ("undo", "redo")
-SIGNALS = {"blink": "Blink and hold", "brows": "Raise eyebrows", "yes": 'Say "proceed"', "switch": "Switch"}
+SIGNALS = {"blink": "Blink and hold", "brows": "Raise eyebrows", "yes": 'Say "go"', "switch": "Switch"}
 
 
 def read(path: Path) -> list[dict]:
