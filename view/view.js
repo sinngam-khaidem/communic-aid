@@ -452,7 +452,12 @@ function connect() {
   ws = new WebSocket(`ws://${location.host}/ws`);
   ws.onmessage = (e) => { const m = JSON.parse(e.data); const h = HANDLERS[m.type]; if (h) h(m); };
   ws.onopen = () => { hello(); if (state) reportTargets(); };
-  ws.onclose = () => setTimeout(connect, 1000);
+  ws.onclose = () => {
+    // The core stopped. When it comes back, wait for a fresh click instead of starting calibration
+    // on its own: a forgotten tab must never start a session.
+    if (started) { started = false; $("#start").hidden = false; showWaiting(); }
+    setTimeout(connect, 1000);
+  };
 }
 
 // ---------- input: keys, mouse (test mode), start ----------
