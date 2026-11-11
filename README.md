@@ -150,9 +150,10 @@ It finds `data/P01-gaze`, `data/P01-head`, `data/P01-free` and so on, uses the m
 each, and saves into `result/P01/`:
 
 - `<mode>/heatmap_<screen>.png`: where the person looked on each screen, over the real buttons.
-- `<mode>/dwell.png`: how the dwell changed during the session.
+- `<mode>/dwell.png`: how the learner changed the dwell, selection by selection, over every
+  session in that folder (learning carries over). One panel per group, one line per tier.
 - `summary.md` and `summary.csv`: one column per mode, with selections, accidents, undos,
-  give-ups, wrong signals, the final dwell, how much the head moved and turned, and how often each
+  give-ups, wrong signals, the final dwell for each group, how much the head moved and turned, and how often each
   signal was asked for and confirmed.
 
 Task times, SUS, NASA-TLX and the ratings are collected on paper. Single plots for one folder:

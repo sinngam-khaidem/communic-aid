@@ -6,7 +6,7 @@ Finds data/P01 and every data/P01-<mode> folder (for example P01-gaze, P01-head,
 For each folder it uses the session with the most looks, and saves into result/P01/:
 
     <mode>/heatmap_<screen>.png   where the person looked on each screen
-    <mode>/dwell.png              how the dwell changed over the session
+    <mode>/dwell.png              how the learner changed the dwell, over every session in the folder
     summary.csv, summary.md       one column per mode, one row per measure
     typing.csv                    one row per typing test run, from any of the folders
     typing.md                     each keyboard's runs averaged: words per minute, accuracy, effort
@@ -80,10 +80,16 @@ def summarise(events: list[dict], gaze: list[dict]) -> dict[str, str]:
     asked = Counter(e["check"] for e in events if e["event"] == "choice" and e["check"] != "dwell")
     confirmed = Counter(e["check"] for e in events if e["event"] == "accept")
     calib = [e for e in events if e["event"] == "calib_done" and e.get("error_px") is not None]
-    last_dwell = {}
+    # The learner keeps one dwell per tier and group, so the end value is given for each group.
+    last_dwell: dict[int, dict[str, int]] = {0: {}, 1: {}}
     for e in events:
-        if e["event"] == "look" and e["action"] not in FIXED and e["tier"] in (0, 1):
-            last_dwell[e["tier"]] = e["dwell"]
+        if e["event"] == "learned":
+            for c in e.get("changes") or []:
+                if c.get("tier") in last_dwell:
+                    last_dwell[c["tier"]][c["group"]] = c.get("after", c.get("dwell"))
+        elif e["event"] == "look" and e["action"] not in FIXED and e["tier"] in (0, 1) and e["condition"] == "fixed":
+            last_dwell[e["tier"]]["all"] = e["dwell"]
+    at_end = lambda tier: ", ".join(f"{ms} ({g})" for g, ms in sorted(last_dwell[tier].items())) or "n/a"
     minutes = (events[-1]["t"] - events[0]["t"]) / 60 if events else 0
     moved, moved_most = spread(gaze, "eye_mm")
     turned, turned_most = spread(gaze, "head_deg")
@@ -100,8 +106,8 @@ def summarise(events: list[dict], gaze: list[dict]) -> dict[str, str]:
         "Stray glances (passed by)": str(kinds["passed_by"]),
         "Wrong signals": str(sum(e["event"] == "wrong" for e in events)),
         "Signal timeouts": str(sum(e["event"] == "timeout" and e.get("reason") != "lost" for e in events)),
-        "Dwell at end, tier 0 (ms)": str(last_dwell.get(0, "n/a")),
-        "Dwell at end, tier 1 (ms)": str(last_dwell.get(1, "n/a")),
+        "Dwell at end, tier 0 (ms)": at_end(0),
+        "Dwell at end, tier 1 (ms)": at_end(1),
         "Head movement, typical (mm)": moved,
         "Head movement, largest 5% (mm)": moved_most,
         "Head turning, typical (deg)": turned,
@@ -137,6 +143,10 @@ def report(person: str) -> None:
         everything = read(folder / "events.jsonl")
         runs = [{"mode": mode, **{k: e.get(k) for k in TYPING_FIELDS}} for e in everything if e["event"] == "typing_result"]
         typing += runs
+        try:
+            plot_dwell.plot(folder.name, out / mode / "dwell.png")    # every session in the folder, typing tests too
+        except SystemExit as why:
+            print(f"  no dwell plot: {why}")
         session = main_session(everything)
         if session is None:
             if runs:
@@ -153,10 +163,6 @@ def report(person: str) -> None:
             plot_heatmap.plot(folder.name, session, out / mode)
         else:
             print("  no gaze log in this session (recorded before gaze logging was added)")
-        try:
-            plot_dwell.plot(folder.name, session, out / mode / "dwell.png")
-        except SystemExit as why:
-            print(f"  no dwell plot: {why}")
     if not table:
         raise SystemExit("Nothing to report.")
 
