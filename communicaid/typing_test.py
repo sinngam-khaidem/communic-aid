@@ -1,27 +1,28 @@
-"""Typing test: phrases to copy and how each attempt is scored.
+"""Typing test: a short passage, two minutes from the first character, then words per minute.
 
 Speed uses the usual text entry measure (MacKenzie): words per minute, with a "word" being
-5 characters, timed from the first character entered to the last:
+5 characters. The clock starts on the first character, so that character carries no time:
 
     WPM = (characters typed - 1) / seconds * 60 / 5
 
-Errors left in are the smallest number of single letter changes that turn the typed text into
-the phrase (the edit distance), divided by the longer of the two. Selections per character
-(KSPC) counts every pick made while typing (letters, letter groups, Back, Space, Backspace)
-divided by the characters typed, so it shows the effort behind each character.
+Accuracy compares what was typed with the same stretch of the passage: the smallest number of
+single letter changes between them (the edit distance), as a share of what was typed. Picks per
+character (KSPC) counts every selection made while typing (letters, letter groups, Back, Space,
+Backspace) divided by the characters typed, so it shows the effort behind each character.
 """
 
 from __future__ import annotations
 
 from .common import ROOT
 
+SECONDS = 120     # the test runs for two minutes from the first character
 
-def load_phrases(keyboard: str) -> list[str]:
-    """The grouped keyboard gets the first half of the list, QWERTY the second half."""
-    path = ROOT / "communicaid" / "phrases.txt"
+
+def load_passage(keyboard: str) -> str:
+    """The grouped keyboard gets the first passage, QWERTY the second."""
+    path = ROOT / "communicaid" / "prose.txt"
     lines = [l.strip() for l in path.read_text().splitlines() if l.strip() and not l.startswith("#")]
-    half = len(lines) // 2
-    return lines[:half] if keyboard == "grouped" else lines[half:]
+    return lines[0] if keyboard == "grouped" else lines[1]
 
 
 def edit_distance(a: str, b: str) -> int:
@@ -34,17 +35,14 @@ def edit_distance(a: str, b: str) -> int:
     return row[-1]
 
 
-def score(target: str, typed: str, first: float | None, last: float | None, selections: int,
-          backspaces: int) -> dict:
-    """Everything worth keeping about one attempt at one phrase."""
-    seconds = (last - first) if first is not None and last is not None else 0.0
+def score(passage: str, typed: str, seconds: float, selections: int, backspaces: int) -> dict:
+    """Everything worth keeping about one timed test."""
     chars = len(typed)
     wpm = (chars - 1) / seconds * 60 / 5 if chars > 1 and seconds > 0 else 0.0
-    longest = max(len(target), chars) or 1
+    errors = edit_distance(typed, passage[:chars])
     return {
-        "target": target, "typed": typed, "chars": chars, "seconds": round(seconds, 2),
-        "wpm": round(wpm, 2),
-        "error_rate": round(edit_distance(typed, target) / longest, 3),
+        "typed": typed, "chars": chars, "seconds": seconds, "wpm": round(wpm, 2),
+        "errors": errors, "accuracy": round(1 - errors / chars, 3) if chars else 0.0,
         "kspc": round(selections / chars, 2) if chars else None,
-        "selections": selections, "backspaces": backspaces, "exact": typed == target,
+        "selections": selections, "backspaces": backspaces,
     }

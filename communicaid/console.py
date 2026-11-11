@@ -38,8 +38,8 @@ class Console:
         bus.on("context", self._context)
         bus.on("calib_done", self._calib)
         bus.on("link", self._link)
-        bus.on("typing_trial", self._typing)
-        bus.on("typing_done", self._typing_done)
+        bus.on("typing_start", self._typing_start)
+        bus.on("typing_result", self._typing)
 
     def legend(self) -> None:
         self._print("\n  Learning log", "GROUP")
@@ -116,16 +116,13 @@ class Console:
             picks = " / ".join(f"{c['best']}" for c in changes)
             self._line("DWELL", f"{first['group']}: {moves}   (learner's picks {picks} ms)")
 
-    def _typing(self, p: dict) -> None:
-        mark = self._paint("exact", "worked") if p["exact"] else self._paint(f"typed '{p['typed']}'", "gave_up")
-        self._line("TYPING", f"{p['keyboard']} {p['n']} of {p['of']}  '{p['target']}'  {mark}   "
-                             f"{p['wpm']:.1f} wpm   errors left {100 * p['error_rate']:.0f}%   "
-                             f"{p['kspc'] or 0:.1f} picks per character   {p['seconds']:.0f} s")
+    def _typing_start(self, p: dict) -> None:
+        self._line("TYPING", f"{p['keyboard']} test started: two minutes from now")
 
-    def _typing_done(self, p: dict) -> None:
+    def _typing(self, p: dict) -> None:
         self._line("TYPING", self._paint(
-            f"done: {p['keyboard']}, {p['phrases']} phrases, average {p['wpm']:.1f} wpm, errors left "
-            f"{100 * p['error_rate']:.0f}%, {p['kspc']:.1f} picks per character", "worked"))
+            f"{p['keyboard']} time up: {p['wpm']:.1f} wpm   {p['chars']} characters   accuracy "
+            f"{100 * p['accuracy']:.0f}%   {p['kspc'] or 0:.1f} picks per character   {p['backspaces']} backspaces", "worked"))
 
     def _link(self, p: dict) -> None:
         if p["phone"]:

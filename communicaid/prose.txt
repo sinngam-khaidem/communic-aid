@@ -1,0 +1,6 @@
+# Typing test passages: lowercase letters and spaces only (the keyboards have no digits or
+# punctuation). The grouped keyboard uses the first passage, QWERTY the second, so the second test
+# is not helped by having typed the same text. Both are 248 characters, more than anyone types by
+# gaze in two minutes. One passage per line.
+i woke up early today and had tea with my sister before the doctor came to see me she said i am getting stronger every week so we planned a short walk in the garden after lunch and later my friends will call to tell me about their trip to the hills
+the rain started in the evening so we stayed inside and watched an old film together my brother cooked rice and dal for dinner and we talked about the wedding next month everyone is busy with the plans but i hope to send my best wishes to them soon

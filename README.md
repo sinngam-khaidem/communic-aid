@@ -78,10 +78,11 @@ The tasks and forms are in [docs/evaluation-plan.docx](docs/evaluation-plan.docx
 
 ### Typing speed test
 
-A separate test measures typing speed with each keyboard. It shows a short message, the person
-types it by gaze exactly like composing a message but with no word suggestions, then picks Next.
-Five messages per keyboard; each keyboard has its own five, so the second test is not helped by the
-first. It skips the onboarding questions and the signal check, and only calibrates.
+A separate test measures typing speed with each keyboard. It shows a short passage, and the person
+types it by gaze exactly like composing a message but with no word suggestions. A two minute timer
+starts on the first character. When it runs out, typing stops and the screen shows the words per
+minute. Each keyboard has its own passage of the same length, so the second test is not helped by
+the first. It skips the onboarding questions and the signal check, and only calibrates.
 
 | Keyboard | Command |
 |---|---|
@@ -89,14 +90,14 @@ first. It skips the onboarding questions and the signal check, and only calibrat
 | QWERTY | `.venv/bin/python -m communicaid --person P01-qwerty --typing qwerty --condition fixed` |
 
 `--condition fixed` keeps the dwell at 1000 ms, so both keyboards are timed with the same dwell.
-Each message gets a line in the terminal and a `typing_trial` event in the log, with:
+At the end, the terminal prints the result and the log gets a `typing_result` event with:
 
-- **words per minute:** (characters typed - 1) / seconds × 60 / 5, timed from the first character to the last
-- **errors left:** letters that differ from the message (edit distance), as a share of its length
+- **words per minute:** (characters typed - 1) / 120 seconds × 60 / 5
+- **accuracy:** how much of what was typed matches the same stretch of the passage
 - **picks per character:** every selection (letters, groups, Back, Space, Backspace) per character typed
 
-The messages are in [communicaid/phrases.txt](communicaid/phrases.txt). `tests/report.py` adds the
-averages to the summary and saves every message in `result/P01/typing.csv`.
+The passages are in [communicaid/prose.txt](communicaid/prose.txt). `tests/report.py` adds the
+result to the summary and saves it in `result/P01/typing.csv`.
 
 ### Options
 

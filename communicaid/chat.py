@@ -11,10 +11,11 @@ from __future__ import annotations
 
 import copy
 import json
+import math
 from dataclasses import asdict
 
 from .common import ROOT, SIGNALS, Bus, Clock, Settings
-from .typing_test import load_phrases, score
+from .typing_test import SECONDS, load_passage, score
 
 # The single place where tiers live (DESIGN_PLAN 5). Keys are the action name before any ':'.
 TIERS: dict[str, int] = {
@@ -25,14 +26,13 @@ TIERS: dict[str, int] = {
     # 1 Typing and settings
     "key": 1, "group": 1, "space": 1, "backspace": 1, "predict": 1, "quick": 1, "mute": 1,
     "toggle": 1, "prefer": 1, "sounds": 1, "keyboard": 1, "recalibrate": 1, "check_signals": 1,
-    "next": 1,      # typing test: finish this phrase
     # 2 Sending
     "send": 2, "react": 2, "end_call": 2,
     # 3 Irreversible
     "call": 3, "delete": 3, "forward_to": 3,
 }
 
-NOT_UNDOABLE = {"undo", "redo", "continue", "age", "disability", "app", "recalibrate", "check_signals", "next"}
+NOT_UNDOABLE = {"undo", "redo", "continue", "age", "disability", "app", "recalibrate", "check_signals"}
 
 KEY_GROUPS = ["abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"]
 
@@ -90,10 +90,10 @@ class Chat:
                 self.s.update(screen=home)
 
     def start_typing(self, keyboard: str) -> None:
-        """Typing test mode: copy each phrase with the chosen keyboard, no word suggestions."""
-        self.s["typing"] = {"keyboard": keyboard, "phrases": load_phrases(keyboard), "i": 0, "typed": "",
-                            "kb_group": None, "first": None, "last": None, "selections": 0, "backspaces": 0,
-                            "results": [], "done": False}
+        """Typing test mode: copy a passage for two minutes with the chosen keyboard, no word suggestions."""
+        self.s["typing"] = {"keyboard": keyboard, "text": load_passage(keyboard), "typed": "", "kb_group": None,
+                            "first": None, "left": SECONDS, "selections": 0, "backspaces": 0,
+                            "result": None, "done": False}
 
     def publish(self) -> None:
         state = {**self.s, "settings": asdict(self.settings), "can_do": self.can_do,
@@ -294,7 +294,7 @@ class Chat:
                 s.update(screen="chats")
 
     def _typing(self, name: str, arg: str, now: float) -> None:
-        """One pick in the typing test. Time runs from the first character entered to the last."""
+        """One pick in the typing test. The two minutes start with the first character."""
         t = self.s["typing"]
         if t["done"]:
             return
@@ -307,27 +307,27 @@ class Chat:
         elif name in ("key", "space"):
             t["typed"] += arg if name == "key" else " "
             t["kb_group"] = None
-            t["first"] = now if t["first"] is None else t["first"]
-            t["last"] = now
+            if t["first"] is None:
+                t["first"] = now
+                self.bus.emit("typing_start", {"keyboard": t["keyboard"]})
         elif name == "backspace":
             t["typed"] = t["typed"][:-1]
             t["backspaces"] += 1
-            t["last"] = now
-        elif name == "next" and t["typed"].strip():
-            result = score(t["phrases"][t["i"]], t["typed"].strip(), t["first"], t["last"],
-                           t["selections"], t["backspaces"])
-            result.update(n=t["i"] + 1, of=len(t["phrases"]), keyboard=t["keyboard"])
-            t["results"].append(result)
-            self.bus.emit("typing_trial", result)
-            t.update(i=t["i"] + 1, typed="", kb_group=None, first=None, last=None, selections=0, backspaces=0)
-            if t["i"] >= len(t["phrases"]):
-                t["done"] = True
-                done = t["results"]
-                self.bus.emit("typing_done", {
-                    "keyboard": t["keyboard"], "phrases": len(done),
-                    "wpm": round(sum(r["wpm"] for r in done) / len(done), 2),
-                    "error_rate": round(sum(r["error_rate"] for r in done) / len(done), 3),
-                    "kspc": round(sum(r["kspc"] or 0 for r in done) / len(done), 2)})
+
+    def _typing_tick(self, now: float) -> bool:
+        """Count down once typing has started; at zero, stop and score. True when the screen changed."""
+        t = self.s["typing"]
+        if not t or t["done"] or t["first"] is None:
+            return False
+        left = max(0, math.ceil(SECONDS - (now - t["first"])))
+        if left > 0:
+            changed, t["left"] = left != t["left"], left
+            return changed
+        t.update(left=0, done=True, kb_group=None)
+        t["result"] = score(t["text"], t["typed"], SECONDS, t["selections"], t["backspaces"])
+        self.undo = None                     # nothing to undo once the time is up
+        self.bus.emit("typing_result", {"keyboard": t["keyboard"], **t["result"]})
+        return True
 
     def _toggle(self, signal: str) -> None:
         enabled = self.settings.enabled
@@ -373,7 +373,7 @@ class Chat:
     # ---------- time ----------
 
     def tick(self, now: float) -> None:
-        changed = False
+        changed = self._typing_tick(now)
         if self.calib_again_at is not None and now >= self.calib_again_at:
             self.calib_again_at = None
             self.bus.emit("start_calibration", {})

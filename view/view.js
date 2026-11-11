@@ -239,18 +239,22 @@ const SCREENS = {
       <div class="row">${B("close_keyboard", "Close keyboard", { cls: "w1" })}${B("backspace", "Backspace", { icon: "backspace", cls: "w1" })}${B("space", "Space", { cls: "w2" })}</div>`;
   },
 
-  // Typing test: copy the phrase shown, with no word suggestions. Next ends the phrase.
+  // Typing test: copy the passage for two minutes, with no word suggestions. The clock starts on the
+  // first character; when it runs out, typing stops and the speed is shown.
   typing() {
     const t = state.typing;
     if (t.done) {
-      return `<div class="onb-center"><h1>All done</h1><p class="onb-lead">Thank you. The typing test is finished.</p></div>`;
+      const r = t.result;
+      return `<div class="onb-center"><h1>Time is up</h1>
+        <p class="wpm"><strong>${r.wpm.toFixed(1)}</strong>words per minute</p>
+        <p class="onb-lead">${r.chars} ${r.chars === 1 ? "character" : "characters"} typed, ${Math.round(100 * r.accuracy)}% accurate. Thank you.</p></div>`;
     }
-    const last = t.i === t.phrases.length - 1;
-    const next = t.typed.trim() ? B("next", last ? "Done" : "Next", { cls: "w1" })
-      : `<div class="t ghost w1"><span class="lb"><span>${last ? "Done" : "Next"}</span></span></div>`;
-    return `<div class="typing-head"><span>Type this message</span><span>${t.i + 1} of ${t.phrases.length}</span></div>
-      <div class="target">${esc(t.phrases[t.i])}</div>
-      <div class="row"><div class="draft w3">${esc(t.typed)}<span class="caret"></span></div>${next}</div>
+    const n = t.typed.length;
+    const clock = t.first === null ? `${mmss(t.left)} &middot; starts when you type` : mmss(t.left);
+    const shown = n > 60 ? "…" + t.typed.slice(-60) : t.typed;     // the latest part, if it gets long
+    return `<div class="typing-head"><span>Type this text</span><span class="timer${t.first === null ? "" : " on"}">${clock}</span></div>
+      <div class="target"><span class="typed-part">${esc(t.text.slice(0, n))}</span>${esc(t.text.slice(n))}</div>
+      <div class="draft">${esc(shown)}<span class="caret"></span></div>
       ${keyboardHtml(t.keyboard, t.kb_group)}
       <div class="row">${B("backspace", "Backspace", { icon: "backspace", cls: "w1" })}${B("space", "Space", { cls: "w2" })}</div>`;
   },

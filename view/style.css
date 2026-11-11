@@ -158,6 +158,11 @@ body.dim .t:not([data-action="undo"]):not([data-action="redo"]) { opacity: .35; 
 /* Typing test: the phrase to copy sits above the typed text, calm and easy to read. */
 .typing-head { display: flex; justify-content: space-between; color: var(--muted); font-size: var(--fs-s); }
 .target { padding: 18px 24px; border-radius: 12px; background: var(--soft); font-size: var(--fs-m); letter-spacing: .02em; }
+.target .typed-part { color: var(--muted); }
+.timer { font-variant-numeric: tabular-nums; }
+.timer.on { color: var(--ink); font-weight: 600; font-size: var(--fs-m); }
+.wpm { margin: 8px 0 0; font-size: var(--fs-m); color: var(--muted); }
+.wpm strong { display: block; font-size: 88px; line-height: 1.1; color: var(--ink); font-variant-numeric: tabular-nums; }
 .calltop { flex: 1; display: grid; place-items: center; text-align: center; }
 .calltop .big { font-size: 40px; font-weight: 700; }
 .calltop .av { width: 120px; height: 120px; font-size: 52px; margin: 0 auto 20px; }
