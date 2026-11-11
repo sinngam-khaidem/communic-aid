@@ -78,26 +78,33 @@ The tasks and forms are in [docs/evaluation-plan.docx](docs/evaluation-plan.docx
 
 ### Typing speed test
 
-A separate test measures typing speed with each keyboard. It shows a short passage, and the person
-types it by gaze exactly like composing a message but with no word suggestions. A two minute timer
-starts on the first character. When it runs out, typing stops and the screen shows the words per
-minute. Each keyboard has its own passage of the same length, so the second test is not helped by
-the first. It skips the onboarding questions and the signal check, and only calibrates.
+A separate test measures typing speed. It shows a short passage, and the person types it by gaze
+exactly like composing a message but with no word suggestions. A two minute timer starts on the
+first character. When it runs out, typing stops and the screen shows the words per minute. It skips
+the onboarding questions and the signal check, and uses the mode's saved calibration.
 
-| Keyboard | Command |
-|---|---|
-| Grouped | `.venv/bin/python -m communicaid --person P01-grouped --typing grouped --condition fixed` |
-| QWERTY | `.venv/bin/python -m communicaid --person P01-qwerty --typing qwerty --condition fixed` |
+There are six passages of the same length, and every run shows one the participant has not seen.
+In the study each participant types three times on each keyboard, once per mode, which uses all six:
 
-`--condition fixed` keeps the dwell at 1000 ms, so both keyboards are timed with the same dwell.
-At the end, the terminal prints the result and the log gets a `typing_result` event with:
+```bash
+.venv/bin/python -m communicaid --person P01-gaze --typing grouped --condition fixed
+.venv/bin/python -m communicaid --person P01-gaze --typing qwerty --condition fixed
+```
+
+Then the same two in `P01-head` (with `--pointing head`) and `P01-free`. Without `--passage`, the
+app picks the first passage this participant (`P01`, across all their folders) has not typed yet.
+`--passage 1` to `--passage 6` picks one by hand, with a warning if they have seen it before.
+`--condition fixed` keeps the dwell at 1000 ms, so every run is timed with the same dwell.
+
+Each run prints its result in the terminal and logs a `typing_result` event with:
 
 - **words per minute:** (characters typed - 1) / 120 seconds × 60 / 5
 - **accuracy:** how much of what was typed matches the same stretch of the passage
 - **picks per character:** every selection (letters, groups, Back, Space, Backspace) per character typed
 
-The passages are in [communicaid/prose.txt](communicaid/prose.txt). `tests/report.py` adds the
-result to the summary and saves it in `result/P01/typing.csv`.
+`tests/report.py --person P01` averages each keyboard's three runs in `result/P01/typing.md`, adds
+each mode's runs to the summary, and lists every run in `typing.csv`. The passages are in
+[communicaid/prose.txt](communicaid/prose.txt).
 
 ### Options
 
@@ -105,6 +112,7 @@ result to the summary and saves it in `result/P01/typing.csv`.
 |---|---|
 | `--pointing head` | Head only: the cursor follows the nose, not the eyes. Needs its own calibration. Default `gaze`. |
 | `--typing grouped` or `--typing qwerty` | The typing speed test with that keyboard, instead of the chat app |
+| `--passage 1` to `6` | Typing test passage. Default: the first one this participant has not typed yet |
 | `--condition fixed` | Fixed baseline: 1000 ms dwell, tier 2 dwell only, tier 3 the preferred signal. Default `adaptive`. |
 | `--source mouse` | Mouse test mode, no phone |
 | `--raw` | Also log every raw phone frame |

@@ -89,9 +89,10 @@ class Chat:
             else:
                 self.s.update(screen=home)
 
-    def start_typing(self, keyboard: str) -> None:
+    def start_typing(self, keyboard: str, passage: int) -> None:
         """Typing test mode: copy a passage for two minutes with the chosen keyboard, no word suggestions."""
-        self.s["typing"] = {"keyboard": keyboard, "text": load_passage(keyboard), "typed": "", "kb_group": None,
+        self.s["typing"] = {"keyboard": keyboard, "passage": passage, "text": load_passage(passage), "typed": "",
+                            "kb_group": None,
                             "first": None, "left": SECONDS, "selections": 0, "backspaces": 0,
                             "result": None, "done": False}
 
@@ -309,7 +310,7 @@ class Chat:
             t["kb_group"] = None
             if t["first"] is None:
                 t["first"] = now
-                self.bus.emit("typing_start", {"keyboard": t["keyboard"]})
+                self.bus.emit("typing_start", {"keyboard": t["keyboard"], "passage": t["passage"]})
         elif name == "backspace":
             t["typed"] = t["typed"][:-1]
             t["backspaces"] += 1
@@ -326,7 +327,7 @@ class Chat:
         t.update(left=0, done=True, kb_group=None)
         t["result"] = score(t["text"], t["typed"], SECONDS, t["selections"], t["backspaces"])
         self.undo = None                     # nothing to undo once the time is up
-        self.bus.emit("typing_result", {"keyboard": t["keyboard"], **t["result"]})
+        self.bus.emit("typing_result", {"keyboard": t["keyboard"], "passage": t["passage"], **t["result"]})
         return True
 
     def _toggle(self, signal: str) -> None:

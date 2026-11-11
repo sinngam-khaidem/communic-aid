@@ -117,11 +117,11 @@ class Console:
             self._line("DWELL", f"{first['group']}: {moves}   (learner's picks {picks} ms)")
 
     def _typing_start(self, p: dict) -> None:
-        self._line("TYPING", f"{p['keyboard']} test started: two minutes from now")
+        self._line("TYPING", f"{p['keyboard']} test started with passage {p['passage']}: two minutes from now")
 
     def _typing(self, p: dict) -> None:
         self._line("TYPING", self._paint(
-            f"{p['keyboard']} time up: {p['wpm']:.1f} wpm   {p['chars']} characters   accuracy "
+            f"{p['keyboard']} passage {p['passage']} time up: {p['wpm']:.1f} wpm   {p['chars']} characters   accuracy "
             f"{100 * p['accuracy']:.0f}%   {p['kspc'] or 0:.1f} picks per character   {p['backspaces']} backspaces", "worked"))
 
     def _link(self, p: dict) -> None:

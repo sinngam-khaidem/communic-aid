@@ -68,6 +68,8 @@ def plot(person: str | None, session: str | None, out: Path | None = None) -> Pa
         ax.axhline(y, color="#D5D5D5", lw=0.8, zorder=0)
     for tier, (label, colour) in TIERS.items():
         pts = [(r["t"] / 60, r["dwell"]) for r in looks if r["tier"] == tier]
+        if not pts:
+            continue                     # nothing on this tier in this session
         x, y = zip(*pts)
         ax.step((0, *x, end), (d["start"], *y, y[-1]), where="post", color=colour, lw=2, label=label)
 

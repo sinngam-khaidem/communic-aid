@@ -1,6 +1,10 @@
-# Typing test passages: lowercase letters and spaces only (the keyboards have no digits or
-# punctuation). The grouped keyboard uses the first passage, QWERTY the second, so the second test
-# is not helped by having typed the same text. Both are 248 characters, more than anyone types by
-# gaze in two minutes. One passage per line.
+# Typing test passages, one per line, numbered 1 to 6 in this order (choose with --passage).
+# Lowercase letters and spaces only, as the keyboards have no digits or punctuation. All six are
+# 248 characters, more than anyone types by gaze in two minutes, so every run is equally long.
+# Give each participant a new passage every run: 3 runs per keyboard uses all six once.
 i woke up early today and had tea with my sister before the doctor came to see me she said i am getting stronger every week so we planned a short walk in the garden after lunch and later my friends will call to tell me about their trip to the hills
 the rain started in the evening so we stayed inside and watched an old film together my brother cooked rice and dal for dinner and we talked about the wedding next month everyone is busy with the plans but i hope to send my best wishes to them soon
+my daughter visited this morning with fresh fruit and a new book for me we sat near the window and read the first few pages together then the nurse came to check my medicine and said that i should drink more water and rest well after my lunch today
+the market was very crowded on sunday so my son went alone and bought vegetables milk and bread for the week he also found the blue shirt i wanted for the festival next month and we laughed when he told me how long the queue was at the nearby store
+last night the power went out for an hour so we lit candles and played cards in the living room my grandson won each game and was very proud of himself when the lights came back we made hot tea and talked about the old days in our village by a lake
+please remind me to call the bank tomorrow about the new card and to pay the electricity bill before friday i also need to book a taxi for my checkup at the hospital on monday and ask our neighbour to water the plants while we are away this weekend

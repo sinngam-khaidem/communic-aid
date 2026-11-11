@@ -8,8 +8,8 @@ For each folder it uses the session with the most looks, and saves into result/P
     <mode>/heatmap_<screen>.png   where the person looked on each screen
     <mode>/dwell.png              how the dwell changed over the session
     summary.csv, summary.md       one column per mode, one row per measure
-    typing.csv                    one row per typing test, when a folder holds one
-                                  (for example P01-grouped from --typing grouped)
+    typing.csv                    one row per typing test run, from any of the folders
+    typing.md                     each keyboard's runs averaged: words per minute, accuracy, effort
 
 Task times, SUS, NASA-TLX and ratings are on paper and are not part of this.
 """
@@ -29,8 +29,9 @@ import plot_heatmap
 from communicaid.common import ROOT
 
 FIXED = ("undo", "redo")
-TYPING_FIELDS = ["keyboard", "seconds", "chars", "wpm", "accuracy", "errors", "kspc", "selections", "backspaces",
-                 "typed"]
+TYPING_FIELDS = ["keyboard", "passage", "seconds", "chars", "wpm", "accuracy", "errors", "kspc", "selections",
+                 "backspaces", "typed"]
+KEYBOARDS = {"grouped": "Grouped", "qwerty": "QWERTY"}
 SIGNALS = {"blink": "Blink and hold", "brows": "Raise eyebrows", "yes": 'Say "go"', "switch": "Switch"}
 
 
@@ -53,8 +54,10 @@ def folders(person: str) -> dict[str, Path]:
 
 
 def main_session(events: list[dict]) -> str | None:
-    """The session with the most looks, so a short false start is never picked."""
-    looks = Counter(e["session"] for e in events if e["event"] == "look")
+    """The session with the most looks, so a short false start is never picked. Typing tests are not sessions
+    of the chat app, so they are left out here and reported on their own."""
+    typing = {e["session"] for e in events if e["event"] == "typing_result"}
+    looks = Counter(e["session"] for e in events if e["event"] == "look" and e["session"] not in typing)
     return looks.most_common(1)[0][0] if looks else None
 
 
@@ -106,17 +109,22 @@ def summarise(events: list[dict], gaze: list[dict]) -> dict[str, str]:
     }
     for key, name in SIGNALS.items():
         row[f"{name}: asked / confirmed"] = f"{asked[key]} / {confirmed[key]}"
-    results = [e for e in events if e["event"] == "typing_result"]
-    if results:
-        r = results[-1]
-        row.update({
-            "Typing: keyboard": r["keyboard"],
-            "Typing: words per minute": f"{r['wpm']:.2f}",
-            "Typing: characters in 2 minutes": str(r["chars"]),
-            "Typing: accuracy (%)": f"{100 * r['accuracy']:.1f}",
-            "Typing: picks per character": f"{r['kspc'] or 0:.2f}",
-            "Typing: backspaces": str(r["backspaces"]),
-        })
+    return row
+
+
+def mean(runs: list[dict], key: str) -> float:
+    return sum(r[key] or 0 for r in runs) / len(runs)
+
+
+def typing_rows(runs: list[dict]) -> dict[str, str]:
+    """Typing test runs in one folder, averaged per keyboard."""
+    row = {}
+    for kb, name in KEYBOARDS.items():
+        mine = [r for r in runs if r["keyboard"] == kb]
+        if mine:
+            row[f"Typing {name}: runs (passages)"] = f"{len(mine)} ({', '.join(str(r['passage']) for r in mine)})"
+            row[f"Typing {name}: words per minute"] = f"{mean(mine, 'wpm'):.2f}"
+            row[f"Typing {name}: accuracy (%)"] = f"{100 * mean(mine, 'accuracy'):.1f}"
     return row
 
 
@@ -127,15 +135,20 @@ def report(person: str) -> None:
     typing: list[dict] = []
     for mode, folder in folders(person).items():
         everything = read(folder / "events.jsonl")
+        runs = [{"mode": mode, **{k: e.get(k) for k in TYPING_FIELDS}} for e in everything if e["event"] == "typing_result"]
+        typing += runs
         session = main_session(everything)
         if session is None:
-            print(f"{folder.name}: no looks logged, skipped")
+            if runs:
+                table[mode] = typing_rows(runs)
+                print(f"{folder.name}: typing tests only")
+            else:
+                print(f"{folder.name}: no looks logged, skipped")
             continue
         events = [e for e in everything if e.get("session") == session]
         gaze = [g for g in read(folder / "gaze.jsonl") if g.get("session") == session]
-        print(f"{folder.name}: session {session}")
-        table[mode] = summarise(events, gaze)
-        typing += [{"mode": mode, **{k: e[k] for k in TYPING_FIELDS}} for e in events if e["event"] == "typing_result"]
+        print(f"{folder.name}: session {session}" + (f", plus {len(runs)} typing test runs" if runs else ""))
+        table[mode] = {**summarise(events, gaze), **typing_rows(runs)}
         if gaze:
             plot_heatmap.plot(folder.name, session, out / mode)
         else:
@@ -154,6 +167,19 @@ def report(person: str) -> None:
             w = csv.DictWriter(f, fieldnames=["mode", *TYPING_FIELDS])
             w.writeheader()
             w.writerows(typing)
+        # Each keyboard's runs averaged, across all modes: the main typing result.
+        lines = [f"# {person}: typing speed", "", "| Keyboard | Runs | Passages | Words per minute | Accuracy (%) |"
+                 " Picks per character |", "|---|---|---|---|---|---|"]
+        for kb, name in KEYBOARDS.items():
+            mine = [r for r in typing if r["keyboard"] == kb]
+            if mine:
+                lines.append(f"| {name} | {len(mine)} | {', '.join(str(r['passage']) for r in mine)} | "
+                             f"{mean(mine, 'wpm'):.2f} | {100 * mean(mine, 'accuracy'):.1f} | {mean(mine, 'kspc'):.2f} |")
+        seen = [r["passage"] for r in typing]
+        if len(seen) != len(set(seen)):
+            lines += ["", "Note: a passage was typed more than once, so a later run may have been helped by practice."]
+        (out / "typing.md").write_text("\n".join(lines) + "\n")
+        print("\n".join(lines) + "\n")
     with (out / "summary.csv").open("w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["Measure", *modes])
