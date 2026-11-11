@@ -114,3 +114,63 @@ def test_calibration_waits_through_a_pause(world, config):
         gaze.on_frame(frame(clock.now(), eye, dot))
     done = rec.of("calib_done")[-1]
     assert done["dots"] == 9 and done["ok"]
+
+
+# ---------- head pointing ----------
+
+def head_frame(t, eye, nose_px, eyes_px, with_head=True):
+    """The nose points at one spot while the eyes look at another."""
+    f = frame(t, eye, eyes_px)
+    h = plane_point(nose_px) - np.asarray(eye)
+    f.head = tuple(h / np.linalg.norm(h)) if with_head else None
+    return f
+
+
+def head_setup(world, config):
+    bus, clock, rec = world
+    gaze = Gaze(bus, clock, config, pointing="head")
+    bus.emit("screen", {"w": 1440, "h": 900, "ox": 0, "oy": 0})
+    return bus, clock, rec, gaze
+
+
+def calibrate_head(clock, gaze, eye, with_head=True):
+    """The nose follows each dot while the eyes wander, so only the head can explain the dots."""
+    rng = np.random.default_rng(0)
+    gaze.start_calibration()
+    while gaze.calib is not None:
+        dot = gaze.calib["targets"][-1] if gaze.calib["targets"] else CENTRE
+        clock.advance(1 / 60)
+        gaze.on_frame(head_frame(clock.now(), eye, dot, rng.uniform([0, 0], [1440, 900]), with_head))
+
+
+def test_head_pointing_follows_the_nose_not_the_eyes(world, config):
+    bus, clock, rec, gaze = head_setup(world, config)
+    eye = (0.0, 0.02, -0.5)
+    calibrate_head(clock, gaze, eye)
+    done = rec.of("calib_done")[-1]
+    assert done["ok"] and done["pointing"] == "head"
+    nose, eyes = np.array([300.0, 600.0]), np.array([1200.0, 150.0])
+    for _ in range(60):
+        clock.advance(1 / 60)
+        gaze.on_frame(head_frame(clock.now(), eye, nose, eyes))
+    g = rec.of("gaze")[-1]
+    assert np.linalg.norm(np.array([g["x"], g["y"]]) - nose) < 30
+
+
+def test_gaze_calibration_is_not_reused_for_head_pointing(world, config):
+    bus, clock, rec, gaze = setup(world, config)
+    calibrate(bus, clock, gaze, eye=(0.0, 0.02, -0.5))
+    saved = gaze.save()
+    head = Gaze(bus, clock, config, pointing="head")
+    head.load(saved)
+    assert head.mapping is None
+    again = Gaze(bus, clock, config)
+    again.load(saved)
+    assert again.mapping is not None
+
+
+def test_head_pointing_on_an_old_phone_build_says_so(world, config):
+    bus, clock, rec, gaze = head_setup(world, config)
+    calibrate_head(clock, gaze, (0.0, 0.02, -0.5), with_head=False)
+    assert not rec.of("calib_done")[-1]["ok"]
+    assert len(rec.of("notice")) == 1 and "head direction" in rec.of("notice")[0]["text"]

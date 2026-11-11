@@ -44,6 +44,7 @@ class Persist:
             return
         line = {"t": round(self.clock.now(), 3), "wall": time.strftime("%Y-%m-%dT%H:%M:%S"),
                 "session": self.meta["session"], "condition": self.meta["condition"],
+                "pointing": self.meta.get("pointing", "gaze"),
                 "costs": self.meta["config"]["costs"]["version"], "event": event, **_clean(payload)}
         self.events.write(json.dumps(line, default=str) + "\n")
 

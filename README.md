@@ -69,6 +69,7 @@ Stray glances are counted and shown as one dim line. In a terminal the outcomes 
 | Option | Meaning |
 |---|---|
 | `--condition fixed` | Fixed baseline: 1000 ms dwell, tier 2 dwell only, tier 3 the preferred signal |
+| `--pointing head` | Head only study mode: the cursor follows where the nose points, not the eyes. Needs its own calibration. Gaze only is the default `--pointing gaze` with the head kept still (chin rest). |
 | `--raw` | Also log every raw frame |
 | `--seed 1` | Repeatable learner draws |
 

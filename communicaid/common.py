@@ -73,6 +73,7 @@ class Frame:
     t: float
     dir: tuple[float, float, float] | None = None
     eye: tuple[float, float, float] | None = None     # eye midpoint in camera space, metres (newer phone builds)
+    head: tuple[float, float, float] | None = None    # where the nose points, camera space (newer phone builds)
     point: tuple[float, float] | None = None
     blink_l: float = 0.0
     blink_r: float = 0.0

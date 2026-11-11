@@ -8,6 +8,7 @@ struct FrameMessage: Encodable {
     let t: TimeInterval
     let dir: [Float]?          // gaze ray in camera space; nil when the face is lost
     let eye: [Float]?          // midpoint between the eyes in camera space, metres; nil when lost
+    let head: [Float]?         // where the nose points, in camera space, length 1; nil when lost
     let blinkL: Float
     let blinkR: Float
     let browIn: Float

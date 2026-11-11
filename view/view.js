@@ -412,7 +412,7 @@ setInterval(() => {   // moving a window fires no resize event, so check its pos
 const HANDLERS = {
   init(m) {
     TIERS = m.tiers; SIGNALS = m.signals; INIT = m;
-    $("#startInfo").textContent = `${m.person}, ${m.condition}, ${m.source === "mouse" ? "mouse test mode (B, E, Y, S are the signals)" : "iPhone gaze"}`;
+    $("#startInfo").textContent = `${m.person}, ${m.condition}, ${m.source === "mouse" ? "mouse test mode (B, E, Y, S are the signals)" : m.pointing === "head" ? "iPhone head pointing" : "iPhone gaze"}`;
     $("#studyInfo").textContent = `Participant ${m.person}. Condition: ${m.condition}. Source: ${m.source}.`;
     buildCosts(m.costs);
     document.body.classList.toggle("mouse", m.source === "mouse");

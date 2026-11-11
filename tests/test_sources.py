@@ -11,6 +11,12 @@ def test_contract_v1_frame():
     assert (f.brow_in, f.brow_out_l, f.brow_out_r) == (0.3, 0.4, 0.5)
 
 
+def test_head_direction_is_read():
+    f = frame_from_packet({"type": "frame", "t": 1.0, "dir": [0, 0, 1], "eye": [0, 0, -0.5], "head": [0.1, 0.2, 0.97]})
+    assert f.head == (0.1, 0.2, 0.97)
+    assert frame_from_packet({"type": "frame", "t": 1.0, "dir": [0, 0, 1]}).head is None
+
+
 def test_face_lost_frame_has_no_direction():
     # Swift leaves out nil optionals, so "dir" is simply missing.
     f = frame_from_packet({"type": "frame", "seq": 2, "t": 4.0, "blinkL": 0, "blinkR": 0, "tracked": False, "dist": 0})

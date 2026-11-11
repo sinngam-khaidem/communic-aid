@@ -16,11 +16,12 @@ from .common import Bus, Clock, Frame
 
 def frame_from_packet(msg: dict) -> Frame:
     """Contract v1 (DESIGN_PLAN 3.1). Older phone builds without the new fields still work."""
-    d, e = msg.get("dir"), msg.get("eye")
+    d, e, h = msg.get("dir"), msg.get("eye"), msg.get("head")
     return Frame(
         t=float(msg.get("t", 0.0)),
         dir=tuple(d) if d else None,
         eye=tuple(e) if e else None,
+        head=tuple(h) if h else None,
         blink_l=float(msg.get("blinkL", 0.0)),
         blink_r=float(msg.get("blinkR", 0.0)),
         brow_in=float(msg.get("browIn", 0.0)),

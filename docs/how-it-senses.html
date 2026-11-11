@@ -213,6 +213,7 @@ svg text { font-family: var(--font); }
     <tbody>
       <tr><td><code>eye</code></td><td>The point between the two eyes, in metres from the camera</td></tr>
       <tr><td><code>dir</code></td><td>The direction the eyes are looking, as an arrow of length 1</td></tr>
+      <tr><td><code>head</code></td><td>The direction the nose points, as an arrow of length 1. Used only for head pointing.</td></tr>
       <tr><td><code>blinkL</code>, <code>blinkR</code></td><td>How closed each eye is, from 0 (open) to 1 (shut)</td></tr>
       <tr><td><code>browIn</code>, <code>browOutL</code>, <code>browOutR</code></td><td>How raised the inner brows and each outer brow are, from 0 to 1</td></tr>
       <tr><td><code>tracked</code></td><td>Whether a face is visible. When it is lost, the phone still sends a frame saying so.</td></tr>
@@ -262,6 +263,7 @@ hit   = eye + steps × dir        (keep x and y, in mm)</div>
     </div>
     <figcaption>Side view. If the head moves but the person keeps looking at the same spot, the eye and the direction both change, but the hit point stays put. So moving the head does not move the cursor.</figcaption>
   </figure>
+  <p>For the head only study mode (<code>--pointing head</code>), the same steps use where the nose points instead of where the eyes look. The cursor then follows the head and ignores the eyes. It needs its own calibration.</p>
   <p>An older phone build that does not send <code>eye</code> falls back to two angles: how far the gaze turns left or right, and up or down. That works, but moving the head shifts the point.</p>
 
   <h3>2. Calibrate: learn how hit points line up with pixels</h3>
