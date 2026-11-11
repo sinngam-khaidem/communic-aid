@@ -79,6 +79,10 @@ debug overlay (current group, dwell, last router choice).
 Every number, including the accident costs, is in [config.toml](config.toml). Logs and saved
 learning go to `data/<person>/`.
 
+The gaze point is saved 30 times a second in `data/<person>/gaze.jsonl`, with the screen name, and
+the buttons on each screen are logged as `layout` events. Draw heatmaps with
+`python tests/plot_heatmap.py --person P01-gaze` (saved in `result/`).
+
 ## Tests
 
 ```bash
