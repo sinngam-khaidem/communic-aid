@@ -237,7 +237,11 @@ These comments give three changes for the next version: a smoothing slider in Se
 
 ## Limitations
 
-So far there are two able-bodied participants and no fixed baseline, so the results show that the learners behave as intended, not that adaptation beats a fixed dwell. The typing runs were recorded while the dwell was still learning, with grouped always first; the typing test now uses a fixed dwell, and the order will be counterbalanced. The remaining three participants will use the app twice, adaptive and fixed (1000 ms dwell, dwell alone on tier 2, the preferred signal on tier 3), in counterbalanced order, with SUS after each.
+The evaluation is small. With two able-bodied participants and no fixed baseline, the results show that the learners behave as intended, not that adaptation beats a fixed dwell. A more comprehensive evaluation needs more participants, including people with motor impairments, who are the intended users. The typing runs were also recorded while the dwell was still learning, with the grouped keyboard always first.
+
+Participants also had little time to learn the interface before the tasks. Both were new to gaze and head pointing, and their low SUS scores and comments suggest that part of the difficulty came from inexperience. Future participants should get a longer guided practice period, to become familiar with the interface and with coordinating head and gaze, before the unguided evaluation tasks begin.
+
+The remaining three participants will receive this practice period and will use the app twice, adaptive and fixed (1000 ms dwell, dwell alone on tier 2, the preferred signal on tier 3), in counterbalanced order, with a fixed dwell for the typing test and SUS after each condition.
 
 # Ethics and Risk Assessment
 
