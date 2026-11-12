@@ -25,11 +25,11 @@ TEXT_WIDTH_IN = 6.0                  # the template's text block is 6.08 inches 
 
 # Google Docs mode: Google Docs' Word import breaks Word list numbering, unknown fonts, text formulas
 # and table styles. In this mode numbers are typed into the text, the formula is an image, the fonts
-# are Times New Roman and Arial, and tables carry only their own rules.
+# are all Times New Roman, and tables carry only their own rules.
 GDOCS = False
 _heads = [0, 0]
 FONTS = {"Linux Libertine O": "Times New Roman", "Linux Libertine": "Times New Roman",
-         "Linux Biolinum O": "Arial", "Linux Biolinum": "Arial"}
+         "Linux Biolinum O": "Times New Roman", "Linux Biolinum": "Times New Roman"}
 NO_LIST = '<w:numPr><w:ilvl w:val="0"/><w:numId w:val="0"/></w:numPr>'
 GRID = '<w:tblStyle w:val="TableGrid"/>'
 
@@ -552,6 +552,9 @@ def main(template: Path) -> None:
         for old, new in FONTS.items():
             styles = styles.replace(f'"{old}"', f'"{new}"')
         (work / "word/styles.xml").write_text(styles, encoding="utf-8")
+        theme = work / "word/theme/theme1.xml"            # the fallback font for anything without a style font
+        theme.write_text(re.sub(r'typeface="Calibri( Light)?"', 'typeface="Times New Roman"', theme.read_text(encoding="utf-8")),
+                         encoding="utf-8")
 
     # Drop the template's sample pictures and their links; add ours.
     rels_path = work / "word/_rels/document.xml.rels"
