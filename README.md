@@ -160,6 +160,13 @@ each, and saves into `result/P01/`:
 Task times, SUS, NASA-TLX and the ratings are collected on paper. Single plots for one folder:
 `tests/plot_heatmap.py --person P01-gaze` and `tests/plot_dwell.py --person P01-gaze`.
 
+### Adaptive vs Fixed study
+
+Each participant does one Adaptive and one Fixed session with gaze pointing, in an order set by
+their number. `tests/study.py P03 1` and `tests/study.py P03 2` start the sessions, and
+`tests/compare.py` compares the conditions across participants, with SUS and task times from
+`data/study_forms.csv`. Steps are in [docs/study-run-sheet.md](docs/study-run-sheet.md).
+
 ## Learning log
 
 At start the terminal prints every setting from `config.toml` as a table per section, with the
