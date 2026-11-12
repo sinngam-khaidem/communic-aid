@@ -214,7 +214,7 @@ After the signal check and calibration, each participant used the app freely and
 
 : Table 8. Typing test, mean of three two minute runs per keyboard.
 
-**Usability.** Table 9 gives the SUS scores (0 to 100; about 68 is average). Both scores are below average: P1 scored 52.5 and P2 40.0. Both rated the functions as well integrated (4 of 5) and the system as not inconsistent (2 of 5), so the structure of the app held up. The low items were about effort: neither would yet like to use it frequently or felt very confident, and P2 felt they would need technical support and had a lot to learn before getting going (4 of 5 on both). The feedback below points to pointer jitter and the QWERTY keyboard as the main causes.
+**Usability.** Table 9 gives the SUS scores (0 to 100; about 68 is average). Both scores are below average: P1 scored 52.5 and P2 40.0. Both rated the functions as well integrated (4 of 5) and the system as not inconsistent (2 of 5), so the structure of the app held up. The low items were about effort: neither would yet like to use it frequently or felt very confident, and P2 felt they would need technical support and had a lot to learn before getting going (4 of 5 on both). The feedback below points to pointer jitter and the QWERTY keyboard as causes. Inexperience is a third: both participants were using gaze and head pointing for the first time, and P1 said that coordinating head and gaze "needs getting used to". Part of the low scores may therefore reflect an early point on the learning curve rather than the design itself; repeated sessions would show how much.
 
 | | Q1 | Q2 | Q3 | Q4 | Q5 | Q6 | Q7 | Q8 | Q9 | Q10 | SUS |
 |----|---|---|---|---|---|---|---|---|---|---|------|
@@ -261,7 +261,7 @@ Participation is voluntary. Each participant is told what the session involves a
 
 # Conclusion
 
-Communic-aid is a working high-fidelity prototype in which one consumer phone provides both pointing and confirmation for hands-free messaging, and the interface learns from ordinary use, without asking, how long to wait and which signal to ask for before acting. Early tests show rare, cheap, undoable accidents, no accidents on risky actions, a dwell that shortens within one session, and a router that adapts to each person. Usability scores were below average (SUS 52.5 and 40.0), mainly because of pointer jitter, hard to reach corners and the small QWERTY keys; these point to a tunable smoothing setting, edge friendly layouts and the grouped keyboard as the default. The remaining sessions will compare adaptive against fixed settings and include a participant with a motor impairment.
+Communic-aid is a working high-fidelity prototype in which one consumer phone provides both pointing and confirmation for hands-free messaging, and the interface learns from ordinary use, without asking, how long to wait and which signal to ask for before acting. Early tests show rare, cheap, undoable accidents, no accidents on risky actions, a dwell that shortens within one session, and a router that adapts to each person. Usability scores were below average (SUS 52.5 and 40.0), because of pointer jitter, hard to reach corners, the small QWERTY keys and first time users' poor head and gaze coordination; these point to a tunable smoothing setting, edge friendly layouts and the grouped keyboard as the default. The remaining sessions will compare adaptive against fixed settings and include a participant with a motor impairment.
 
 # References {-}
 
