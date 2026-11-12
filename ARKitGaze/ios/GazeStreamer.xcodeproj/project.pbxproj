@@ -137,8 +137,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "The TrueDepth camera is used to estimate where you are looking.";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Gaze data is sent to the Mac on your local network.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "The microphone listens for the word yes. Audio never leaves the phone.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Speech is recognised on this phone to hear the word yes.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "The microphone listens for the word go. Audio never leaves the phone.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Speech is recognised on this phone to hear the word go.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
@@ -166,8 +166,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "The TrueDepth camera is used to estimate where you are looking.";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Gaze data is sent to the Mac on your local network.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "The microphone listens for the word yes. Audio never leaves the phone.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Speech is recognised on this phone to hear the word yes.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "The microphone listens for the word go. Audio never leaves the phone.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Speech is recognised on this phone to hear the word go.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;

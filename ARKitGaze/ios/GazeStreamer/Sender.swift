@@ -1,13 +1,14 @@
 import Foundation
 import Network
 
-/// One reading from the face, in the contract format (DESIGN_PLAN 3.1).
+/// One reading from the face, in the JSON format the Python core expects over UDP.
 struct FrameMessage: Encodable {
     var type = "frame"
     let seq: UInt32
     let t: TimeInterval
     let dir: [Float]?          // gaze ray in camera space; nil when the face is lost
     let eye: [Float]?          // midpoint between the eyes in camera space, metres; nil when lost
+    let head: [Float]?         // where the nose points, in camera space, length 1; nil when lost
     let blinkL: Float
     let blinkR: Float
     let browIn: Float

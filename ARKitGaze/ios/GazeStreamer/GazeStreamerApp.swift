@@ -26,6 +26,7 @@ final class Streamer: ObservableObject {
         sensor.onPreview = { [sender] jpeg in sender.sendPreview(jpeg) }
         speech.onYes = { [sender] in sender.sendYes() }
         speech.onStatus = { [weak self] text in DispatchQueue.main.async { self?.speechStatus = text } }
+        speech.onHeard = { [weak self] text in DispatchQueue.main.async { self?.speechStatus = "Heard: \(text)" } }
         sender.onError = { [weak self] text in self?.error = text }
     }
 

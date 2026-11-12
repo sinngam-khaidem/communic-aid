@@ -1,4 +1,4 @@
-"""Signals: detect blink and hold, raised eyebrows, "yes" and the switch (DESIGN_PLAN 3.3 to 3.7).
+"""Signals: detect blink and hold, raised eyebrows, saying "go" (the "yes" signal) and the switch.
 
 Signals only reports what the person did. Whether it was the signal being asked for is
 Interaction's business. Short eye closures and brow lifts are reported as 'attempt', so
@@ -147,7 +147,7 @@ class Signals:
 
 
 class SignalCheck:
-    """Onboarding check (DESIGN_PLAN 3.7). Sets each person's levels and which signals they can do."""
+    """Onboarding check. Sets each person's levels and which signals they can do."""
 
     STEPS = ("relax_middle", "relax_top", "blink", "brows", "yes", "switch")
     PROMPTS = {
@@ -155,7 +155,7 @@ class SignalCheck:
         "relax_top": "Now look at the dot at the top. Keep your face relaxed.",
         "blink": "Close both eyes until you hear the tone.",
         "brows": "Raise your eyebrows until you hear the tone.",
-        "yes": 'Say "yes".',
+        "yes": 'Say "go".',
         "switch": "Press your switch. If you have none, just wait.",
     }
 

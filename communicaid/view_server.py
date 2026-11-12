@@ -1,4 +1,4 @@
-"""ViewServer: serve the view and pass messages both ways (DESIGN_PLAN 9.4).
+"""ViewServer: serve the view and pass messages both ways.
 
 Holds no rules. Bus events listed in FORWARD go to every open browser as {"type": event, ...}.
 Browser messages come back onto the bus: screen size, button positions, keys, mouse.
@@ -15,7 +15,7 @@ from .common import ROOT, Bus, Target
 
 FORWARD = ("state", "gaze", "button", "dim", "sound", "banner", "calib_dot", "calib_done",
            "check_prompt", "check_done", "choice", "context", "dwell_now", "config", "notice", "stale",
-           "preview", "signal")
+           "preview", "signal", "link")
 
 
 class ViewServer:
@@ -29,7 +29,7 @@ class ViewServer:
 
     def _send(self, event: str, payload: dict) -> None:
         msg = {"type": event, **payload}
-        if event in ("state", "context", "dwell_now", "config", "stale"):
+        if event in ("state", "context", "dwell_now", "config", "stale", "link"):
             self.latest[event] = msg
         if not self.queues:
             return

@@ -1,4 +1,4 @@
-"""Chat: the app state and the action list with tiers (DESIGN_PLAN 5, 7 and the undo rules).
+"""Chat: the app state, the action list with tiers, and the undo rules.
 
 Knows nothing about gaze, signals or learning. It reacts to 'fire' and 'escape', and
 publishes 'state' for the view and 'settings' for everyone else.
@@ -11,11 +11,13 @@ from __future__ import annotations
 
 import copy
 import json
+import math
 from dataclasses import asdict
 
 from .common import ROOT, SIGNALS, Bus, Clock, Settings
+from .typing_test import SECONDS, load_passage, score
 
-# The single place where tiers live (DESIGN_PLAN 5). Keys are the action name before any ':'.
+# The single place where tiers live. Keys are the action name before any ':'.
 TIERS: dict[str, int] = {
     # 0 Navigation
     "open": 0, "back": 0, "scroll_up": 0, "scroll_down": 0, "compose": 0, "close_keyboard": 0,
@@ -56,9 +58,10 @@ class Chat:
             "chats": [{"id": c["id"], "name": c["name"], "messages": c["messages"]} for c in data["chats"]],
             "chat_id": None, "draft": "", "kb_group": None, "selected": None, "picker": False,
             "call": None, "scroll": 0, "calib": None, "check": None,
+            "typing": None,      # the typing test, when the app was started with --typing
         }
         self.undo: dict | None = None
-        self.last: tuple | None = None       # (seq, before, after)
+        self.last: tuple | None = None       # (seq, before, after, action)
         self.pending_replies: list[dict] = []
         self.next_id = 1000
         self.started = False
@@ -78,11 +81,20 @@ class Chat:
     def load_settings(self, saved: dict | None, has_calibration: bool, needs_calibration: bool) -> None:
         if saved:
             self.settings = Settings(**{**asdict(Settings()), **saved})
-        if self.settings.onboarded:
+        # The typing test skips the onboarding questions and the signal check: it only needs calibration.
+        home = "typing" if self.s["typing"] else "chats"
+        if self.settings.onboarded or self.s["typing"]:
             if needs_calibration and not has_calibration:
-                self.s.update(screen="landing", landing="calibrate", return_to="chats")
+                self.s.update(screen="landing", landing="calibrate", return_to=home)
             else:
-                self.s.update(screen="chats")
+                self.s.update(screen=home)
+
+    def start_typing(self, keyboard: str, passage: int) -> None:
+        """Typing test mode: copy a passage for two minutes with the chosen keyboard, no word suggestions."""
+        self.s["typing"] = {"keyboard": keyboard, "passage": passage, "text": load_passage(passage), "typed": "",
+                            "kb_group": None,
+                            "first": None, "left": SECONDS, "selections": 0, "backspaces": 0,
+                            "result": None, "done": False}
 
     def publish(self) -> None:
         state = {**self.s, "settings": asdict(self.settings), "can_do": self.can_do,
@@ -175,6 +187,9 @@ class Chat:
     def apply(self, action: str, now: float) -> None:
         name, _, arg = action.partition(":")
         s = self.s
+        if s["screen"] == "typing":
+            self._typing(name, arg, now)
+            return
         if name == "open":
             s.update(chat_id=arg, screen="thread", scroll=0)
         elif name == "back":
@@ -279,6 +294,42 @@ class Chat:
                 self.settings.onboarded = True
                 s.update(screen="chats")
 
+    def _typing(self, name: str, arg: str, now: float) -> None:
+        """One pick in the typing test. The two minutes start with the first character."""
+        t = self.s["typing"]
+        if t["done"]:
+            return
+        if name in ("key", "space", "backspace", "group", "groups"):
+            t["selections"] += 1
+        if name == "group":
+            t["kb_group"] = arg
+        elif name == "groups":
+            t["kb_group"] = None
+        elif name in ("key", "space"):
+            t["typed"] += arg if name == "key" else " "
+            t["kb_group"] = None
+            if t["first"] is None:
+                t["first"] = now
+                self.bus.emit("typing_start", {"keyboard": t["keyboard"], "passage": t["passage"]})
+        elif name == "backspace":
+            t["typed"] = t["typed"][:-1]
+            t["backspaces"] += 1
+
+    def _typing_tick(self, now: float) -> bool:
+        """Count down once typing has started; at zero, stop and score. True when the screen changed."""
+        t = self.s["typing"]
+        if not t or t["done"] or t["first"] is None:
+            return False
+        left = max(0, math.ceil(SECONDS - (now - t["first"])))
+        if left > 0:
+            changed, t["left"] = left != t["left"], left
+            return changed
+        t.update(left=0, done=True, kb_group=None)
+        t["result"] = score(t["text"], t["typed"], SECONDS, t["selections"], t["backspaces"])
+        self.undo = None                     # nothing to undo once the time is up
+        self.bus.emit("typing_result", {"keyboard": t["keyboard"], "passage": t["passage"], **t["result"]})
+        return True
+
     def _toggle(self, signal: str) -> None:
         enabled = self.settings.enabled
         if enabled.get(signal) and sum(enabled.values()) == 1:
@@ -297,8 +348,8 @@ class Chat:
         return {"id": f"m{self.next_id}", "from": sender, "text": text, "forwarded": forwarded}
 
     def escape(self) -> None:
-        """Calm way out from anywhere: go to the chat list, keep the draft (Scenario 4)."""
-        if self.s["screen"] == "landing":
+        """Calm way out from anywhere: go to the chat list, keep the draft."""
+        if self.s["screen"] in ("landing", "typing"):
             return
         self.s.update(screen="chats", kb_group=None, picker=False, call=None)
         self.undo = None
@@ -323,7 +374,7 @@ class Chat:
     # ---------- time ----------
 
     def tick(self, now: float) -> None:
-        changed = False
+        changed = self._typing_tick(now)
         if self.calib_again_at is not None and now >= self.calib_again_at:
             self.calib_again_at = None
             self.bus.emit("start_calibration", {})

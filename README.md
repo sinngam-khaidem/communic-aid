@@ -1,82 +1,94 @@
 # Communic-aid
 
-A gaze and multimodal chat interface for people with motor impairments. People look at buttons
-to pick them. Risky actions ask for a second signal (blink and hold, raised eyebrows, saying
-"yes", or a switch). Two learners adapt the dwell time and the signal to each person.
-
-
-## How it fits together?
+A hands-free messaging app for people with motor impairments. You select buttons by looking at
+them, and risky actions (send, call, delete) ask for a second signal: blink and hold, raised
+eyebrows, saying "go", or a switch. Two learners adapt the dwell time and the signal to each person.
 
 ![System architecture](figures/architecture.svg)
 
-*The iPhone only senses, the Python core makes every decision, and the browser view only draws.
-The dashed arrow is the learning loop: Interaction reports what happened, Outcomes labels it,
-and Policy learns from it.*
+An iPhone senses, a Python core on the computer makes every decision, and the browser draws.
 
-## Setup.
+## Requirements
+
+- A Mac with Python 3.11 or newer, or [uv](https://docs.astral.sh/uv/)
+- For gaze: an iPhone with Face ID, Xcode to install the phone app, and both devices on the same Wi-Fi
+
+## Setup
 
 ```bash
 ./setup.sh
 ```
 
-It creates `.venv` (with [uv](https://docs.astral.sh/uv/) if you have it, otherwise Python 3.11
-or newer) and installs the app. Add `--test` to run the tests afterwards. Running it again is safe.
+This creates `.venv` and installs the app. `./setup.sh --test` also runs the tests.
 
-## Run without the phone (Mouse Test Mode)
+## Run without the phone
 
 ```bash
 .venv/bin/python -m communicaid --person P01 --source mouse
 ```
 
-Open http://localhost:8080 and click to start. The mouse is your gaze. Hold **B** to blink and
-hold, hold **E** to raise eyebrows, press **Y** to say "yes", and **S** or Space for the switch.
-Esc goes home.
+Open http://localhost:8080 and click to start. The mouse acts as your gaze.
 
-## Run with the iPhone.
+| Key | Signal |
+|---|---|
+| Hold B | Blink and hold |
+| Hold E | Raise eyebrows |
+| Y | Say "go" |
+| S or Space | Switch |
+| Esc | Home |
 
-1. Build and install `ARKitGaze/ios` on an iPhone with Face ID (see `ARKitGaze/README.md`).
+## Run with the iPhone
+
+1. Install the GazeStreamer app from `ARKitGaze/ios` (see [ARKitGaze/README.md](ARKitGaze/README.md)).
+   The first time, trust your developer profile in Settings > General > VPN & Device Management.
 2. Start the core:
 
    ```bash
    .venv/bin/python -m communicaid --person P01
    ```
 
-3. It prints the Mac's address. Enter it in the phone app and press Start.
-4. Open http://localhost:8080 in full screen and click to start. Calibration runs first.
+3. Enter the address it prints into the phone app (port 5005), turn on "Listen for go" and press Start.
+4. Open http://localhost:8080 in full screen and click to start. Calibration and a signal check run first.
 
-Fix the phone below the screen, front camera facing the person, 40 to 60 cm away.
+Put the phone on a tripod behind the laptop, front camera facing the person over the top of the
+screen, 40 to 60 cm away. If the screen says the phone stopped sending, check the address in the
+phone app.
 
-## Learning log
+## Study commands
 
-At start the terminal prints every setting from `config.toml` as a table per section, with the
-notes from the file and units filled in. The accident costs and reward values are marked "tuned often".
-
-Then it shows what the learners are doing as it happens, one line per event:
-
-```
-00:19  CHOOSE   call             tier 3  tired+steady   -> say "yes"   scores: say "yes" +0.44   raise eyebrows -0.38   switch -0.82
-00:24  OUTCOME  call             tier 3  worked              reward +0.53   check: say "yes"
-00:24  ROUTER   tier 3  tired+steady   say "yes": worked 1, gave up 0, blocked an accident 0, accident 0
-00:34  OUTCOME  back             tier 0  worked              reward +0.10   dwell 1500 ms
-00:34  DWELL    tired+steady: warm-up 2 of 20 selections, staying at 1500 ms
-```
-
-Stray glances are counted and shown as one dim line. In a terminal the outcomes are coloured
-(green worked, yellow gave up, cyan blocked an accident, red accident). Add `--quiet` to turn it off.
-
-## Study options
-
-| Option | Meaning |
+| Task | Command |
 |---|---|
-| `--condition fixed` | Fixed baseline: 1000 ms dwell, tier 2 dwell only, tier 3 the preferred signal |
-| `--raw` | Also log every raw frame |
-| `--seed 1` | Repeatable learner draws |
+| Free use, adaptive | `.venv/bin/python -m communicaid --person P01` |
+| Fixed baseline | `.venv/bin/python -m communicaid --person P01 --condition fixed` |
+| Head pointing | `.venv/bin/python -m communicaid --person P01-head --pointing head` |
+| Typing test | `.venv/bin/python -m communicaid --person P01 --typing grouped` (or `qwerty`) |
+| Adaptive vs fixed, in counterbalanced order | `.venv/bin/python tests/study.py P01 1`, then `... P01 2` |
 
-In the browser, **`** opens the study panel (accident costs, reset learning) and **\\** opens the
-debug overlay (current group, dwell, last router choice).
+The typing test shows a passage, times two minutes from the first letter, and reports words per
+minute, accuracy and picks per character. It always uses the fixed dwell (1250 ms). Each run picks a
+passage the person has not typed yet; `--passage 1` to `6` picks one by hand.
 
-Every number, including the accident costs, is in [config.toml](config.toml). Logs and saved
-learning go to `data/<person>/`.
+Other options: `--source mouse`, `--seed 1` (repeatable learner), `--quiet` (no learning log),
+`--raw` (log raw phone frames), `--port`, `--udp-port`, `--config`.
+
+In the browser, **`** opens the study panel and **\\** the debug overlay. All settings are in
+[config.toml](config.toml).
+
+## Data and results
+
+Each session saves to `data/<person>/`: `events.jsonl` (every look, selection, outcome and learner
+update), `gaze.jsonl` (gaze point, head position and angles) and the learned state. No message
+text, video or audio is saved.
+
+```bash
+.venv/bin/python tests/report.py --person P01                       # heatmaps, dwell plot, summary, typing
+.venv/bin/python tests/plot_dwell.py --person P01                   # dwell plot only
+.venv/bin/python tests/plot_dwell.py --person P01 --paper out/dwell # same, paper style (.pdf and .png)
+.venv/bin/python tests/compare.py                                   # adaptive vs fixed across people
+```
+
+Results go to `result/<person>/`. SUS and feedback are collected on paper; `compare.py` reads SUS
+and task times from `data/study_forms.csv`.
 
 ## Tests
 

@@ -20,11 +20,12 @@ from pathlib import Path
 from .common import ROOT, Bus, Clock
 
 NAMES = {"dwell": "dwell only", "blink": "blink and hold", "brows": "raise eyebrows",
-         "yes": 'say "yes"', "switch": "switch"}
+         "yes": 'say "go"', "switch": "switch"}
 KINDS = {"worked": "worked", "gave_up": "gave up", "blocked": "blocked an accident",
          "accident": "accident", "passed_by": "passed by"}
 COLOURS = {"worked": "32", "gave_up": "33", "blocked": "36", "accident": "31",
-           "CHOOSE": "35", "OUTCOME": "1", "DWELL": "34", "ROUTER": "34", "GROUP": "1", "CALIB": "36", "dim": "2"}
+           "CHOOSE": "35", "OUTCOME": "1", "DWELL": "34", "ROUTER": "34", "GROUP": "1", "CALIB": "36", "PHONE": "36", "TYPING": "1",
+           "dim": "2"}
 
 
 class Console:
@@ -36,6 +37,9 @@ class Console:
         bus.on("learned", self._learned)
         bus.on("context", self._context)
         bus.on("calib_done", self._calib)
+        bus.on("link", self._link)
+        bus.on("typing_start", self._typing_start)
+        bus.on("typing_result", self._typing)
 
     def legend(self) -> None:
         self._print("\n  Learning log", "GROUP")
@@ -111,6 +115,20 @@ class Console:
             moves = "   ".join(f"tier {c['tier']} {c['before']} -> {c['after']} ms" for c in changes)
             picks = " / ".join(f"{c['best']}" for c in changes)
             self._line("DWELL", f"{first['group']}: {moves}   (learner's picks {picks} ms)")
+
+    def _typing_start(self, p: dict) -> None:
+        self._line("TYPING", f"{p['keyboard']} test started with passage {p['passage']}: two minutes from now")
+
+    def _typing(self, p: dict) -> None:
+        self._line("TYPING", self._paint(
+            f"{p['keyboard']} passage {p['passage']} time up: {p['wpm']:.1f} wpm   {p['chars']} characters   accuracy "
+            f"{100 * p['accuracy']:.0f}%   {p['kspc'] or 0:.1f} picks per character   {p['backspaces']} backspaces", "worked"))
+
+    def _link(self, p: dict) -> None:
+        if p["phone"]:
+            self._line("PHONE", self._paint(f"connected, sending from {p['address']}", "worked"))
+        else:
+            self._line("PHONE", self._paint("not sending. In GazeStreamer, check the Mac address and press Start streaming.", "gave_up"))
 
     def _calib(self, p: dict) -> None:
         if "dots" not in p:

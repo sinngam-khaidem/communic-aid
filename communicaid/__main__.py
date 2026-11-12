@@ -27,6 +27,7 @@ from .persist import Persist
 from .policy import AdaptivePolicy, FixedPolicy
 from .signals import Signals
 from .sources import ArkitSource, BrowserSource
+from .typing_test import next_passage, participant, passages, used_passages
 from .view_server import ViewServer
 
 
@@ -46,13 +47,14 @@ def build(args, bus: Bus, clock: Clock) -> dict:
     rng = np.random.default_rng(args.seed)
     session = time.strftime("%Y%m%d-%H%M%S")
     persist = Persist(bus, clock, ROOT, args.person,
-                      {"session": session, "condition": args.condition, "config": config}, raw=args.raw)
+                      {"session": session, "condition": args.condition, "pointing": args.pointing, "config": config},
+                      raw=args.raw)
 
     policy = AdaptivePolicy(config, rng) if args.condition == "adaptive" else FixedPolicy(config)
     policy.load(persist.load("learner"))
 
     browser = BrowserSource(bus, clock, config, mouse=args.source == "mouse", rng=rng)
-    gaze = Gaze(bus, clock, config)
+    gaze = Gaze(bus, clock, config, pointing=args.pointing)
     signals = Signals(bus, clock, config)
     context = Context(bus, clock, config)
     interaction = Interaction(bus, clock, config, policy, TIERS)
@@ -70,6 +72,8 @@ def build(args, bus: Bus, clock: Clock) -> dict:
 
     bus.on("outcome", learn)
     chat = Chat(bus, clock, config)
+    if args.typing:
+        chat.start_typing(args.typing, args.passage)
 
     bus.on("settings", lambda p: (policy.set_preferred(p["preferred"]), persist.save("settings", p)))
     bus.on("calib_done", lambda p: persist.save("calibration", gaze.save()))
@@ -93,7 +97,7 @@ def build(args, bus: Bus, clock: Clock) -> dict:
 
     server = ViewServer(bus, args.port or config["server"]["http_port"], init={
         "tiers": TIERS, "signals": list(SIGNALS), "person": args.person, "condition": args.condition,
-        "source": args.source, "costs": config["costs"]})
+        "source": args.source, "pointing": args.pointing, "costs": config["costs"]})
     arkit = ArkitSource(bus, clock, args.udp_port or config["server"]["udp_port"]) if args.source == "arkit" else None
     return {"config": config, "server": server, "arkit": arkit, "persist": persist, "chat": chat,
             "browser": browser, "context": context, "outcomes": outcomes, "interaction": interaction,
@@ -117,9 +121,11 @@ async def run(args) -> None:
     port = args.port or config["server"]["http_port"]
     if not args.quiet:
         print_config(config, Path(args.config) if args.config else ROOT / "config.toml",
-                     {"person": args.person, "condition": args.condition, "source": args.source,
+                     {"person": args.person, "condition": args.condition, "source": args.source, "pointing": args.pointing,
                       "costs": config["costs"]["version"]})
-    print(f"Communic-aid running for {args.person} ({args.condition}, source: {args.source})")
+    print(f"Communic-aid running for {args.person} ({args.condition}, source: {args.source}, pointing: {args.pointing})")
+    if args.typing:
+        print(f"  typing test with the {args.typing} keyboard, passage {args.passage}")
     print(f"  open  http://localhost:{port}  in full screen")
     if app["arkit"]:
         print(f"  phone: send to {local_ip()} port {args.udp_port or config['server']['udp_port']}")
@@ -151,6 +157,12 @@ def main() -> None:
     ap.add_argument("--person", default="P00", help="participant ID, used for the data folder")
     ap.add_argument("--source", choices=("arkit", "mouse"), default="arkit")
     ap.add_argument("--condition", choices=("adaptive", "fixed"), default="adaptive")
+    ap.add_argument("--typing", choices=("grouped", "qwerty"), default=None,
+                    help="typing speed test with this keyboard, instead of the chat app")
+    ap.add_argument("--passage", type=int, choices=range(1, len(passages()) + 1), default=None,
+                    help="typing test passage (default: the first one this participant has not typed yet)")
+    ap.add_argument("--pointing", choices=("gaze", "head"), default="gaze",
+                    help="what moves the cursor: the eyes (gaze) or where the nose points (head)")
     ap.add_argument("--port", type=int, default=None, help="web port (default from config.toml)")
     ap.add_argument("--udp-port", type=int, default=None, help="phone UDP port (default from config.toml)")
     ap.add_argument("--config", default=None, help="path to a config.toml")
@@ -158,6 +170,18 @@ def main() -> None:
     ap.add_argument("--raw", action="store_true", help="also log every raw frame")
     ap.add_argument("--quiet", action="store_true", help="do not print the learning log in the terminal")
     args = ap.parse_args()
+    if args.typing:
+        # Speed must be measured at one known dwell, so the learner never changes it during a typing test.
+        if args.condition == "adaptive":
+            args.condition = "fixed"
+            print("Typing test: using the Fixed condition, so the dwell stays the same for the whole test.")
+        who = participant(args.person)
+        if args.passage is None:
+            args.passage = next_passage(ROOT, args.person)
+            if args.passage is None:
+                sys.exit(f"{who} has typed all {len(passages())} passages. Choose one with --passage to repeat it.")
+        elif args.passage in used_passages(ROOT, args.person):
+            print(f"Note: {who} has already typed passage {args.passage}, so it is not new to them.")
     try:
         asyncio.run(run(args))
     except KeyboardInterrupt:

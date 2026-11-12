@@ -65,7 +65,7 @@ final class FaceSensor: NSObject, ObservableObject, ARSessionDelegate {
         sequence &+= 1
 
         guard let face = frame.anchors.compactMap({ $0 as? ARFaceAnchor }).first, face.isTracked else {
-            onFrame?(FrameMessage(seq: sequence, t: frame.timestamp, dir: nil, eye: nil, blinkL: 0, blinkR: 0,
+            onFrame?(FrameMessage(seq: sequence, t: frame.timestamp, dir: nil, eye: nil, head: nil, blinkL: 0, blinkR: 0,
                                   browIn: 0, browOutL: 0, browOutR: 0, tracked: false, dist: 0))
             sendPreview(frame, face: nil)
             if faceVisible { DispatchQueue.main.async { self.faceVisible = false } }
@@ -85,6 +85,11 @@ final class FaceSensor: NSObject, ObservableObject, ARSessionDelegate {
         let lookAt = (view * SIMD4<Float>(lookAtWorld, 1)).xyz
         let direction = simd_normalize(lookAt - eyeMid)
 
+        // Where the nose points: the face's forward axis (+z, out of the face), in camera space.
+        // Used for head pointing, where the cursor follows the head and ignores the eyes.
+        let noseWorld = (faceToWorld * SIMD4<Float>(0, 0, 1, 0)).xyz
+        let nose = simd_normalize((view * SIMD4<Float>(noseWorld, 0)).xyz)
+
         let shapes = face.blendShapes
         let value = { (key: ARFaceAnchor.BlendShapeLocation) in shapes[key]?.floatValue ?? 0 }
         let message = FrameMessage(
@@ -92,6 +97,7 @@ final class FaceSensor: NSObject, ObservableObject, ARSessionDelegate {
             t: frame.timestamp,
             dir: [direction.x, direction.y, direction.z],
             eye: [eyeMid.x, eyeMid.y, eyeMid.z],
+            head: [nose.x, nose.y, nose.z],
             blinkL: value(.eyeBlinkLeft),
             blinkR: value(.eyeBlinkRight),
             browIn: value(.browInnerUp),

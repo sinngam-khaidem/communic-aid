@@ -5,7 +5,6 @@
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-// Icons from router-demo.html.
 const SV = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICON = {
   blink: SV('<path d="M3 11c2.6 3.3 5.6 5 9 5s6.4-1.7 9-5"/><path d="M6.2 14.6 4.8 16.8M12 16v2.6M17.8 14.6l1.4 2.2"/>'),
@@ -23,7 +22,7 @@ const ICON = {
   settings: SV('<circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/>'),
   backspace: SV('<path d="M21 5H9l-6 7 6 7h12z"/><path d="M12 9l6 6M18 9l-6 6"/>'),
 };
-const NAMES = { blink: "Blink and hold", brows: "Raise eyebrows", yes: 'Say "yes"', switch: "Switch" };
+const NAMES = { blink: "Blink and hold", brows: "Raise eyebrows", yes: 'Say "go"', switch: "Switch" };
 
 let TIERS = {}, SIGNALS = [], INIT = {};
 let state = null;
@@ -162,6 +161,19 @@ function scrollBar() {
 const sendOrSpace = () => (state.draft.trim() ? B("send", "Send", { cls: "w1" })
   : '<div class="t ghost w1"><span class="lb"><span>Send</span></span></div>');
 
+// The letter keys, shared by compose and the typing test.
+function keyboardHtml(keyboard, group) {
+  if (keyboard === "qwerty") {
+    // Three rows like a real keyboard, each centred, so the shorter rows sit in the middle.
+    const row = (letters) => `<div class="krow">${letters.split("").map((k) => B(`key:${k}`, k.toUpperCase())).join("")}</div>`;
+    return `<div class="keys qwerty">${row("qwertyuiop")}${row("asdfghjkl")}${row("zxcvbnm")}</div>`;
+  }
+  if (group) {
+    return `<div class="keys letters" style="grid-template-columns: repeat(${group.length + 1}, 1fr)">${group.split("").map((k) => B(`key:${k}`, k.toUpperCase())).join("")}${B("groups", "Back", { icon: "back" })}</div>`;
+  }
+  return `<div class="keys">${state.kb_groups.map((g) => B(`group:${g}`, g.toUpperCase())).join("")}</div>`;
+}
+
 const SCREENS = {
   landing() {
     const s = state;
@@ -219,18 +231,31 @@ const SCREENS = {
     const s = state;
     const suggestions = s.draft ? s.predictions.map((w) => B(`predict:${w}`, w, { cls: "short" }))
       : s.quick.map((q, i) => B(`quick:${i}`, q, { cls: "short" }));
-    let keys;
-    if (s.settings.keyboard === "qwerty") {
-      keys = `<div class="keys qwerty">${"qwertyuiopasdfghjklzxcvbnm".split("").map((k) => B(`key:${k}`, k.toUpperCase())).join("")}</div>`;
-    } else if (s.kb_group) {
-      keys = `<div class="keys letters" style="grid-template-columns: repeat(${s.kb_group.length + 1}, 1fr)">${s.kb_group.split("").map((k) => B(`key:${k}`, k.toUpperCase())).join("")}${B("groups", "Back", { icon: "back" })}</div>`;
-    } else {
-      keys = `<div class="keys">${s.kb_groups.map((g) => B(`group:${g}`, g.toUpperCase())).join("")}</div>`;
-    }
+    const keys = keyboardHtml(s.settings.keyboard, s.kb_group);
     return `<div class="row"><div class="draft w3">${esc(s.draft)}<span class="caret"></span></div>${sendOrSpace()}</div>
       <div class="row" style="min-height:88px">${suggestions.join("")}</div>
       ${keys}
       <div class="row">${B("close_keyboard", "Close keyboard", { cls: "w1" })}${B("backspace", "Backspace", { icon: "backspace", cls: "w1" })}${B("space", "Space", { cls: "w2" })}</div>`;
+  },
+
+  // Typing test: copy the passage for two minutes, with no word suggestions. The clock starts on the
+  // first character; when it runs out, typing stops and the speed is shown.
+  typing() {
+    const t = state.typing;
+    if (t.done) {
+      const r = t.result;
+      return `<div class="onb-center"><h1>Time is up</h1>
+        <p class="wpm"><strong>${r.wpm.toFixed(1)}</strong>words per minute</p>
+        <p class="onb-lead">${r.chars} ${r.chars === 1 ? "character" : "characters"} typed, ${Math.round(100 * r.accuracy)}% accurate. Thank you.</p></div>`;
+    }
+    const n = t.typed.length;
+    const clock = t.first === null ? `${mmss(t.left)} &middot; starts when you type` : mmss(t.left);
+    const shown = n > 60 ? "…" + t.typed.slice(-60) : t.typed;
+    return `<div class="typing-head"><span>Type this text</span><span class="timer${t.first === null ? "" : " on"}">${clock}</span></div>
+      <div class="target"><span class="typed-part">${esc(t.text.slice(0, n))}</span>${esc(t.text.slice(n))}</div>
+      <div class="draft">${esc(shown)}<span class="caret"></span></div>
+      ${keyboardHtml(t.keyboard, t.kb_group)}
+      <div class="row">${B("backspace", "Backspace", { icon: "backspace", cls: "w1" })}${B("space", "Space", { cls: "w2" })}</div>`;
   },
 
   actions() {
@@ -277,7 +302,7 @@ function render() {
   $("#strip").innerHTML = state.undo
     ? B(state.undo.mode, state.undo.mode === "undo" ? "Undo" : "Redo", { icon: state.undo.mode })
     : `<div class="rest">${ICON.undo}</div>`;
-  const side = !["landing", "compose"].includes(state.screen);
+  const side = !["landing", "compose", "typing"].includes(state.screen);
   $("#side").innerHTML = side
     ? B("nav_chats", "Chats", { icon: "chats", cls: state.screen === "chats" ? "on" : "" }) +
       B("nav_settings", "Settings", { icon: "settings", cls: state.screen === "settings" ? "on" : "" })
@@ -290,6 +315,12 @@ function render() {
 }
 
 // ---------- gaze dot, calibration dot, banners ----------
+
+// Phone link: until phone data arrives, say so calmly instead of showing a dot that never moves.
+let phoneLinked = null;
+function showWaiting() {
+  $("#waiting").hidden = !(started && INIT.source === "arkit" && phoneLinked === false);
+}
 
 let gazeFrozen = false;
 function onGaze(m) {
@@ -406,7 +437,7 @@ setInterval(() => {   // moving a window fires no resize event, so check its pos
 const HANDLERS = {
   init(m) {
     TIERS = m.tiers; SIGNALS = m.signals; INIT = m;
-    $("#startInfo").textContent = `${m.person}, ${m.condition}, ${m.source === "mouse" ? "mouse test mode (B, E, Y, S are the signals)" : "iPhone gaze"}`;
+    $("#startInfo").textContent = `${m.person}, ${m.condition}, ${m.source === "mouse" ? "mouse test mode (B, E, Y, S are the signals)" : m.pointing === "head" ? "iPhone head pointing" : "iPhone gaze"}`;
     $("#studyInfo").textContent = `Participant ${m.person}. Condition: ${m.condition}. Source: ${m.source}.`;
     buildCosts(m.costs);
     document.body.classList.toggle("mouse", m.source === "mouse");
@@ -433,6 +464,7 @@ const HANDLERS = {
     $("#facecam").hidden = !showFace;
   },
   signal(m) { showSignal(m.kind); },
+  link(m) { phoneLinked = m.phone; showWaiting(); },
   choice(m) { debug.choice = m; renderDebug(); },
   dwell_now(m) { debug.dwell[m.tier] = m.ms; debug.group = m.group; renderDebug(); },
   context(m) { debug.context = m; debug.group = m.group; renderDebug(); },
@@ -445,7 +477,12 @@ function connect() {
   ws = new WebSocket(`ws://${location.host}/ws`);
   ws.onmessage = (e) => { const m = JSON.parse(e.data); const h = HANDLERS[m.type]; if (h) h(m); };
   ws.onopen = () => { hello(); if (state) reportTargets(); };
-  ws.onclose = () => setTimeout(connect, 1000);
+  ws.onclose = () => {
+    // The core stopped. When it comes back, wait for a fresh click instead of starting calibration
+    // on its own: a forgotten tab must never start a session.
+    if (started) { started = false; $("#start").hidden = false; showWaiting(); }
+    setTimeout(connect, 1000);
+  };
 }
 
 // ---------- input: keys, mouse (test mode), start ----------
@@ -491,6 +528,7 @@ $("#start").addEventListener("click", () => {
   if (fs) fs.call(document.documentElement).catch(() => {});
   $("#start").hidden = true;
   started = true;
+  showWaiting();
   setTimeout(() => { hello(); reportTargets(); }, 400);
 });
 

@@ -15,12 +15,13 @@ from .common import Bus, Clock, Frame
 
 
 def frame_from_packet(msg: dict) -> Frame:
-    """Contract v1 (DESIGN_PLAN 3.1). Older phone builds without the new fields still work."""
-    d, e = msg.get("dir"), msg.get("eye")
+    """Contract v1. Older phone builds without the new fields still work."""
+    d, e, h = msg.get("dir"), msg.get("eye"), msg.get("head")
     return Frame(
         t=float(msg.get("t", 0.0)),
         dir=tuple(d) if d else None,
         eye=tuple(e) if e else None,
+        head=tuple(h) if h else None,
         blink_l=float(msg.get("blinkL", 0.0)),
         blink_r=float(msg.get("blinkR", 0.0)),
         brow_in=float(msg.get("browIn", 0.0)),
@@ -32,14 +33,27 @@ def frame_from_packet(msg: dict) -> Frame:
 
 
 class ArkitSource(asyncio.DatagramProtocol):
+    """Reads the phone's UDP packets, and reports when the phone starts or stops sending ('link')."""
+
+    QUIET_S = 2.0      # no packet for this long means the phone is not sending
+
     def __init__(self, bus: Bus, clock: Clock, port: int) -> None:
         self.bus, self.clock, self.port = bus, clock, port
         self.transport = None
         self.packets = 0
+        self.last_packet: float | None = None
+        self.linked = False
+        bus.on("tick", self._tick)
 
     async def start(self) -> None:
         loop = asyncio.get_running_loop()
         self.transport, _ = await loop.create_datagram_endpoint(lambda: self, local_addr=("0.0.0.0", self.port))
+        self.bus.emit("link", {"phone": False, "address": None})
+
+    def _tick(self, p: dict) -> None:
+        if self.linked and (self.last_packet is None or self.clock.now() - self.last_packet > self.QUIET_S):
+            self.linked = False
+            self.bus.emit("link", {"phone": False, "address": None})
 
     def stop(self) -> None:
         if self.transport:
@@ -51,6 +65,10 @@ class ArkitSource(asyncio.DatagramProtocol):
         except ValueError:
             return
         self.packets += 1
+        self.last_packet = self.clock.now()
+        if not self.linked:
+            self.linked = True
+            self.bus.emit("link", {"phone": True, "address": addr[0]})
         kind = msg.get("type", "frame")
         if kind == "frame":
             self.bus.emit("frame", {"frame": frame_from_packet(msg)})

@@ -1,4 +1,4 @@
-"""Simulated people for checking the learners before real people use them (DESIGN_PLAN 6.8).
+"""Simulated people for checking the learners before real people use them.
 
     python tests/simulate.py
 
