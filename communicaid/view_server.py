@@ -1,4 +1,4 @@
-"""ViewServer: serve the view and pass messages both ways (DESIGN_PLAN 9.4).
+"""ViewServer: serve the view and pass messages both ways.
 
 Holds no rules. Bus events listed in FORWARD go to every open browser as {"type": event, ...}.
 Browser messages come back onto the bus: screen size, button positions, keys, mouse.

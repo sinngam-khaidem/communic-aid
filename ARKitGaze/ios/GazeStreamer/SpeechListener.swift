@@ -2,7 +2,7 @@ import AVFoundation
 import Foundation
 import Speech
 
-/// Listens for the confirmation word "go" with Apple's Speech framework, fully on device (DESIGN_PLAN 3.5).
+/// Listens for the confirmation word "go" with Apple's Speech framework, fully on device.
 ///
 /// Audio comes from ARKit (`providesAudioData`), so nothing else touches the microphone.
 /// Audio never leaves the phone: only a "yes" event (the confirmation signal) is reported. If this phone cannot

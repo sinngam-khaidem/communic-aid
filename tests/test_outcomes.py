@@ -1,4 +1,4 @@
-"""Each row of the tables in DESIGN_PLAN 6.2 is one test."""
+"""One test per outcome rule: how each selection, look or timeout is labelled for the learners."""
 
 from communicaid.chat import TIERS
 from communicaid.outcomes import Outcomes

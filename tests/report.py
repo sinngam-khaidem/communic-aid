@@ -11,7 +11,7 @@ For each folder it uses the session with the most looks, and saves into result/P
     typing.csv                    one row per typing test run, from any of the folders
     typing.md                     each keyboard's runs averaged: words per minute, accuracy, effort
 
-Task times, SUS, NASA-TLX and ratings are on paper and are not part of this.
+Task times, SUS and feedback are on paper and are not part of this.
 """
 
 from __future__ import annotations
@@ -173,7 +173,6 @@ def report(person: str) -> None:
             w = csv.DictWriter(f, fieldnames=["mode", *TYPING_FIELDS])
             w.writeheader()
             w.writerows(typing)
-        # Each keyboard's runs averaged, across all modes: the main typing result.
         lines = [f"# {person}: typing speed", "", "| Keyboard | Runs | Passages | Words per minute | Accuracy (%) |"
                  " Picks per character |", "|---|---|---|---|---|---|"]
         for kb, name in KEYBOARDS.items():

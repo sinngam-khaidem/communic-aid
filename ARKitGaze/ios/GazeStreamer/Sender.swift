@@ -1,7 +1,7 @@
 import Foundation
 import Network
 
-/// One reading from the face, in the contract format (DESIGN_PLAN 3.1).
+/// One reading from the face, in the JSON format the Python core expects over UDP.
 struct FrameMessage: Encodable {
     var type = "frame"
     let seq: UInt32

@@ -1,4 +1,4 @@
-"""Persist: write logs and save state per person (DESIGN_PLAN 6.7 and 10).
+"""Persist: write logs and save state per person.
 
 Listens to every event. Nothing listens to Persist. Message text is never logged.
 

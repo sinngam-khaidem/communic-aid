@@ -1,5 +1,5 @@
 """
-Compare Adaptive and Fixed across participants, for the paper.
+Compare Adaptive and Fixed across participants.
 
     python tests/compare.py
 

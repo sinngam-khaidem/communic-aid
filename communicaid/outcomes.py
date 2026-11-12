@@ -1,4 +1,4 @@
-"""Outcomes: label what happened (DESIGN_PLAN 6.2).
+"""Outcomes: label what happened.
 
 Each label is fixed only when its window closes, and only once per action. The final state
 decides: action, undo, redo is "worked", because the undo was the mistake.

@@ -1,4 +1,4 @@
-"""Chat: the app state and the action list with tiers (DESIGN_PLAN 5, 7 and the undo rules).
+"""Chat: the app state, the action list with tiers, and the undo rules.
 
 Knows nothing about gaze, signals or learning. It reacts to 'fire' and 'escape', and
 publishes 'state' for the view and 'settings' for everyone else.
@@ -17,7 +17,7 @@ from dataclasses import asdict
 from .common import ROOT, SIGNALS, Bus, Clock, Settings
 from .typing_test import SECONDS, load_passage, score
 
-# The single place where tiers live (DESIGN_PLAN 5). Keys are the action name before any ':'.
+# The single place where tiers live. Keys are the action name before any ':'.
 TIERS: dict[str, int] = {
     # 0 Navigation
     "open": 0, "back": 0, "scroll_up": 0, "scroll_down": 0, "compose": 0, "close_keyboard": 0,
@@ -61,7 +61,7 @@ class Chat:
             "typing": None,      # the typing test, when the app was started with --typing
         }
         self.undo: dict | None = None
-        self.last: tuple | None = None       # (seq, before, after)
+        self.last: tuple | None = None       # (seq, before, after, action)
         self.pending_replies: list[dict] = []
         self.next_id = 1000
         self.started = False
@@ -348,7 +348,7 @@ class Chat:
         return {"id": f"m{self.next_id}", "from": sender, "text": text, "forwarded": forwarded}
 
     def escape(self) -> None:
-        """Calm way out from anywhere: go to the chat list, keep the draft (Scenario 4)."""
+        """Calm way out from anywhere: go to the chat list, keep the draft."""
         if self.s["screen"] in ("landing", "typing"):
             return
         self.s.update(screen="chats", kb_group=None, picker=False, call=None)

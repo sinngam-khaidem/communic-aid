@@ -1,6 +1,6 @@
-"""Input: turn frames into a gaze point (DESIGN_PLAN 3.2).
+"""Input: turn frames into a gaze point.
 
-Calibration (9 dots, quadratic fit, first written for the old Mac receiver prototype), smoothing,
+Calibration (9 dots, quadratic fit), smoothing,
 freezing while the eyes are closed, and slow drift correction from successful selections.
 
 Two things keep it accurate in real use:
@@ -75,7 +75,7 @@ class Mapping:
 
     @classmethod
     def fit(cls, observations, targets, basis: str = "angles", pointing: str = "gaze") -> tuple["Mapping", float]:
-        """Least squares on standardised angles with a small ridge term (from the old Mac receiver prototype)."""
+        """Least squares on standardised readings with a small ridge term."""
         obs, tgt = np.asarray(observations, float), np.asarray(targets, float)
         mu, sigma = obs.mean(axis=0), obs.std(axis=0)
         sigma[sigma < 1e-6] = 1.0

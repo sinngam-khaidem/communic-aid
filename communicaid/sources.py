@@ -15,7 +15,7 @@ from .common import Bus, Clock, Frame
 
 
 def frame_from_packet(msg: dict) -> Frame:
-    """Contract v1 (DESIGN_PLAN 3.1). Older phone builds without the new fields still work."""
+    """Contract v1. Older phone builds without the new fields still work."""
     d, e, h = msg.get("dir"), msg.get("eye"), msg.get("head")
     return Frame(
         t=float(msg.get("t", 0.0)),

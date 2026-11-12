@@ -2,7 +2,7 @@
 Plot how the dwell learner changed the dwell, over every session in one data folder.
 
     python tests/plot_dwell.py --person P01-gaze
-    python tests/plot_dwell.py --person P01-gaze --paper paper/figures/dwell_p1
+    python tests/plot_dwell.py --person P01-gaze --paper out/dwell
 
 Saves result/dwell_<person>.png. With --paper it saves a figure for a paper instead (serif type,
 no title, print safe lines) as both .pdf and .png at the path given. It reads the learner's own record: the "learned" lines in

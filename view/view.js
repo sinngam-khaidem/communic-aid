@@ -5,7 +5,6 @@
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-// Icons from router-demo.html.
 const SV = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICON = {
   blink: SV('<path d="M3 11c2.6 3.3 5.6 5 9 5s6.4-1.7 9-5"/><path d="M6.2 14.6 4.8 16.8M12 16v2.6M17.8 14.6l1.4 2.2"/>'),
@@ -251,7 +250,7 @@ const SCREENS = {
     }
     const n = t.typed.length;
     const clock = t.first === null ? `${mmss(t.left)} &middot; starts when you type` : mmss(t.left);
-    const shown = n > 60 ? "…" + t.typed.slice(-60) : t.typed;     // the latest part, if it gets long
+    const shown = n > 60 ? "…" + t.typed.slice(-60) : t.typed;
     return `<div class="typing-head"><span>Type this text</span><span class="timer${t.first === null ? "" : " on"}">${clock}</span></div>
       <div class="target"><span class="typed-part">${esc(t.text.slice(0, n))}</span>${esc(t.text.slice(n))}</div>
       <div class="draft">${esc(shown)}<span class="caret"></span></div>
