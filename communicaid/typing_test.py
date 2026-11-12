@@ -1,4 +1,5 @@
-"""Typing test: a short passage, two minutes from the first character, then words per minute.
+"""
+Typing test: a short passage, two minutes from the first character, then words per minute.
 
 There are six passages of the same length. Each run shows a passage the participant has not seen,
 so three runs per keyboard use all six and practice never helps a later run.

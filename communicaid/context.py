@@ -1,4 +1,4 @@
-"""Context: which group the person is in right now (DESIGN_PLAN 6.3), and tracking quality (3.8)."""
+"""Context: which group the person is in right now, and tracking quality."""
 
 from __future__ import annotations
 

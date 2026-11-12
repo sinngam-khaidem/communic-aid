@@ -1,4 +1,4 @@
-"""Interaction: the life of one button press (DESIGN_PLAN 4.1 and 4.2).
+"""Interaction: the life of one button press.
 
 Knows nothing about what buttons do or how learning works. It asks the policy for a dwell
 and a check, and reports looks, fires, waits, accepts, wrong signals and timeouts.
@@ -305,7 +305,7 @@ class Interaction:
                 self.locked = w["action"]   # no refill until gaze leaves and comes back
 
     def _lost(self, now: float) -> None:
-        """Face lost for too long: nothing is carried out (DESIGN_PLAN 3.8)."""
+        """Face lost for too long: nothing is carried out."""
         if self.current is not None:
             self._end_look(self.current, self.lost_since or now)
             self.current = None

@@ -1,11 +1,3 @@
-"""Policy: choose a dwell and a check, and learn from outcomes (DESIGN_PLAN 6.4 to 6.6).
-
-Both learners only store counts of what happened. Costs and reward values are read from the
-config at the moment of choosing, so tuning them never wipes learning.
-
-AdaptivePolicy is the Adaptive study condition. FixedPolicy is the Fixed baseline.
-"""
-
 from __future__ import annotations
 
 import numpy as np
@@ -17,24 +9,38 @@ OUTCOMES = ("worked", "gave_up", "blocked", "accident")
 
 
 def reward(config: dict, o: Outcome, effort: float) -> float:
-    """The value of one outcome, as the learners score it (DESIGN_PLAN 6.4 to 6.6).
+    """
+    The value of one outcome, as the learners score it.
 
     `effort` is how costly the signal was, used only when a signal confirmed the action.
     A passed-by glance is worth 0: it teaches the learner, but nothing was gained or lost.
     """
     r, c = config["reward"], cost(config, o.tier)
     if o.learner == "dwell":
-        return {"worked": 1 - r["time_penalty"] * o.dwell / 1000, "gave_up": r["give_up"],
-                "accident": -c, "passed_by": 0.0}.get(o.kind, 0.0)
+        return {
+            "worked": 1 - r["time_penalty"] * o.dwell / 1000, 
+            "gave_up": r["give_up"],
+            "accident": -c, 
+            "passed_by": 0.0
+        }.get(o.kind, 0.0)
+    
     worked = 1.0 if o.check == "dwell" else 1.0 - effort
-    return {"worked": worked, "gave_up": r["give_up"], "blocked": r["blocked"] * c, "accident": -c}.get(o.kind, 0.0)
+    return {
+        "worked": worked, 
+        "gave_up": r["give_up"], 
+        "blocked": r["blocked"] * c, 
+        "accident": -c
+    }.get(o.kind, 0.0)
 
 
 class DwellLearner:
-    """Learns two habits per group: how long stray glances last, and how long the person waits.
+    """
+    It learns two habits per group: 
+        - how long stray glances last
+        - how long the person waits.
 
-    Six numbers per group (DESIGN_PLAN 6.4):
-      intended, unintended, passed-by count, stray glance time, give-up count, waiting time.
+    Six numbers are recorded per group: 
+        - intended, unintended, passed-by count, stray glance time, give-up count, waiting time.
     """
 
     PRIOR = np.array([2.0, 2.0, 3.0, 900.0, 1.0, 5000.0])
@@ -52,40 +58,94 @@ class DwellLearner:
         d = self.config["dwell"]
         if self.looks[group] >= d["borrow_looks"]:
             return self.PRIOR + self.obs[group]
+        
         return self.PRIOR + sum(self.obs.values())
 
     def score(self, d: np.ndarray, pi: float, g: float, p: float, tier: int) -> np.ndarray:
+        """
+        The expected value of each dwell in `d`, given the current beliefs about the user.
+
+        Args:
+            - d: array of dwell times to score
+            - pi: probability of an intended glance (from the beta distribution)
+            - g: mean stray glance duration (from the gamma distribution)
+            - p: mean patience duration (from the gamma distribution)
+            - tier: the tier of the action being scored (for cost lookup)
+        Returns:
+            - array of expected values for each dwell in `d`
+        """
         r = self.config["reward"]
-        accident = np.exp(-d / g)
-        give_up = 1 - np.exp(-d / p)
+        accident = np.exp(-d / g) # A(d)
+        give_up = 1 - np.exp(-d / p) # G(d)
+
         worked = 1 - r["time_penalty"] * d / 1000
         return pi * ((1 - give_up) * worked + r["give_up"] * give_up) - (1 - pi) * accident * cost(self.config, tier)
 
     def dwell_for(self, tier: int, group: str) -> int:
-        """The dwell in use. It only changes after a selection (see _step), never on a glance."""
+        """
+        Return the dwell time to use for this tier and group, based on the current beliefs about the user.
+
+        Args:
+            - tier: the tier of the action being scored (for cost lookup)
+            - group: the group of the user (for observation lookup)
+        Returns:
+            - the dwell time to use, in milliseconds
+        """
         d = self.config["dwell"]
         if self.selections[group] < d["warmup_selections"]:
             return int(d["start"])
-        # Limits apply on read too, so changing min or max in the config takes effect straight away.
-        return int(round(np.clip(self.current.get(f"{tier}|{group}", float(d["start"])), d["min"], d["max"])))
+        
+        return int(
+            round(
+                np.clip(
+                    self.current.get(f"{tier}|{group}", float(d["start"])), 
+                    d["min"], 
+                    d["max"]
+                )
+            )
+        )
 
     def _step(self, tier: int, group: str) -> None:
-        """After each selection: draw plausible habits, pick the best dwell, move a little towards it."""
+        """
+        Update the dwell time for a given tier and group, based on the current beliefs about the user.
+
+        Args:
+            - tier: the tier of the action being scored (for cost lookup)
+            - group: the group of the user (for observation lookup)
+        """
         d = self.config["dwell"]
         key = f"{tier}|{group}"
+
+        # If the group has less than 20 selections, dwell stays at the initial value of 1500 ms.
         if self.selections[group] < d["warmup_selections"]:
             self.last = {"tier": tier, "group": group, "dwell": d["start"], "warmup": True}
-            self.changes.append({"tier": tier, "group": group, "warmup": self.selections[group],
-                                 "of": d["warmup_selections"], "dwell": d["start"]})
+            self.changes.append(
+                {
+                    "tier": tier, 
+                    "group": group,
+                    "warmup": self.selections[group],
+                    "of": d["warmup_selections"], 
+                    "dwell": d["start"]
+                }
+            )
             return
+        
         intended, unintended, passed, stray, give_ups, waiting = self.numbers(group)
-        # Thompson sampling: draw plausible habits, wider when there is little data.
+
+        # Thompson Sampling: draw plausible habits, wider when there is little data.
+        # Alternative to plain average: it encourages exploration, and is more robust to outliers.
         pi = self.rng.beta(intended, unintended)
         g = stray / self.rng.gamma(passed)
         p = waiting / self.rng.gamma(give_ups)
+
         grid = np.arange(d["min"], d["max"] + 1, d["step"], dtype=float)
-        best = float(grid[np.argmax(self.score(grid, pi, g, p, tier))])
+        best = float(
+                grid[
+                    np.argmax(self.score(grid, pi, g, p, tier))
+                ]
+            )
         cur = before = self.current.get(key, float(d["start"]))
+
         # Shorter only in small, slow steps; longer more readily, because accidents cost more than waiting.
         step = float(np.clip(d["smoothing"] * (best - cur), -d["max_step_down"], d["max_step_up"]))
         cur = float(np.clip(cur + step, d["min"], d["max"]))
@@ -107,6 +167,7 @@ class DwellLearner:
             n[1] += 1; n[2] += 1; n[3] += o.duration
         else:
             return
+        
         self.looks[o.group] += 1
         if o.kind in ("worked", "accident"):
             self.selections[o.group] += 1
@@ -125,7 +186,7 @@ class DwellLearner:
 
 
 class Router:
-    """Contextual bandit over checks for tiers 2 and 3 (DESIGN_PLAN 6.5)."""
+    """Contextual bandit over checks for tiers 2 and 3."""
 
     def __init__(self, config: dict, rng: np.random.Generator) -> None:
         self.config, self.rng = config, rng
@@ -242,7 +303,7 @@ class AdaptivePolicy:
 
 
 class FixedPolicy:
-    """Fixed study condition (DESIGN_PLAN 12): one dwell, tier 2 dwell only, tier 3 the preferred signal."""
+    """Fixed study condition: one dwell, tier 2 dwell only, tier 3 the preferred signal."""
 
     name = "fixed"
 

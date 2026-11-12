@@ -1,4 +1,5 @@
-"""Sources: turn incoming data into bus events (frame, yes, press, escape).
+"""
+Sources: turn incoming data into bus events (frame, yes, press, escape).
 
 ArkitSource reads the phone's UDP packets. BrowserSource reads keys from the view, and in
 test mode turns the mouse and held keys into the same frames the phone sends.

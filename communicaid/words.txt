@@ -1,4 +1,3 @@
-# Common words, most frequent first. One per line. Replace with a bigger list any time.
 I
 you
 the

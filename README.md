@@ -19,7 +19,7 @@ An iPhone senses, a Python core on the computer makes every decision, and the br
 ./setup.sh
 ```
 
-This creates `.venv` and installs the app. `./setup.sh --test` also runs the tests.
+This creates `.venv` and installs the app.
 
 ## Run without the phone
 
