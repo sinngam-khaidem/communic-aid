@@ -2,6 +2,7 @@
 
     python paper/make_docx_v2.py /path/to/acm_submission_template.docx               # with the authors' names
     python paper/make_docx_v2.py /path/to/acm_submission_template.docx --anonymous   # AH2027_v2_anonymous.docx
+    python paper/make_docx_v2.py /path/to/acm_submission_template.docx --gdocs       # AH2027_v2_gdocs.docx, for Google Docs
 
 The conference reviews double-blind, so the copy uploaded for review must be the anonymous one.
 
@@ -17,13 +18,9 @@ import zipfile
 from pathlib import Path
 
 import make_docx as base
-from make_docx import figure, formula, head1, p, paras, table
+from make_docx import bib, figure, formula, head1, head2, p, paras, table
 
 base.OUT = base.HERE / "AH2027_v2.docx"
-
-
-def head2(text: str) -> str:
-    return p("Head2", text, '<w:tabs><w:tab w:val="clear" w:pos="360"/></w:tabs>')
 
 
 REFS = [
@@ -59,6 +56,7 @@ AUTHORS = ("Vandya Bisaria", "Mansie Singh", "Sinngam Khaidem")
 AFFILIATION = "Indian Institute of Technology Gandhinagar, India"
 CITED_AS = "Vandya Bisaria, Mansie Singh, and Sinngam Khaidem"
 ANONYMOUS = "--anonymous" in sys.argv
+base.GDOCS = "--gdocs" in sys.argv
 
 TITLE = "Communic-aid"
 SUBTITLE = "Adapting Dwell Time and Confirmation in Gaze-Based Messaging with a Commodity iPhone"
@@ -229,9 +227,10 @@ def build_body() -> str:
         probability *π* that a look is intended, a mean stray glance length *g* and a mean patience *p*, and
         scores each dwell *d* from 800 to 2000 ms:
         """))
-    b.append(formula("*V*(*d*) = *π* [ (1 − *G*(*d*)) (1 − *λd*) + *r*~give-up~ *G*(*d*) ] − (1 − *π*) *A*(*d*) *c*~tier~"))
+    b.append(formula("*V*(*d*) = *π* [ (1 − *G*(*d*)) (1 − *λd*) + *r*~give-up~ *G*(*d*) ] − (1 − *π*) *A*(*d*) *c*~tier~",
+                     r"V(d) = \pi\,\left[\,(1 - G(d))\,(1 - \lambda d) + r_{\mathrm{give\,up}}\,G(d)\,\right] - (1 - \pi)\,A(d)\,c_{\mathrm{tier}}"))
     b.append(paras("""
-        with *A*(*d*) = e^(−*d*/*g*) the chance a stray glance fires, *G*(*d*) = 1 − e^(−*d*/*p*) the chance the
+        with *A*(*d*) = e^^−d/g^^ the chance a stray glance fires, *G*(*d*) = 1 − e^^−d/p^^ the chance the
         person gives up first, *λ* = 0.6 per second and *r*~give-up~ = −0.5. In words: a longer dwell stops
         more stray glances from firing, but makes the person wait and sometimes give up; the learner picks the
         dwell with the best balance, and a higher tier cost pushes it towards caution. The best *d* is a
@@ -396,7 +395,7 @@ def build_body() -> str:
         """))
 
     b.append(p("ReferenceHead", "REFERENCES"))
-    b.extend(p("Bibentry", text) for _, text in REFS)
+    b.extend(bib(i, text) for i, (_, text) in enumerate(REFS, 1))
     return "".join(b)
 
 
@@ -416,8 +415,7 @@ def set_properties(path: Path) -> None:
 
 
 if __name__ == "__main__":
-    if ANONYMOUS:
-        base.OUT = base.HERE / "AH2027_v2_anonymous.docx"
+    base.OUT = base.HERE / ("AH2027_v2" + ("_anonymous" if ANONYMOUS else "") + ("_gdocs" if base.GDOCS else "") + ".docx")
     base.build_body = build_body
     base.main(Path(sys.argv[1]))
     set_properties(base.OUT)

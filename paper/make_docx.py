@@ -1,6 +1,7 @@
 """Build paper/Report.docx from the ACM Word submission template.
 
-    python paper/make_docx.py /path/to/acm_submission_template.docx
+    python paper/make_docx.py /path/to/acm_submission_template.docx            # Report.docx
+    python paper/make_docx.py /path/to/acm_submission_template.docx --gdocs    # Report_gdocs.docx, for Google Docs
 
 Keeps the template's styles, numbering, page setup and footers, and replaces its body with the
 report. Inline marks in the text below: **bold**, *italic*, ~subscript~, {{yellow "to fill" mark}}.
@@ -22,18 +23,30 @@ FIG = HERE / "figures"
 OUT = HERE / "Report.docx"
 TEXT_WIDTH_IN = 6.0                  # the template's text block is 6.08 inches wide
 
+# Google Docs mode: Google Docs' Word import breaks Word list numbering, unknown fonts, text formulas
+# and table styles. In this mode numbers are typed into the text, the formula is an image, the fonts
+# are Times New Roman and Arial, and tables carry only their own rules.
+GDOCS = False
+_heads = [0, 0]
+FONTS = {"Linux Libertine O": "Times New Roman", "Linux Libertine": "Times New Roman",
+         "Linux Biolinum O": "Arial", "Linux Biolinum": "Arial"}
+NO_LIST = '<w:numPr><w:ilvl w:val="0"/><w:numId w:val="0"/></w:numPr>'
+GRID = '<w:tblStyle w:val="TableGrid"/>'
+
 
 # ---------- small builders ----------
 
 def runs(text: str) -> str:
     """Turn the inline marks into Word runs."""
     out = []
-    for part in re.split(r"(\*\*.+?\*\*|\*.+?\*|~.+?~|\{\{.+?\}\})", text):
+    for part in re.split(r"(\*\*.+?\*\*|\^\^.+?\^\^|\*.+?\*|~.+?~|\{\{.+?\}\})", text):
         if not part:
             continue
         props = ""
         if part.startswith("**"):
             part, props = part[2:-2], "<w:b/>"
+        elif part.startswith("^^"):
+            part, props = part[2:-2], "<w:vertAlign w:val=\"superscript\"/>"
         elif part.startswith("{{"):
             part, props = f"[TO FILL: {part[2:-2]}]", "<w:b/><w:highlight w:val=\"yellow\"/>"
         elif part.startswith("*"):
@@ -50,7 +63,24 @@ def p(style: str, text: str = "", extra_ppr: str = "") -> str:
 
 
 def head1(text: str) -> str:
+    if GDOCS:
+        _heads[0], _heads[1] = _heads[0] + 1, 0
+        return p("Head1", f"{_heads[0]}  {text}", NO_LIST + '<w:ind w:left="0" w:hanging="0"/>')
     return p("Head1", text, '<w:tabs><w:tab w:val="clear" w:pos="360"/></w:tabs><w:ind w:left="432" w:hanging="432"/>')
+
+
+def head2(text: str) -> str:
+    if GDOCS:
+        _heads[1] += 1
+        return p("Head2", f"{_heads[0]}.{_heads[1]}  {text}", NO_LIST + '<w:ind w:left="0" w:hanging="0"/>')
+    return p("Head2", text, '<w:tabs><w:tab w:val="clear" w:pos="360"/></w:tabs>')
+
+
+def bib(number: int, text: str) -> str:
+    """One reference. Word numbers them itself; for Google Docs the [n] is typed in."""
+    if GDOCS:
+        return p("Bibentry", f"[{number}]  {text}", NO_LIST + '<w:ind w:left="400" w:hanging="400"/>')
+    return p("Bibentry", text)
 
 
 def paras(text: str, first: bool = True) -> str:
@@ -94,7 +124,7 @@ def table(number: int, caption: str, widths: list[int], rows: list[list[str]]) -
     total = sum(widths)
     grid = "".join(f'<w:gridCol w:w="{w}"/>' for w in widths)
     out = [p("TableCaption", f"Table {number}: {caption}"),
-           f'<w:tbl><w:tblPr><w:tblStyle w:val="TableGrid"/><w:tblW w:w="{total}" w:type="dxa"/><w:jc w:val="center"/>'
+           f'<w:tbl><w:tblPr>{GRID if not GDOCS else ""}<w:tblW w:w="{total}" w:type="dxa"/><w:jc w:val="center"/>'
            '<w:tblBorders><w:top w:val="none" w:sz="0" w:space="0" w:color="auto"/><w:left w:val="none" w:sz="0" w:space="0" w:color="auto"/>'
            '<w:bottom w:val="none" w:sz="0" w:space="0" w:color="auto"/><w:right w:val="none" w:sz="0" w:space="0" w:color="auto"/>'
            '<w:insideH w:val="none" w:sz="0" w:space="0" w:color="auto"/><w:insideV w:val="none" w:sz="0" w:space="0" w:color="auto"/></w:tblBorders>'
@@ -117,8 +147,35 @@ def table(number: int, caption: str, widths: list[int], rows: list[list[str]]) -
     return "".join(out)
 
 
-def formula(text: str) -> str:
-    return f'<w:p><w:pPr><w:pStyle w:val="DisplayFormulaUnnum"/><w:jc w:val="center"/></w:pPr>{runs(text)}</w:p>'
+def formula(text: str, tex: str | None = None) -> str:
+    """A display formula as styled text, or, in Google Docs mode, as an image drawn from `tex`."""
+    if not (GDOCS and tex):
+        return f'<w:p><w:pPr><w:pStyle w:val="DisplayFormulaUnnum"/><w:jc w:val="center"/></w:pPr>{runs(text)}</w:p>'
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    path = Path(tempfile.mkdtemp()) / f"formula{len(IMAGES) + 1}.png"
+    plt.rcParams["mathtext.fontset"] = "stix"          # Times-like, to match the body text
+    fig = plt.figure()
+    fig.text(0, 0, f"${tex}$", fontsize=11)
+    fig.savefig(path, dpi=300, bbox_inches="tight", pad_inches=0.04, transparent=False, facecolor="white")
+    plt.close(fig)
+    rid = f"rIdFig{len(IMAGES) + 1}"
+    IMAGES.append((rid, path))
+    w_px, h_px = png_size(path)
+    cx = int(w_px / 300 * 914400)
+    cy = int(h_px / 300 * 914400)
+    n = len(IMAGES)
+    drawing = (
+        f'<w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="{cx}" cy="{cy}"/>'
+        f'<wp:docPr id="{100 + n}" name="Formula" descr="{escape(text.replace("*", "").replace("~", ""), {chr(34): "&quot;"})}"/>'
+        '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">'
+        f'<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="{100 + n}" name="formula.png"/><pic:cNvPicPr/></pic:nvPicPr>'
+        f'<pic:blipFill><a:blip r:embed="{rid}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>'
+        f'<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="{cx}" cy="{cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>'
+        '</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing>')
+    return (f'<w:p><w:pPr><w:pStyle w:val="Image"/>{NO_LIST}<w:spacing w:before="160" w:after="160" w:line="240" w:lineRule="auto"/>'
+            f'</w:pPr><w:r>{drawing}</w:r></w:p>')
 
 
 # ---------- the report ----------
@@ -241,9 +298,10 @@ def build_body() -> str:
         intended, a mean stray glance length *g* and a mean patience *p*, and scores each dwell *d* from
         800 to 2000 ms:
         """, first=False))
-    b.append(formula("*V*(*d*) = *π* [ (1 − *G*(*d*)) (1 − *λd*) + *r*~give-up~ *G*(*d*) ] − (1 − *π*) *A*(*d*) *c*~tier~"))
+    b.append(formula("*V*(*d*) = *π* [ (1 − *G*(*d*)) (1 − *λd*) + *r*~give-up~ *G*(*d*) ] − (1 − *π*) *A*(*d*) *c*~tier~",
+                     r"V(d) = \pi\,\left[\,(1 - G(d))\,(1 - \lambda d) + r_{\mathrm{give\,up}}\,G(d)\,\right] - (1 - \pi)\,A(d)\,c_{\mathrm{tier}}"))
     b.append(paras(f"""
-        with *A*(*d*) = e^(−*d*/*g*) the chance a stray glance fires, *G*(*d*) = 1 − e^(−*d*/*p*) the
+        with *A*(*d*) = e^^−d/g^^ the chance a stray glance fires, *G*(*d*) = 1 − e^^−d/p^^ the
         chance the person gives up first, *λ* = 0.6 per second and *r*~give-up~ = −0.5. After each
         selection the dwell moves 5% towards the best *d*, by at most 10 ms when shortening and up to
         100 ms when lengthening. It starts at 1500 ms and holds for 20 selections per group. In words: a
@@ -476,7 +534,7 @@ def build_body() -> str:
         """))
 
     b.append(p("ReferenceHead", "REFERENCES"))
-    b.extend(p("Bibentry", r) for r in REFS)
+    b.extend(bib(i, r) for i, r in enumerate(REFS, 1))
     return "".join(b)
 
 
@@ -489,6 +547,11 @@ def main(template: Path) -> None:
     sect = doc.rindex("<w:sectPr")
     doc = doc[:start] + build_body() + doc[sect:]
     (work / "word/document.xml").write_text(doc, encoding="utf-8")
+    if GDOCS:
+        styles = (work / "word/styles.xml").read_text(encoding="utf-8")
+        for old, new in FONTS.items():
+            styles = styles.replace(f'"{old}"', f'"{new}"')
+        (work / "word/styles.xml").write_text(styles, encoding="utf-8")
 
     # Drop the template's sample pictures and their links; add ours.
     rels_path = work / "word/_rels/document.xml.rels"
@@ -521,4 +584,6 @@ def main(template: Path) -> None:
 
 
 if __name__ == "__main__":
+    if "--gdocs" in sys.argv:
+        GDOCS, OUT = True, HERE / "Report_gdocs.docx"
     main(Path(sys.argv[1]))
