@@ -201,7 +201,7 @@ After the signal check and calibration, each participant used the app freely and
 
 **Dwell learning.** Stray glances outnumbered selections three to six times: a gaze interface produces much implicit evidence even when nothing is selected. After its warm-up the learner shortened both tiers steadily (Figure 3). Tier 0 fell from 1500 to about 1220 ms for both participants. Tier 1 stayed longer, as expected from its higher cost.
 
-![Figure 3. P1's dwell over all sessions, one panel per context group, one line per tier. The first session is free use, then three grouped and three QWERTY typing runs. Shading marks the warm-up; marks at the bottom are selections (light) and accidents (dark).](dwell_p1.png){width=72%}
+![Figure 3. P1's dwell over all sessions, one panel per context group and one line per tier. Sessions run in order: free use, three grouped keyboard typing runs (G1 to G3) and three QWERTY runs (Q1 to Q3); grey vertical lines mark where each session starts. The dotted line is the 1500 ms start, shading marks the warm-up, and ticks along the bottom are this group's selections, with triangles for accidents.](dwell_p1.png){width=100%}
 
 **Typing.** The grouped keyboard was 1.5 (P1) and 2.8 (P2) times faster than QWERTY (Table 8), despite almost two selections per letter. Target size explains it: a letter group was 316 × 113 px and a QWERTY key 113 × 67 px, while the calibration error was 69 to 80 px, about one QWERTY key. We report keystrokes per character as in [10].
 

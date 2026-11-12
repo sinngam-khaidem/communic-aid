@@ -2,8 +2,10 @@
 Plot how the dwell learner changed the dwell, over every session in one data folder.
 
     python tests/plot_dwell.py --person P01-gaze
+    python tests/plot_dwell.py --person P01-gaze --paper paper/figures/dwell_p1
 
-Saves result/dwell_<person>.png. It reads the learner's own record: the "learned" lines in
+Saves result/dwell_<person>.png. With --paper it saves a figure for a paper instead (serif type,
+no title, print safe lines) as both .pdf and .png at the path given. It reads the learner's own record: the "learned" lines in
 events.jsonl, which give the dwell before and after each selection. So:
 
 - The x axis counts selections, because the learner moves only when something is selected.
@@ -131,7 +133,88 @@ def plot(person: str, out: Path | None = None) -> Path:
     return path
 
 
+PAPER_TIERS = {0: ("Tier 0 (navigation)", "#1F4E79", "-"), 1: ("Tier 1 (typing, settings)", "#C0504D", (0, (4, 1.5)))}
+
+
+def short(label: str, counts: dict) -> str:
+    """Session labels short enough for a narrow column: Free use, G1, G2, ..., Q1, ..."""
+    if label == "chat":
+        return "Free use"
+    letter = "G" if label == "grouped" else "Q"
+    counts[letter] = counts.get(letter, 0) + 1
+    return f"{letter}{counts[letter]}"
+
+
+def plot_paper(person: str, out: Path) -> Path:
+    """The same data as plot(), drawn for a paper: no title (the caption carries it), serif type,
+    thin lines that stay apart in greyscale, panel letters and short session labels."""
+    data, d = load(person), load_config()["dwell"]
+    n = data["n"]
+    groups = sorted(data["selections"], key=lambda g: -len(data["selections"][g]))
+    every = [y for pts in data["lines"].values() for _, y in pts]
+    low, high = min(every), max(every)
+    rug = low - 45
+    rc = {"font.family": "serif", "font.serif": ["Times New Roman", "STIXGeneral", "DejaVu Serif"],
+          "mathtext.fontset": "stix", "font.size": 8.5, "axes.linewidth": 0.6,
+          "xtick.major.width": 0.6, "ytick.major.width": 0.6, "xtick.major.size": 3, "ytick.major.size": 3,
+          "xtick.direction": "out", "ytick.direction": "out", "pdf.fonttype": 42}
+    with plt.rc_context(rc):
+        fig, axes = plt.subplots(len(groups), 1, figsize=(6.5, 0.55 + 1.55 * len(groups)), sharex=True,
+                                 sharey=True, squeeze=False, constrained_layout=True)
+        for i, (ax, group) in enumerate(zip(axes[:, 0], groups)):
+            ax.axhline(d["start"], color="#9A9A9A", lw=0.5, ls=(0, (1, 2)), zorder=0)
+            for x, _, _ in data["sessions"][1:]:
+                ax.axvline(x, color="#B0B0B0", lw=0.5, zorder=0)
+            if group in data["warmup"]:
+                ax.axvspan(data["selections"][group][0] - 0.5, data["warm_from"].get(group, n),
+                           color="#ECECEC", lw=0, zorder=0)
+            for tier, (label, colour, style) in PAPER_TIERS.items():
+                pts = data["lines"].get((tier, group))
+                if pts:
+                    x, y = zip(*pts)
+                    ax.step((*x, n), (*y, y[-1]), where="post", color=colour, ls=style, lw=1.2, label=label)
+            mine, hits = data["selections"][group], data["accidents"][group]
+            ax.plot(mine, [rug] * len(mine), "|", color="#A8A8A8", ms=4, mew=0.5, label="Selection")
+            ax.plot(hits, [rug] * len(hits), "^", color="black", ms=3.5, mew=0, label="Accident")
+            rested, steady = group.split("+")
+            note = f"{len(mine)} selections" + (f", {len(hits)} accidents" if hits else "")
+            ax.text(0.006, 0.96, f"({'abcd'[i]}) {rested.capitalize()}, {steady} gaze: {note}",
+                    transform=ax.transAxes, ha="left", va="top", fontsize=8.5,
+                    bbox={"facecolor": "white", "edgecolor": "none", "pad": 1})
+            ax.set_ylabel("Dwell (ms)")
+            ax.spines[["top", "right"]].set_visible(False)
+        top = axes[0, 0]
+        counts: dict = {}
+        spans: list[list] = []                           # back to back free use sessions share one label
+        for i, (x, label, _) in enumerate(data["sessions"]):
+            end = data["sessions"][i + 1][0] if i + 1 < len(data["sessions"]) else n
+            if spans and label == "chat" and spans[-1][2] == "chat":
+                spans[-1][1] = end
+            else:
+                spans.append([x, end, label])
+        for x, end, label in spans:
+            top.text((x + end) / 2, 1.02, short(label, counts), transform=top.get_xaxis_transform(),
+                     ha="center", va="bottom", fontsize=7.5, color="#555555")
+        bottom, ceiling, step = rug - 40, max(high, d["start"]) + 160, 200
+        top.set_ylim(bottom, ceiling)
+        top.set_yticks(range(-(-int(bottom) // step) * step, int(ceiling) + 1, step))
+        top.set_xlim(0, n)
+        handles, labels = top.get_legend_handles_labels()
+        fig.legend(handles, labels, loc="outside lower center", ncol=4, frameon=False, fontsize=8,
+                   handlelength=2.4, columnspacing=1.6)
+        axes[-1, 0].set_xlabel("Selection number (all sessions in order)")
+        out = Path(out).with_suffix("")
+        out.parent.mkdir(parents=True, exist_ok=True)
+        for ext in (".pdf", ".png"):
+            fig.savefig(out.with_suffix(ext), dpi=300)
+        plt.close(fig)
+    print(f"saved {out}.pdf and .png ({person}, {n} selections in {len(data['sessions'])} sessions)")
+    return out.with_suffix(".png")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
     ap.add_argument("--person", required=True, help="folder in data/, for example P01-gaze")
-    plot(ap.parse_args().person)
+    ap.add_argument("--paper", help="save a paper style figure at this path (no extension)")
+    args = ap.parse_args()
+    plot_paper(args.person, Path(args.paper)) if args.paper else plot(args.person)
