@@ -446,7 +446,7 @@ def build_body() -> str:
     b.append(paras("Table 8 lists the risks we identified and our mitigations. An experimenter supervised every session."))
     b.append(table(8, "Risks to participants and how we reduce them.", [2340, 6300],
                    [["Risk", "Mitigation"],
-                    ["Eye strain and fatigue", "Sessions under 30 minutes; breaks offered between parts; the person can pause or stop at any time; the dwell lengthens after errors instead of rushing the person"],
+                    ["Eye strain and fatigue", "Breaks offered between parts; the person can pause or stop at any time; the dwell lengthens after errors instead of rushing the person"],
                     ["Neck strain or discomfort", "Head free to move; phone placed at a comfortable distance; banners ask the person to move only when tracking fails"],
                     ["Frustration from errors", "Undo on every action for 5 s; risky actions need a second signal; a hint after 30 s of being stuck; no time pressure except the typing test"],
                     ["Privacy of face and voice", "Camera images are shown live only and never stored; speech is recognised on the phone and only the word “go” is sent; nothing goes to a cloud service"],
