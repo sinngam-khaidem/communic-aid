@@ -1,6 +1,9 @@
-"""Build paper/AH2027_v2.docx: the Augmented Humans 2027 short paper, anonymised for double-blind review.
+"""Build paper/AH2027_v2.docx: the Augmented Humans 2027 short paper.
 
-    python paper/make_docx_v2.py /path/to/acm_submission_template.docx
+    python paper/make_docx_v2.py /path/to/acm_submission_template.docx               # with the authors' names
+    python paper/make_docx_v2.py /path/to/acm_submission_template.docx --anonymous   # AH2027_v2_anonymous.docx
+
+The conference reviews double-blind, so the copy uploaded for review must be the anonymous one.
 
 Reuses the helpers in make_docx.py (template styles, figures, tables). The course report
 (Report.docx) is not touched.
@@ -52,6 +55,11 @@ def c(*keys: str) -> str:
     return "[" + ", ".join(str(n) for n in sorted(N[k] for k in keys)) + "]"
 
 
+AUTHORS = ("Vandya Bisaria", "Mansie Singh", "Sinngam Khaidem")
+AFFILIATION = "Indian Institute of Technology Gandhinagar, India"
+CITED_AS = "Vandya Bisaria, Mansie Singh, and Sinngam Khaidem"
+ANONYMOUS = "--anonymous" in sys.argv
+
 TITLE = "Communic-aid"
 SUBTITLE = "Adapting Dwell Time and Confirmation in Gaze-Based Messaging with a Commodity iPhone"
 
@@ -60,8 +68,13 @@ def build_body() -> str:
     b = []
     b.append(p("Titledocument", TITLE))
     b.append(p("Subtitle", SUBTITLE))
-    b.append(p("Authors", "Anonymous Author(s)"))
-    b.append(p("Affiliation", "Anonymous Institution"))
+    if ANONYMOUS:
+        b.append(p("Authors", "Anonymous Author(s)"))
+        b.append(p("Affiliation", "Anonymous Institution"))
+    else:
+        for name in AUTHORS:
+            b.append(p("Authors", name))
+            b.append(p("Affiliation", AFFILIATION))
     b.append(p("Abstract", " ".join("""
         People with severe motor impairments often keep control of their eyes long after other movement is
         lost, but gaze interfaces force one trade off on every action: a long dwell is slow, a short dwell
@@ -88,7 +101,7 @@ def build_body() -> str:
              '<w:t xml:space="preserve">Additional Keywords and Phrases: </w:t></w:r><w:r><w:t>gaze interaction, adaptive dwell time, '
              'multimodal confirmation, contextual bandit, motor impairment, assistive technology, commodity hardware</w:t></w:r></w:p>')
     b.append(p("ACMRefHead", "ACM Reference Format:"))
-    b.append(p("ACMRef", f"Anonymous Author(s). 2027. {TITLE}: {SUBTITLE}. In *Augmented Humans International "
+    b.append(p("ACMRef", f"{'Anonymous Author(s)' if ANONYMOUS else CITED_AS}. 2027. {TITLE}: {SUBTITLE}. In *Augmented Humans International "
                          "Conference 2027 (AH ’27)*. ACM, New York, NY, USA."))
 
     # 1 Introduction
@@ -387,15 +400,15 @@ def build_body() -> str:
     return "".join(b)
 
 
-def anonymise_properties(path: Path) -> None:
-    """Clear the author fields the base builder sets, for double-blind review."""
+def set_properties(path: Path) -> None:
+    """Set the title and author fields of the file; empty authors in the anonymous copy."""
     tmp = path.with_suffix(".tmp")
     with zipfile.ZipFile(path) as zin, zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zout:
         for item in zin.infolist():
             data = zin.read(item.filename)
             if item.filename == "docProps/core.xml":
                 text = data.decode("utf-8")
-                text = re.sub(r"<dc:creator>.*?</dc:creator>", "<dc:creator></dc:creator>", text, flags=re.S)
+                text = re.sub(r"<dc:creator>.*?</dc:creator>", f"<dc:creator>{'' if ANONYMOUS else 'Bisaria, Singh, Khaidem'}</dc:creator>", text, flags=re.S)
                 text = re.sub(r"<dc:title>.*?</dc:title>", f"<dc:title>{TITLE}</dc:title>", text, flags=re.S)
                 data = text.encode("utf-8")
             zout.writestr(item, data)
@@ -403,6 +416,8 @@ def anonymise_properties(path: Path) -> None:
 
 
 if __name__ == "__main__":
+    if ANONYMOUS:
+        base.OUT = base.HERE / "AH2027_v2_anonymous.docx"
     base.build_body = build_body
     base.main(Path(sys.argv[1]))
-    anonymise_properties(base.OUT)
+    set_properties(base.OUT)
