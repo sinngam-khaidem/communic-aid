@@ -67,7 +67,6 @@ fresh learner and its own calibration:
 Rotate the order of the modes between participants. To skip the questions and the signal check in
 the second and third mode, copy `signals.json` and `settings.json` from the first mode's folder
 into the next mode's folder before starting it. Calibration still runs, as each mode needs its own.
-The tasks and forms are in [docs/evaluation-plan.docx](docs/evaluation-plan.docx).
 
 ### Typing speed test
 
