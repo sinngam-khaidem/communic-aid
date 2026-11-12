@@ -1,0 +1,7 @@
+mode,keyboard,passage,seconds,chars,wpm,accuracy,errors,kspc,selections,backspaces,typed
+default,grouped,1,120,21,2.0,1.0,0,1.81,38,0,i woke up early today
+default,grouped,2,120,25,2.4,1.0,0,1.84,46,0,the rain started in the e
+default,grouped,3,120,24,2.3,1.0,0,1.88,45,0,my daughter visited this
+default,qwerty,4,120,12,1.1,0.75,3,1.17,14,1,this market 
+default,qwerty,5,120,22,2.1,1.0,0,1.0,22,0,last night the power w
+default,qwerty,6,120,14,1.3,1.0,0,1.0,14,0,please remind 

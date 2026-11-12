@@ -1,0 +1,29 @@
+Measure,default
+Pointing,gaze
+Condition,adaptive
+Session length (min),19
+Calibration error (px),32
+Selections,82
+Accidents,0
+Accidents per 100 selections,0.0
+Undos,0
+Give-ups,20
+Stray glances (passed by),428
+Wrong signals,0
+Signal timeouts,1
+"Dwell at end, tier 0 (ms)","1500 (tired+shaky), 1285 (tired+steady)"
+"Dwell at end, tier 1 (ms)","1500 (tired+shaky), 1574 (tired+steady)"
+"Head movement, typical (mm)",21
+"Head movement, largest 5% (mm)",86
+"Head turning, typical (deg)",4
+"Head turning, largest 5% (deg)",29
+Blink and hold: asked / confirmed,3 / 3
+Raise eyebrows: asked / confirmed,0 / 0
+"Say ""go"": asked / confirmed",2 / 1
+Switch: asked / confirmed,0 / 0
+Typing Grouped: runs (passages),"3 (1, 2, 3)"
+Typing Grouped: words per minute,1.93
+Typing Grouped: accuracy (%),96.1
+Typing QWERTY: runs (passages),"3 (4, 5, 6)"
+Typing QWERTY: words per minute,1.53
+Typing QWERTY: accuracy (%),96.1
