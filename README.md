@@ -87,14 +87,15 @@ There are six passages of the same length, and every run shows one the participa
 In the study each participant types three times on each keyboard, once per mode, which uses all six:
 
 ```bash
-.venv/bin/python -m communicaid --person P01-gaze --typing grouped --condition fixed
-.venv/bin/python -m communicaid --person P01-gaze --typing qwerty --condition fixed
+.venv/bin/python -m communicaid --person P01-gaze --typing grouped
+.venv/bin/python -m communicaid --person P01-gaze --typing qwerty
 ```
 
 Then the same two in `P01-head` (with `--pointing head`) and `P01-free`. Without `--passage`, the
 app picks the first passage this participant (`P01`, across all their folders) has not typed yet.
 `--passage 1` to `--passage 6` picks one by hand, with a warning if they have seen it before.
-`--condition fixed` keeps the dwell at 1000 ms, so every run is timed with the same dwell.
+The typing test always uses the Fixed condition: the dwell stays at 1000 ms and the learner does
+not change it, so every run is timed with the same dwell.
 
 Each run prints its result in the terminal and logs a `typing_result` event with:
 

@@ -171,6 +171,10 @@ def main() -> None:
     ap.add_argument("--quiet", action="store_true", help="do not print the learning log in the terminal")
     args = ap.parse_args()
     if args.typing:
+        # Speed must be measured at one known dwell, so the learner never changes it during a typing test.
+        if args.condition == "adaptive":
+            args.condition = "fixed"
+            print("Typing test: using the Fixed condition, so the dwell stays the same for the whole test.")
         who = participant(args.person)
         if args.passage is None:
             args.passage = next_passage(ROOT, args.person)
