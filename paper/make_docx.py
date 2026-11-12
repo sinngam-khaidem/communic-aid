@@ -132,336 +132,272 @@ REFS = [
     "Yogesh Kumar Meena and M. Salvi. 2025. Multimodal Appearance-Based Gaze-Controlled Virtual Keyboard with Synchronous-Asynchronous Interaction for Low-Resource Settings. https://doi.org/10.48550/arXiv.2508.16606",
     "Martez E. Mott, Shane Williams, Jacob O. Wobbrock, and Meredith Ringel Morris. 2017. Improving Dwell-Based Gaze Typing with Dynamic, Cascading Dwell Times. In *Proceedings of the 2017 CHI Conference on Human Factors in Computing Systems* (CHI ’17). ACM. https://doi.org/10.1145/3025453.3025517",
     "Omar Namnakani, Yasmeen Abdrabou, Jonathan Grizou, and Mohamed Khamis. 2025. GazeBlend: Exploring Paired Gaze-Based Input Techniques for Navigation and Selection Tasks on Mobile Devices. arXiv:2512.15491.",
-    "Anish S. Narkar, Jan J. Michalak, Candace E. Peacock, and Brendan David-John. 2024. GazeIntent: Adapting Dwell-Time Selection in VR Interaction with Real-Time Intent Modeling. arXiv:2404.13829.",
-    "R. William Soukoreff and I. Scott MacKenzie. 2003. Metrics for Text Entry Research: An Evaluation of MSD and KSPC, and a New Unified Error Metric. In *Proceedings of the SIGCHI Conference on Human Factors in Computing Systems* (CHI ’03). ACM, 113-120. https://doi.org/10.1145/642611.642632",
     "William R. Thompson. 1933. On the Likelihood that One Unknown Probability Exceeds Another in View of the Evidence of Two Samples. *Biometrika* 25, 3/4 (1933), 285-294.",
     "Jacob O. Wobbrock, Shaun K. Kane, Krzysztof Z. Gajos, Susumu Harada, and Jon Froehlich. 2011. Ability-Based Design: Concept, Principles and Examples. *ACM Transactions on Accessible Computing* 3, 3 (2011). https://doi.org/10.1145/1952383.1952384",
     "Xiaoyi Zhang, Harish Kulkarni, and Meredith Ringel Morris. 2017. Smartphone-Based Gaze Gesture Communication for People with Motor Disabilities. In *Proceedings of the 2017 CHI Conference on Human Factors in Computing Systems* (CHI ’17). ACM, 2878-2889. https://doi.org/10.1145/3025453.3025790",
 ]
 # Citation numbers, in the order of REFS (alphabetical, as ACM numbers them).
-BROOKE, CHA, JACOB, LI, MAJARANTA, MEENA, MOTT, NAMNAKANI, NARKAR, SOUKOREFF, THOMPSON, WOBBROCK, ZHANG = range(1, 14)
+BROOKE, CHA, JACOB, LI, MAJARANTA, MEENA, MOTT, NAMNAKANI, THOMPSON, WOBBROCK, ZHANG = range(1, 12)
 
 
 def build_body() -> str:
     b = []
     b.append(p("Titledocument", "Communic-aid"))
-    b.append(p("Subtitle", "Learning How Much Evidence to Ask For in Gaze-Based Messaging on a Commodity iPhone"))
+    b.append(p("Subtitle", "A Gaze-Controlled Messaging App That Learns How Careful to Be"))
     for name in ("Vandya Bisaria", "Mansie Singh", "Sinngam Khaidem", "Manan Solanki"):
         b.append(p("Authors", name))
         b.append(p("Affiliation", "Indian Institute of Technology Gandhinagar, India"))
     b.append(p("Abstract", " ".join("""
-        Gaze is often the most reliable input left to people with severe motor impairments, but gaze
-        interfaces force one trade off on every action: a long dwell is slow, a short dwell selects
-        things by mistake, and a fixed confirmation step is either too weak for a call or too tedious
-        for a letter. Communic-aid is a working hands-free messaging prototype whose only sensor is an
-        iPhone with a TrueDepth camera. The phone streams gaze, head pose, blinks, eyebrow raises and a
-        spoken confirmation word to a laptop that runs a chat app with messages, calls and a gaze
-        keyboard. Its central idea is that the interface learns how much evidence to ask for before it
-        acts, per person, per context and per level of risk. Every action belongs to one of four risk
-        tiers with an accident cost; a dwell learner sets the dwell from implicit feedback, and a
-        contextual bandit chooses which confirmation signal, if any, to ask for on risky actions. In a
-        controlled usability test with two able-bodied participants, the learner shortened the dwell
-        from 1500 ms to about 1200 ms within one session, with two accidents in 146 selections, both
-        on undoable letters and none on risky actions; the router adapted its choice of signal to each
-        participant; and a grouped keyboard with large targets was 1.5 to 2.8 times faster than QWERTY.
-        Three more participants, including one person with a motor impairment, are scheduled.
+        People with severe motor impairments can often still move their eyes. Communic-aid lets them
+        message and call using only their eyes and face. An iPhone with a Face ID camera tracks where
+        the person looks, and a laptop shows a simple chat app. To press a button, the person looks at
+        it until it fills. Risky actions, like calling or deleting, also need a second signal: a long
+        blink, raised eyebrows, saying “go”, or a switch. The app learns from how each person uses it.
+        It shortens the waiting time when the person is accurate, and it learns which second signal works
+        best for them. We tested the working prototype with two participants. There were only two mistaken
+        presses in 146, both on letters and both undone, and none on risky actions. The waiting time
+        dropped from 1.5 to about 1.2 seconds within one session, and a keyboard with large letter groups
+        was faster than a normal QWERTY keyboard. Three more participants, including one person with a
+        motor impairment, are scheduled.
         """.split())))
     b.append('<w:p><w:pPr><w:pStyle w:val="CCSDescription"/></w:pPr><w:r><w:rPr><w:rStyle w:val="CCSHeadchar"/></w:rPr>'
              '<w:t xml:space="preserve">CCS CONCEPTS </w:t></w:r><w:r><w:t xml:space="preserve">• </w:t></w:r><w:r><w:rPr><w:b w:val="0"/></w:rPr>'
              '<w:t>Human-centered computing → Accessibility technologies • Human-centered computing → Interaction techniques</w:t></w:r></w:p>')
     b.append('<w:p><w:pPr><w:pStyle w:val="KeyWords"/></w:pPr><w:r><w:rPr><w:rStyle w:val="KeyWordHeadchar"/><w:b/></w:rPr>'
-             '<w:t xml:space="preserve">Additional Keywords and Phrases: </w:t></w:r><w:r><w:t>gaze interaction, adaptive dwell time, '
-             'multimodal confirmation, contextual bandit, motor impairment, high-fidelity prototype, usability evaluation</w:t></w:r></w:p>')
+             '<w:t xml:space="preserve">Additional Keywords and Phrases: </w:t></w:r><w:r><w:t>eye gaze, accessibility, '
+             'motor impairment, adaptive interface, messaging, high-fidelity prototype</w:t></w:r></w:p>')
     b.append(p("ACMRefHead", "ACM Reference Format:"))
-    b.append(p("ACMRef", "Vandya Bisaria, Mansie Singh, Sinngam Khaidem, and Manan Solanki. 2026. Communic-aid: Learning How "
-                         "Much Evidence to Ask For in Gaze-Based Messaging on a Commodity iPhone. CS 435 Human-Computer "
-                         "Interaction, Group Course Project, IIT Gandhinagar, November 2026."))
+    b.append(p("ACMRef", "Vandya Bisaria, Mansie Singh, Sinngam Khaidem, and Manan Solanki. 2026. Communic-aid: A "
+                         "Gaze-Controlled Messaging App That Learns How Careful to Be. CS 435 Human-Computer Interaction, "
+                         "Group Course Project, IIT Gandhinagar, November 2026."))
 
     # 1 System design and architecture
     b.append(head1("System Design and Architecture"))
     b.append(paras(f"""
-        **Goal.** For many people with ALS, muscular dystrophy, cerebral palsy or spinal cord injury, the
-        eyes remain controllable long after the hands. Gaze interfaces suffer from the Midas touch problem
-        [{JACOB}]: the eyes are always looking at something, so the interface cannot tell “do this” from
-        “I am reading”. Adaptive dwell methods tune one threshold for all actions [{MAJARANTA}, {MOTT},
-        {NARKAR}], and multimodal methods add a fixed second signal [{CHA}, {NAMNAKANI}]. Our earlier
-        reports identified three gaps: confirmation does not scale with the cost of an error, dwell
-        adaptation rarely learns from implicit signals, and no system chooses the confirmation modality
-        from experience. Communic-aid addresses all three with one question: *how much evidence should
-        the interface ask for before it acts?*
+        **The problem.** When eyes are used as a mouse, the computer cannot tell whether the person is
+        reading a button or wants to press it [{JACOB}]. The usual fix is a waiting time, called *dwell*:
+        a button is pressed only after the person has looked at it for, say, one second. A long dwell is
+        safe but slow. A short dwell is fast but presses things by mistake. Most systems pick one dwell
+        for everything [{MAJARANTA}, {MOTT}], or always ask for the same extra signal [{CHA}, {NAMNAKANI}].
+
+        **Our idea.** A mistaken letter is easy to fix, but a mistaken call is not. So Communic-aid asks
+        for more proof when a mistake would cost more, and it learns from each person how much proof they
+        need.
         """))
     b.append(figure("architecture.png", 1.0, 1,
-                    "Architecture. The iPhone only senses, the Python core makes every decision, and the browser "
-                    "only draws. The dashed arrow is the learning loop: outcomes update the policy.",
-                    "Block diagram: the iPhone sends face frames and a spoken confirmation over UDP to a Python core "
-                    "with modules for input, signals, context, interaction, policy, outcomes, chat and persistence, "
-                    "which talks to a browser view over a WebSocket."))
+                    "How the parts connect. The iPhone only senses, the laptop program makes every decision, "
+                    "and the browser only draws the screen.",
+                    "Block diagram: the iPhone sends face data over Wi-Fi to a Python program, which talks to a "
+                    "browser window."))
     b.append(paras("""
-        **Architecture.** The system has three parts (Figure 1). (1) *iPhone app* (Swift, ARKit face
-        tracking): sends at 60 Hz over UDP the gaze ray and eye position in camera space, the nose
-        direction, and blink and eyebrow blendshapes. On-device speech recognition listens only for the
-        word “go”. A live face preview helps the person position themselves. (2) *Core* (Python,
-        asyncio): maps gaze to the screen with a nine point calibration (quadratic least squares with a
-        small ridge term), smooths it with an exponential filter, holds it still during blinks, and
-        corrects slow drift from the centres of buttons just selected. It detects signals with
-        per-person thresholds set halfway between rest and peak in a signal check (blink held 500 ms,
-        eyebrows raised 300 ms, the spoken word, or a switch key). It runs the dwell and confirmation
-        logic, labels outcomes, updates the learners, and logs every event. (3) *View* (HTML, CSS and
-        JavaScript over a WebSocket): draws the screens and animations and knows no rules. There is no
-        external API: all logic runs locally, so face and gaze data never leave the two devices.
+        **Three parts** (Figure 1). (1) The **iPhone app** uses the Face ID camera to measure where the
+        eyes point, how the head is turned, and whether the person blinks or raises their eyebrows. It also
+        listens for the word “go”. It sends this 60 times a second over Wi-Fi. (2) The **laptop program**
+        (Python) turns eye direction into a point on the screen, after a short calibration where the person
+        looks at nine dots. It decides when a button is pressed, checks the second signals, and learns. (3)
+        The **screen** is a web page that only draws what the program tells it. No data goes to the
+        internet.
 
-        **Risk tiers.** Every action belongs to a tier (Table 1) whose accident cost doubles with each
-        step. Both learners use this cost.
+        **Risk levels.** Every button has a risk level, or *tier* (Table 1). The higher the tier, the more
+        a mistake costs, and the more care the app takes.
         """, first=False))
-    b.append(table(1, "Risk tiers. Tier 0 and 1 fire on the learned dwell; tier 2 and 3 add a confirmation step after a fixed 1000 ms dwell.",
-                   [600, 3840, 700, 3500],
-                   [["Tier", "Actions", "Cost", "Confirmation"],
-                    ["0", "Open a chat, back, scroll, navigation", "1", "Learned dwell"],
-                    ["1", "Letters, word suggestions, Space, Backspace, settings", "2", "Learned dwell"],
-                    ["2", "Send, react, end a call", "4", "Router: dwell alone or a signal"],
-                    ["3", "Call, delete, forward", "8", "Always a signal chosen by the router"]]))
-    b.append(paras(f"""
-        **Implicit outcomes.** The learners never ask for feedback. A selection undone within 5 s, or a
-        letter deleted within 3 s, is an *accident*; otherwise it *worked*. A look that filled at least
-        half the dwell and was followed within 5 s by a fresh selection of the same button is a
-        *give-up* (the dwell was too long). Any other unfilled look is a *stray glance*. A confirmation
-        request that times out with no attempt is *blocked*: it stopped an unwanted action. Statistics
-        are kept per context group: rested or tired (over 20 minutes in, or evening) crossed with steady
-        or shaky gaze (recent gaze spread over 1.5 times a steady baseline).
-
-        **Dwell learner** (tiers 0 and 1). From counts of intended and unintended looks, stray glances
-        and give-ups, it draws by Thompson sampling [{THOMPSON}] the probability *π* that a look is
-        intended, a mean stray glance length *g* and a mean patience *p*, and scores each dwell *d* from
-        800 to 2000 ms:
+    b.append(table(1, "The four risk levels.", [700, 3700, 900, 3340],
+                   [["Tier", "Buttons", "Cost of a mistake", "What the person does"],
+                    ["0", "Open a chat, go back, scroll", "1", "Look until it fills"],
+                    ["1", "Letters, word suggestions, settings", "2", "Look until it fills"],
+                    ["2", "Send, react, end a call", "4", "Look, then maybe a second signal"],
+                    ["3", "Call, delete, forward", "8", "Look, then always a second signal"]]))
+    b.append(paras("""
+        **How the app knows what went wrong.** The app never asks the person to rate anything. It watches
+        what they do next (Table 2).
         """, first=False))
-    b.append(formula("*V*(*d*) = *π* [ (1 − *G*(*d*)) (1 − *λd*) + *r*~give-up~ *G*(*d*) ] − (1 − *π*) *A*(*d*) *c*~tier~"))
+    b.append(table(2, "What the app learns from.", [2400, 6240],
+                   [["What happened", "What it means"],
+                    ["Pressed, then undone within 5 s", "A mistake: the dwell was too short"],
+                    ["Looked long, left, then came back to the same button", "The person gave up waiting: the dwell was too long"],
+                    ["A short look that pressed nothing", "Just a glance: normal reading"],
+                    ["Asked for a signal, and it came", "That signal works for this person"],
+                    ["Asked for a signal, and nothing came", "The check stopped an action the person did not want"]]))
     b.append(paras(f"""
-        with *A*(*d*) = e^(−*d*/*g*) the chance a stray glance fires, *G*(*d*) = 1 − e^(−*d*/*p*) the
-        chance the person gives up first, *λ* = 0.6 per second and *r*~give-up~ = −0.5. After each
-        selection the dwell moves 5% towards the best *d*, by at most 10 ms when shortening and up to
-        100 ms when lengthening. It starts at 1500 ms and holds for 20 selections per group.
-
-        **Modality router** (tiers 2 and 3). A contextual bandit [{LI}] keeps, per arm, tier and group,
-        counts of worked, give-up, blocked and accident outcomes, samples their probabilities from a
-        Dirichlet distribution and asks for the arm with the highest expected reward. A worked signal
-        earns 1 minus its effort (which grows with the person’s time to produce it); a blocked accident
-        earns a small reward; an accident costs the tier cost. The preferred signal starts with a bonus,
-        and a group borrows pooled counts until it has 20 tries.
-        """))
+        **Two learners.** The *dwell learner* sets the waiting time for tiers 0 and 1. Mistakes make it
+        longer quickly; success makes it shorter slowly, so it stays safe. The *signal chooser* decides,
+        for tiers 2 and 3, which second signal to ask for. It keeps a score for each signal and picks the
+        one most likely to work with the least effort. Both use a standard method that tries out options
+        while learning, so a signal that failed once is not ruled out forever [{THOMPSON}, {LI}]. Each
+        learner keeps separate records for whether the person seems tired (more than 20 minutes in, or in
+        the evening) and whether their gaze is steady or shaky.
+        """, first=False))
 
     # 2 Compromises
     b.append(head1("Compromises in Prototyping"))
     b.append(paras("""
-        We built the prototype wide enough to show every screen of a messaging app, and deep along the
-        one path that carries our research question: from the camera to the learners (Table 2).
+        We made the prototype *wide* enough to show every screen of a messaging app, and *deep* along
+        the one path that matters most for our idea: from the camera to the learning (Table 3).
         """))
-    b.append(table(2, "Horizontal and vertical scope of the prototype.", [1240, 3700, 3700],
-                   [["", "Horizontal (breadth)", "Vertical (depth)"],
-                    ["Scope", "Every screen: onboarding, signal check, calibration, chat list, thread, compose, call, message actions, settings, typing test",
-                     "The full path from sensing to learning, working end to end with real users"],
-                    ["Real", "Navigation, layout, feedback, undo, tier colours, both keyboards, word suggestions and quick replies",
-                     "Gaze and head pointing, signal detection, dwell and confirmation, outcome labelling, both learners, per-person saving, logging and analysis"],
-                    ["Simulated", "Contacts, chats and replies come from a local file; replies arrive after 7 s; calls connect after 3 s with no audio",
-                     "Nothing on this path is simulated"]]))
+    b.append(table(3, "What is real and what is simulated.", [1240, 3700, 3700],
+                   [["", "Horizontal (all screens)", "Vertical (the main path)"],
+                    ["Covers", "Setup, calibration, chat list, chat, typing, call, message actions, settings, typing test",
+                     "Eye tracking, signals, pressing buttons, learning, saving data"],
+                    ["Real", "Navigation, feedback, undo, both keyboards, word suggestions",
+                     "Everything works end to end with real users"],
+                    ["Simulated", "Contacts and replies come from a file; calls connect but have no sound",
+                     "Nothing"]]))
     b.append(paras("""
-        **Other compromises.** (1) The phone is a sensor for a laptop screen rather than a standalone app,
-        which keeps targets large and lets us log everything, but adds a second device. (2) An iPhone with
-        Face ID is required; apps are signed with a free developer account that expires every 7 days.
-        (3) Speech recognises one word, “go”, rather than dictation, which our interviewee with slurred
-        speech found unreliable. (4) Word suggestions come from a fixed word list, not a language model.
-        (5) Head pointing is built but not yet evaluated. (6) The tired flag uses a simple rule (session
-        length or evening) rather than a fatigue measure.
+        **Other compromises.** The phone works with a laptop instead of on its own, so the buttons can be
+        large. It needs an iPhone with Face ID. Speech only recognises one word, “go”. Word suggestions come
+        from a fixed word list, not AI. Pointing with the head is built but not yet tested.
         """))
 
     # 3 Conceptual design
     b.append(head1("Conceptual Design"))
     b.append(paras(f"""
-        **Metaphor.** Communic-aid borrows the *messaging app* people already know: chats, threads, a call
-        button, a draft box and Send, so no new model of communication must be learned. Selection follows
-        a *press and hold* metaphor: looking at a button presses it, and the button fills like a progress
-        bar until it fires, so a look can always be abandoned before it counts. Risky buttons add a
-        *safety catch*, like the second step of a slide to unlock: after the fill, the button shows the
-        signal it needs (an eye, an eyebrow, “go”), and nothing happens without it.
+        **Metaphor.** The app looks like a familiar **messaging app**: chats, messages, a call button and
+        Send. Pressing works like **press and hold**: looking at a button presses it, and it fills like a
+        progress bar, so looking away cancels. Risky buttons have a **safety catch**, like “slide to
+        unlock”: after the button fills, it shows the signal it needs, and nothing happens without it.
 
-        **Conceptual model.** The objects are chats, messages, contacts and a draft; the actions are open,
-        type, send, react, call, delete, forward and undo. Each action carries a tier, and the tier, not
-        the screen, decides how much evidence it needs. The user controls what to do, which signals are
-        on and which comes first; the system controls how long to wait and when to ask for a signal, and
-        it adjusts both from how the person uses it. Every action can be undone for 5 seconds, and losing
-        the face never fires anything.
+        **Design principles.** (1) Calm and low effort: nothing rushes the person. (2) Every visual element
+        gives feedback or prevents a mistake. (3) The cost of a mistake decides how careful to be. (4) Learn
+        from behaviour, never ask for ratings. (5) Reading is safe: only buttons react to the eyes, never
+        text.
 
-        **Design principles.** From our interviews with three people with motor impairments and the
-        literature: (1) calm and low effort, nothing rushes or startles; (2) every visual element gives
-        feedback or prevents a mistake; (3) the cost of an error decides the check; (4) learn from
-        implicit behaviour, never from ratings; (5) reading is safe: text is never a target, only buttons
-        are.
-
-        **Design space.** Table 3 lists the dimensions we explored and our choices. The choices favour
-        mainstream hardware [{ZHANG}, {MEENA}] and per-person adaptation, in the spirit of ability-based
-        design [{WOBBROCK}].
+        **Design space.** Table 4 shows the options we considered and what we chose. We favoured
+        everyday hardware [{ZHANG}, {MEENA}] and fitting the app to each person [{WOBBROCK}].
         """))
-    b.append(table(3, "Design space. Options we considered for each dimension, and the one we chose.", [1500, 3570, 3570],
-                   [["Dimension", "Options considered", "Chosen"],
-                    ["Sensor", "Eye tracker, webcam, iPhone TrueDepth", "iPhone TrueDepth: cheap, mainstream, depth based"],
-                    ["Pointing", "Gaze, head, gaze and head", "Gaze, with head pointing as an option"],
-                    ["Selection", "Dwell, blink, smooth pursuit, gaze gestures", "Dwell with a learned time"],
-                    ["Confirmation", "None, fixed second signal, user chosen, learned", "Learned per tier and context"],
-                    ["Signals", "Blink, eyebrows, voice, switch, EMG, BCI", "Blink and hold, eyebrows, “go”, switch"],
-                    ["Adaptation", "Explicit ratings, implicit outcomes", "Implicit outcomes"],
-                    ["Text entry", "QWERTY, grouped letters, dwell-free, AI text", "Grouped (default) and QWERTY, with suggestions and quick replies"],
-                    ["Feedback", "Visual, sound, colour coding", "All three"]]))
+    b.append(table(4, "Design choices.", [1500, 3570, 3570],
+                   [["Choice", "Options", "Chosen"],
+                    ["Sensor", "Eye tracker, webcam, iPhone", "iPhone: cheap and common"],
+                    ["Pointing", "Eyes, head", "Eyes (head as an option)"],
+                    ["Pressing", "Look and wait, blink, eye gestures", "Look and wait, with a learned time"],
+                    ["Second signal", "None, always the same, learned", "Learned, only on risky buttons"],
+                    ["Signals", "Blink, eyebrows, voice, switch", "All four, chosen per person"],
+                    ["Keyboard", "QWERTY, letter groups", "Letter groups (default) and QWERTY"],
+                    ["Feedback", "Visual, sound, colour", "All three"]]))
 
     # 4 Prototype
     b.append(head1("Prototype Description and Functionalities"))
     b.append(paras("""
-        Figure 2 shows the main screens. The core interaction flow is: look at a button, watch it fill,
-        and for a risky button give the signal it shows.
+        Figure 2 shows the main screens. The basic flow is: look at a button, watch it fill, and for a
+        risky button give the signal it shows.
         """))
     b.append(figure("screens.png", 0.92, 2,
-                    "Screens of the working prototype. In (f) the Delete button has filled and now shows the closed "
-                    "eye: it waits for blink and hold before it deletes.",
-                    "Six screenshots of a dark interface with large buttons: chat list, thread, compose with letter "
-                    "groups, the second letter step, message actions, and Delete filled red with a closed eye icon."))
+                    "Screens of the working prototype. In (f) the Delete button has filled and shows a closed eye: "
+                    "it waits for a long blink before deleting.",
+                    "Six screenshots: chat list, chat, keyboard with letter groups, letter choice, message "
+                    "actions, and Delete waiting for a blink."))
     b.append(paras("""
-        **Navigation.** Chats and Settings sit in a fixed side bar; Back, scroll buttons and the undo strip
-        are in the same places on every screen. A chat opens a thread; More on a message opens its actions
-        (React, Forward, Delete); Call opens a call screen with End call.
+        **Navigation.** Chats and Settings are always on the left. Back and Undo are always in the same
+        place. A chat shows its messages; “More” on a message offers React, Forward and Delete.
 
-        **Text entry.** The grouped keyboard has eight letter groups (abc to wxyz): a group, then a letter
-        (Figure 2c, d). QWERTY is one selection per letter. Both offer word suggestions and five quick
-        replies.
+        **Typing.** The default keyboard has eight large letter groups (abc, def and so on). The person
+        picks a group, then a letter (Figure 2c, d). A QWERTY keyboard is also available. Both show word
+        suggestions and quick replies such as “I am fine”.
 
-        **Feedback and transitions.** A pink dot shows where the system thinks the person is looking.
-        Buttons fill as they are looked at and glow when they fire; tier 2 buttons have an amber outline
-        and tier 3 a red one. A confirmation request shows the signal’s icon on the button and waits up to
-        4 s; a wrong signal makes the button shake and plays a soft error tone, and a confirmed one plays a
-        tick. After any action a teal undo strip appears for 5 s. Plain language banners appear when
-        tracking fails (“I can’t see your eyes. Look at the screen.”, “Move a little closer”), and only
-        after the problem has lasted a second, so they never flicker.
+        **Feedback.** A pink dot shows where the app thinks the person is looking. Buttons fill while looked
+        at. Risky buttons have amber (tier 2) or red (tier 3) borders. A soft tick confirms a signal, and a
+        shake shows a wrong one. After every action, an Undo bar appears for 5 seconds. If the camera loses
+        the face, a message says what to do, for example “Move a little closer”.
 
-        **Setup and settings.** First use asks three onboarding questions, then runs the signal check and
-        calibration (redone automatically if the error exceeds 100 px). Settings turn signals on or off,
-        choose the one to try first, switch sounds and keyboard, and rerun calibration or the signal check.
-        Three switch presses always escape to safety.
-
-        **Study tools.** A typing test mode shows a passage and measures words per minute for two minutes
-        from the first letter. A terminal log shows every learner decision live. Scripts produce
-        per-person heatmaps, dwell plots and summary tables. The core has 79 automated tests.
+        **Setup and settings.** First use has a few questions, a check of each signal, and calibration.
+        Settings let the person turn signals on or off, choose which comes first, and switch keyboards.
         """, first=False))
 
     # 5 Evaluation
     b.append(head1("User Evaluation and Results"))
     b.append(paras(f"""
-        **Method.** We ran a task-based usability test in a controlled setting (a quiet room, laptop on a
-        desk, phone mounted below the screen at 40 to 60 cm, head free to move), with an experimenter
-        present. Data came from three sources: the system’s event log (every look, selection, outcome and
-        learner update), a two minute typing test, and the System Usability Scale [{BROOKE}] with open
-        feedback after the session.
+        **Method.** A task-based usability test in a controlled setting: a quiet room, the phone below the
+        laptop screen, an experimenter present. We used three sources of data: the app’s own log of every
+        look and press, a two-minute typing test, and the System Usability Scale (SUS) [{BROOKE}] with open
+        feedback.
 
-        **Participants.** Two able-bodied adults (P1, P2) have completed the test with gaze pointing in the
-        adaptive condition. Two more able-bodied participants and one participant with a motor impairment
-        are scheduled.
+        **Participants.** Two able-bodied adults (P1 and P2) have done the test. Two more able-bodied
+        participants and one person with a motor impairment are scheduled.
 
-        **Procedure.** Signal check and calibration; free use of the app; four tasks (navigate between
-        chats and settings and change the preferred signal; compose and send a message of at least ten
-        letters; make and end a call; delete a message); then the typing test, three runs with each
-        keyboard, grouped first, a new 248 character passage each run, no word suggestions. Free use lasted
-        9 minutes for P1 and 24 for P2. We report words per minute ((*n* − 1)/*t* × 60/5 for *n*
-        characters in *t* seconds), accuracy from the edit distance to the passage, and keystrokes per
-        character [{SOUKOREFF}].
+        **Tasks.** After setup, each person used the app freely and did four tasks: (1) go to Settings and
+        change the preferred signal, (2) type and send a message of at least ten letters, (3) make a call
+        and end it, (4) delete a message. Then they did the typing test three times with each keyboard.
         """))
-    b.append(table(4, "Free use session, from the event log. Selections exclude undo and redo.", [4440, 2100, 2100],
+    b.append(table(5, "Results from the app’s log.", [4440, 2100, 2100],
                    [["Measure", "P1", "P2"],
-                    ["Session length", "9 min", "24 min"],
-                    ["Calibration error", "80 px", "69 px"],
-                    ["Selections (tier 0 / 1 / 2 / 3)", "51 (18 / 29 / 2 / 2)", "95 (32 / 51 / 7 / 5)"],
-                    ["Accidents", "2 (both tier 1, both undone)", "0"],
-                    ["Dwell give-ups", "6", "11"],
-                    ["Stray glances", "145", "541"],
-                    ["Confirmation requests on tiers 2 and 3 (worked / gave up)", "5 (4 / 1)", "13 (12 / 1)"],
-                    ["Dwell at end, tier 0 / tier 1", "1216 / 1333 ms", "1219 / 1431 ms"],
-                    ["Head movement, median / 95th percentile", "18 / 214 mm", "18 / 69 mm"]]))
+                    ["Time using the app", "9 min", "24 min"],
+                    ["Buttons pressed", "51", "95"],
+                    ["Mistaken presses", "2 (letters, both undone)", "0"],
+                    ["Risky actions (tier 2 and 3)", "4", "12"],
+                    ["Mistakes on risky actions", "0", "0"],
+                    ["Second signals asked / given", "5 / 4", "9 / 8"],
+                    ["Dwell at the end (navigation / typing)", "1.22 / 1.33 s", "1.22 / 1.43 s"]]))
     b.append(paras("""
-        **Accidents and confirmation.** Across 146 selections there were two accidents, both letters, both
-        undone (Table 4). No tier 2 or 3 action fired by mistake. 16 of 18 confirmation requests succeeded.
-        The router adapted within each session: when P1 gave up on raised eyebrows to confirm Send, the next
-        Send asked for blink and hold, which worked, as did the call and the deletion that followed. P2
-        began with blink and hold; after three successful confirmations the router accepted dwell alone on
-        tier 2 (four times, all worked), and after P2 made “go” the preferred signal, P2 confirmed it five
-        times out of five.
+        **Finding 1: few mistakes, none on risky actions.** Out of 146 presses, only two were mistakes, both
+        letters, and both were undone. No call, send or delete happened by mistake (Table 5).
 
-        **Dwell learning.** Stray glances outnumbered selections three to six times: a gaze interface
-        produces much implicit evidence even when nothing is selected. After its warm-up the learner
-        shortened both tiers steadily (Figure 3); tier 0 fell from 1500 to about 1220 ms for both
-        participants. Tier 1 stayed longer, as expected from its higher cost. A new context group (P1,
-        tired with shaky gaze) started from 1500 ms and was learned separately.
+        **Finding 2: the waiting time got shorter.** Every dwell started at 1.5 seconds. After 20 presses
+        the learner began to shorten it, and by the end it was about 1.2 seconds for navigation for both
+        participants (Figure 3). Typing buttons stayed a little slower, because their mistakes cost more.
         """, first=False))
     b.append(figure("dwell_p1.png", 0.78, 3,
-                    "P1’s dwell over all sessions, one panel per context group, one line per tier. The first session "
-                    "is free use, then three grouped and three QWERTY typing runs. Shading marks the warm-up; marks at "
-                    "the bottom are selections (light) and accidents (dark).",
-                    "Two step plots of dwell against selection count, each falling from 1500 ms after a warm-up."))
+                    "How P1’s dwell changed over all sessions. Each panel is one context (here, tired with steady "
+                    "or shaky gaze); the two lines are navigation and typing buttons. The grey area is the first 20 "
+                    "presses, when the dwell stays at 1.5 s.",
+                    "Two step plots of dwell against presses, both falling from 1500 ms after 20 presses."))
     b.append(paras("""
-        **Typing.** The grouped keyboard was 1.5 (P1) and 2.8 (P2) times faster than QWERTY (Table 5),
-        despite almost two selections per letter, and not because of the dwell, which was slightly shorter
-        in the QWERTY runs. Target size explains it: a letter group was 316 × 113 px and a QWERTY key
-        113 × 67 px, while the calibration error was 69 to 80 px, about one QWERTY key.
+        **Finding 3: the app learned which signal suits each person.** When P1 gave up on raising the
+        eyebrows to send a message, the app asked for a long blink next time, and it worked. P2 confirmed
+        risky actions reliably, so after three successes the app began to accept a look alone for some
+        tier 2 actions, such as Send. Calls and deletions always still needed a signal.
+
+        **Finding 4: big letter groups beat QWERTY.** The grouped keyboard was 1.5 times (P1) and 2.8 times
+        (P2) faster, even though each letter needs two presses (Table 6). The reason is size: eye tracking
+        is accurate to about 70 to 80 pixels, which is about the height of a QWERTY key, while a letter
+        group is much bigger.
         """, first=False))
-    b.append(table(5, "Typing test, mean of three two minute runs per keyboard. The dwell was still learning during this test, so the mean tier 1 dwell in use is shown.",
-                   [800, 1400, 1300, 1500, 2140, 1500],
-                   [["", "Keyboard", "WPM", "Accuracy", "Keystrokes per char.", "Mean dwell"],
-                    ["P1", "Grouped", "2.23", "100%", "1.84", "1261 ms"],
-                    ["", "QWERTY", "1.50", "91.7%", "1.06", "1214 ms"],
-                    ["P2", "Grouped", "1.60", "100%", "1.86", "1327 ms"],
-                    ["", "QWERTY", "0.57", "100%", "1.11", "1259 ms"]]))
-    b.append(paras("**Usability (SUS).** Table 6 gives the System Usability Scale scores (0 to 100; about 68 is average).", first=False))
-    b.append(table(6, "System Usability Scale.", [2640, 3000, 3000],
+    b.append(table(6, "Typing test: average of three two-minute runs per keyboard.", [1500, 2380, 2380, 2380],
+                   [["", "Keyboard", "Words per minute", "Accuracy"],
+                    ["P1", "Letter groups", "2.2", "100%"],
+                    ["", "QWERTY", "1.5", "92%"],
+                    ["P2", "Letter groups", "1.6", "100%"],
+                    ["", "QWERTY", "0.6", "100%"]]))
+    b.append(paras("**Usability.** Table 7 gives the SUS scores (0 to 100; about 68 is average).", first=False))
+    b.append(table(7, "System Usability Scale scores.", [2640, 3000, 3000],
                    [["", "P1", "P2"],
                     ["SUS score", "{{P1 SUS}}", "{{P2 SUS}}"]]))
     b.append(paras("""
         **User feedback.** {{what P1 and P2 said: what worked, what was hard, what they would change}}
 
-        **Limitations.** Two able-bodied participants and no fixed baseline yet, so the results show that
-        the learners behave as intended, not that adaptation beats a fixed dwell. The typing runs were
-        recorded while the dwell was learning and grouped always came first; the typing test now uses a
-        fixed dwell, and the order will be counterbalanced. With a 1500 ms start and a 20 selection warm-up
-        the learner needs about 70 selections to settle. The remaining three participants will use the app
-        twice, adaptive and fixed (1000 ms dwell, dwell alone on tier 2, the preferred signal on tier 3), in
-        counterbalanced order, with SUS after each.
+        **Limitations.** So far there are only two participants, both without impairments, and no
+        comparison with a fixed dwell yet. The typing test was run while the dwell was still learning; it
+        now uses a fixed dwell. The remaining participants will use the app twice, once learning and once
+        fixed, in a balanced order.
         """, first=False))
 
     # 6 Ethics
     b.append(head1("Ethics and Risk Assessment"))
-    b.append(paras("Table 7 lists the risks we identified and our mitigations. An experimenter supervised every session."))
-    b.append(table(7, "Risks to participants and how we reduce them.", [2340, 6300],
-                   [["Risk", "Mitigation"],
-                    ["Eye strain and fatigue", "Sessions under 30 minutes; breaks offered between parts; the person can pause or stop at any time; the dwell lengthens after errors instead of rushing the person"],
-                    ["Neck strain or discomfort", "Head free to move; phone placed at a comfortable distance; banners ask the person to move only when tracking fails"],
-                    ["Frustration from errors", "Undo on every action for 5 s; risky actions need a second signal; a hint after 30 s of being stuck; no time pressure except the typing test"],
-                    ["Privacy of face and voice", "Camera images are shown live only and never stored; speech is recognised on the phone and only the word “go” is sent; nothing goes to a cloud service"],
-                    ["Identification from data", "Data is saved under a participant code (P1, P2); names are kept apart from the data; the shared evaluation data uses codes only"]]))
+    b.append(paras("Table 8 lists the possible risks and how we reduce them. An experimenter supervised every session."))
+    b.append(table(8, "Risks and how we reduce them.", [2340, 6300],
+                   [["Risk", "What we do"],
+                    ["Tired eyes", "Sessions under 30 minutes, breaks offered, the person can stop at any time"],
+                    ["Neck or body discomfort", "The head is free to move and the phone is placed at a comfortable distance"],
+                    ["Frustration", "Undo on every action, a hint after 30 seconds of being stuck, no time pressure except in the typing test"],
+                    ["Privacy", "Camera images are shown live only and never saved; speech is recognised on the phone; nothing goes online"],
+                    ["Being identified", "Data is saved under a code (P1, P2), never under a name"]]))
     b.append(paras("""
-        The logs hold gaze coordinates, head position and angles, and interaction events; they hold no
-        images, audio or names. The onboarding screen offers an age range and a condition category;
-        participants could pick any option, these answers served as selection practice, and they were not
+        The logs hold only eye and head positions and button presses: no images, sound or names. The setup
+        questions (age range and condition) were used only as practice for pressing buttons and were not
         analysed.
 
-        **Statement.** Participation is voluntary. Each participant is told what the session involves and
-        what is recorded, gives consent before starting, and may stop at any time without giving a reason.
-        No sensitive personal data (names, contact details, images, audio or health records) is collected;
-        the data is stored on the team’s computer under participant codes and used only for this course
-        project and its write-up.
+        **Statement.** Taking part is voluntary. Each participant is told what the session involves and
+        what is recorded, agrees before starting, and can stop at any time without giving a reason. No
+        sensitive personal data (names, contact details, photos, audio or health records) is collected. The
+        data is kept on the team’s computer under codes and used only for this course project.
         """, first=False))
 
     # 7 Conclusion
     b.append(head1("Conclusion"))
     b.append(paras("""
-        Communic-aid is a working high-fidelity prototype in which one consumer phone provides both pointing
-        and confirmation for hands-free messaging, and the interface learns from ordinary use, without
-        asking, how long to wait and which signal to ask for before acting. Early tests show rare, cheap,
-        undoable accidents, no accidents on risky actions, a dwell that shortens within one session, and a
-        router that adapts to each person. The remaining sessions will compare adaptive against fixed
-        settings and include a participant with a motor impairment.
+        Communic-aid shows that an ordinary iPhone can let a person message and call using only their eyes
+        and face. Instead of one fixed rule, the app takes more care on risky actions and learns, from how
+        each person uses it, how long to wait and which signal to ask for. Early tests show few mistakes,
+        none on risky actions, and a waiting time that shortens as the app learns. Next, we will test it
+        with more people, including a person with a motor impairment.
         """))
 
     b.append(p("ReferenceHead", "REFERENCES"))
