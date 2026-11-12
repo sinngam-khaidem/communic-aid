@@ -187,7 +187,6 @@ After the signal check and calibration, each participant used the app freely and
 
 | Measure | P1 | P2 |
 |----------------|--------|--------|
-| Session length | 9 min | 24 min |
 | Calibration error | 80 px | 69 px |
 | Selections (tier 0 / 1 / 2 / 3) | 51 (18 / 29 / 2 / 2) | 95 (32 / 51 / 7 / 5) |
 | Accidents | 2 (both tier 1, both undone) | 0 |
