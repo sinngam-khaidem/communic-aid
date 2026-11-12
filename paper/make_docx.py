@@ -144,7 +144,7 @@ def build_body() -> str:
     b = []
     b.append(p("Titledocument", "Communic-aid"))
     b.append(p("Subtitle", "A Gaze-Controlled Messaging App That Learns How Careful to Be"))
-    for name in ("Vandya Bisaria", "Mansie Singh", "Sinngam Khaidem", "Manan Solanki"):
+    for name in ("Vandya Bisaria", "Mansie Singh", "Sinngam Khaidem"):
         b.append(p("Authors", name))
         b.append(p("Affiliation", "Indian Institute of Technology Gandhinagar, India"))
     b.append(p("Abstract", " ".join("""
@@ -167,7 +167,7 @@ def build_body() -> str:
              '<w:t xml:space="preserve">Additional Keywords and Phrases: </w:t></w:r><w:r><w:t>eye gaze, accessibility, '
              'motor impairment, adaptive interface, messaging, high-fidelity prototype</w:t></w:r></w:p>')
     b.append(p("ACMRefHead", "ACM Reference Format:"))
-    b.append(p("ACMRef", "Vandya Bisaria, Mansie Singh, Sinngam Khaidem, and Manan Solanki. 2026. Communic-aid: A "
+    b.append(p("ACMRef", "Vandya Bisaria, Mansie Singh, and Sinngam Khaidem. 2026. Communic-aid: A "
                          "Gaze-Controlled Messaging App That Learns How Careful to Be. CS 435 Human-Computer Interaction, "
                          "Group Course Project, IIT Gandhinagar, November 2026."))
 
@@ -431,7 +431,7 @@ def main(template: Path) -> None:
     core = work / "docProps/core.xml"
     c = core.read_text(encoding="utf-8")
     c = re.sub(r"<dc:title>.*?</dc:title>", "<dc:title>Communic-aid</dc:title>", c, flags=re.S)
-    c = re.sub(r"<dc:creator>.*?</dc:creator>", "<dc:creator>Bisaria, Singh, Khaidem, Solanki</dc:creator>", c, flags=re.S)
+    c = re.sub(r"<dc:creator>.*?</dc:creator>", "<dc:creator>Bisaria, Singh, Khaidem</dc:creator>", c, flags=re.S)
     c = re.sub(r"<cp:lastModifiedBy>.*?</cp:lastModifiedBy>", "<cp:lastModifiedBy></cp:lastModifiedBy>", c, flags=re.S)
     core.write_text(c, encoding="utf-8")
 
