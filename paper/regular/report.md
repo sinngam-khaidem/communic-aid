@@ -169,7 +169,7 @@ Figure 2 shows the main screens. The core interaction flow is:
 
 ## Evaluation methods and data gathering
 
-We used two methods. First, a **heuristic evaluation** against Nielsen's ten heuristics [10], done by the team before testing (Table 6). Second, a **task-based usability test** in a **controlled setting**: a quiet room, the laptop on a desk, the phone mounted below the screen at 40 to 60 cm, the participant's head free to move, and an experimenter present. Data for the usability test came from four sources: the system's event log (every look, selection, outcome and learner update); a two minute typing test, run three times with each keyboard; the System Usability Scale (SUS) [1], filled in after the session; and open feedback from each participant.
+We used two methods. First, a **heuristic evaluation** against Nielsen's ten heuristics [10], done by the team before testing (Table 6). Second, a **task-based usability test** in a **controlled setting**: a quiet room, the laptop on a desk, the phone on a tripod behind the laptop, its front camera facing the participant over the top of the screen at 40 to 60 cm, the participant's head free to move, and an experimenter present. Data for the usability test came from four sources: the system's event log (every look, selection, outcome and learner update); a two minute typing test, run three times with each keyboard; the System Usability Scale (SUS) [1], filled in after the session; and open feedback from each participant.
 
 | Heuristic | Status | Evidence | Planned fix |
 |-------|---|-------------|----------|
