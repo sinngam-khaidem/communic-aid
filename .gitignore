@@ -8,6 +8,3 @@ __pycache__/
 
 # per-person study data, created when the app runs
 data/
-
-# local Claude Code settings
-.claude/
