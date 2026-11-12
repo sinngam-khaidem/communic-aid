@@ -215,17 +215,26 @@ After the signal check and calibration, each participant used the app freely and
 
 : Table 8. Typing test, mean of three two minute runs per keyboard.
 
-**Usability.** Table 9 gives the SUS scores (0 to 100; about 68 is average).
+**Usability.** Table 9 gives the SUS scores (0 to 100; about 68 is average). Both scores are below average: P1 scored 52.5 and P2 40.0. Both rated the functions as well integrated (4 of 5) and the system as not inconsistent (2 of 5), so the structure of the app held up. The low items were about effort: neither would yet like to use it frequently or felt very confident, and P2 felt they would need technical support and had a lot to learn before getting going (4 of 5 on both). The feedback below points to pointer jitter and the QWERTY keyboard as the main causes.
 
-| | P1 | P2 |
-|-------|-------|-------|
-| SUS score | [TO FILL]{.mark} | [TO FILL]{.mark} |
+| | Q1 | Q2 | Q3 | Q4 | Q5 | Q6 | Q7 | Q8 | Q9 | Q10 | SUS |
+|----|---|---|---|---|---|---|---|---|---|---|------|
+| P1 | 1 | 3 | 3 | 2 | 4 | 2 | 2 | 2 | 2 | 2 | **52.5** |
+| P2 | 2 | 3 | 2 | 4 | 4 | 2 | 2 | 3 | 2 | 4 | **40.0** |
 
-: Table 9. System Usability Scale.
+: Table 9. System Usability Scale answers, from 1 (strongly disagree) to 5 (strongly agree). Odd items are positive statements (Q1 use frequently, Q3 easy, Q5 well integrated, Q7 quick to learn, Q9 confident) and even items negative (Q2 complex, Q4 need support, Q6 inconsistent, Q8 cumbersome, Q10 much to learn).
 
 ## User feedback
 
-[TO FILL: what P1 and P2 said: what worked, what was hard, what they would change]{.mark}
+We wrote down each participant's comments after the session. They agreed on three points:
+
+- **The pointer is too shaky.** P1 asked us to "add a smoothing factor just like mouse pointer speed", that is, a setting the person can tune. P2 also named shaky gaze as the first problem. The pointer currently uses an exponential filter with one fixed setting in the config file.
+- **Corners are hard to reach.** Both said targets near the screen corners were difficult to point at. Gaze estimates from a camera below the screen are usually least accurate near the edges, and the calibration error of 69 to 80 px leaves little room for a target in a corner.
+- **QWERTY is tiring.** P1 struggled with the QWERTY keyboard and P2 said it was "tough to focus" on. This matches Table 8: its keys are about the size of the calibration error.
+
+P1 also said that coordinating head and gaze "needs getting used to", and P2 found deleting a message (task 4) harder than the other tasks. P2 wore glasses during the session.
+
+These comments give three changes for the next version: a smoothing slider in Settings, moving targets away from the corners (or giving edge targets larger hit areas), and making the grouped keyboard the default.
 
 ## Limitations
 
@@ -253,7 +262,7 @@ Participation is voluntary. Each participant is told what the session involves a
 
 # Conclusion
 
-Communic-aid is a working high-fidelity prototype in which one consumer phone provides both pointing and confirmation for hands-free messaging, and the interface learns from ordinary use, without asking, how long to wait and which signal to ask for before acting. Early tests show rare, cheap, undoable accidents, no accidents on risky actions, a dwell that shortens within one session, and a router that adapts to each person. The remaining sessions will compare adaptive against fixed settings and include a participant with a motor impairment.
+Communic-aid is a working high-fidelity prototype in which one consumer phone provides both pointing and confirmation for hands-free messaging, and the interface learns from ordinary use, without asking, how long to wait and which signal to ask for before acting. Early tests show rare, cheap, undoable accidents, no accidents on risky actions, a dwell that shortens within one session, and a router that adapts to each person. Usability scores were below average (SUS 52.5 and 40.0), mainly because of pointer jitter, hard to reach corners and the small QWERTY keys; these point to a tunable smoothing setting, edge friendly layouts and the grouped keyboard as the default. The remaining sessions will compare adaptive against fixed settings and include a participant with a motor impairment.
 
 # References {-}
 
