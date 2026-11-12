@@ -3,7 +3,7 @@
     .venv/bin/python paper/regular/make_report.py
 
 Writes paper/regular/Report.docx and, if LibreOffice is installed, paper/regular/Report.pdf.
-The look is set here: Times New Roman throughout, black headings, A4 with 1 inch margins and
+The look is set here: Times New Roman throughout, black headings, A4 with 2.2 cm margins and
 page numbers. Numbers, the equation and highlights are plain Word features, so the file also
 imports cleanly into Google Docs.
 """
@@ -31,21 +31,21 @@ FOOTER = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
 
 # Paragraph and run settings per style: (size in half points, bold, space before, space after, extra).
 STYLES = {
-    "Normal": (22, None, None, None, ""),
-    "BodyText": (22, None, 0, 100, '<w:jc w:val="both"/>'),
-    "FirstParagraph": (22, None, 0, 100, '<w:jc w:val="both"/>'),
-    "Compact": (21, None, 0, 40, '<w:jc w:val="left"/>'),
+    "Normal": (21, None, None, None, ""),
+    "BodyText": (21, None, 0, 80, '<w:jc w:val="both"/>'),
+    "FirstParagraph": (21, None, 0, 80, '<w:jc w:val="both"/>'),
+    "Compact": (19, None, 0, 20, '<w:jc w:val="left"/>'),
     "Title": (36, True, 0, 60, '<w:jc w:val="center"/>'),
     "Subtitle": (26, False, 0, 120, '<w:jc w:val="center"/>'),
     "Author": (22, None, 0, 0, '<w:jc w:val="center"/>'),
     "Date": (22, None, 0, 160, '<w:jc w:val="center"/>'),
-    "Heading1": (28, True, 280, 100, ""),
-    "Heading2": (24, True, 180, 60, ""),
+    "Heading1": (26, True, 220, 80, ""),
+    "Heading2": (22, True, 140, 40, ""),
     "Heading3": (22, True, 120, 40, ""),
-    "ImageCaption": (20, None, 40, 160, '<w:jc w:val="center"/>'),
-    "TableCaption": (20, None, 160, 60, '<w:jc w:val="center"/>'),
+    "ImageCaption": (19, None, 20, 120, '<w:jc w:val="center"/>'),
+    "TableCaption": (19, None, 120, 40, '<w:jc w:val="center"/>'),
     "Caption": (20, None, 40, 120, '<w:jc w:val="center"/>'),
-    "Bibliography": (20, None, 0, 60, ""),
+    "Bibliography": (19, None, 0, 40, ""),
 }
 
 
@@ -97,7 +97,7 @@ def reference_docx(out: Path) -> None:
     doc_path = unpacked / "word/document.xml"
     d = doc_path.read_text()
     sect = ('<w:sectPr><w:footerReference w:type="default" r:id="rIdFooter1" />'
-            '<w:pgSz w:w="11906" w:h="16838" /><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" '
+            '<w:pgSz w:w="11906" w:h="16838" /><w:pgMar w:top="1247" w:right="1247" w:bottom="1247" w:left="1247" '
             'w:header="708" w:footer="708" w:gutter="0" /></w:sectPr>')
     d = re.sub(r'<w:sectPr.*?</w:sectPr>', sect, d, flags=re.S) if "<w:sectPr" in d else d.replace("</w:body>", sect + "</w:body>")
     doc_path.write_text(d)
