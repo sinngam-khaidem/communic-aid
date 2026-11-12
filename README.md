@@ -12,13 +12,6 @@ to pick them. Risky actions ask for a second signal (blink and hold, raised eyeb
 The dashed arrow is the learning loop: Interaction reports what happened, Outcomes labels it,
 and Policy learns from it.*
 
-More detail:
-
-- [docs/how-it-senses.html](docs/how-it-senses.html): the phone, mapping gaze to the screen, and the four signals.
-- [docs/how-it-learns.html](docs/how-it-learns.html): the dwell learner and the signal chooser.
-- [docs/evaluation-plan.docx](docs/evaluation-plan.docx): the user study, with the SUS and NASA-TLX forms.
-- [DESIGN_PLAN.md](DESIGN_PLAN.md): the full design.
-
 ## Setup
 
 ```bash
@@ -157,7 +150,7 @@ each, and saves into `result/P01/`:
   give-ups, wrong signals, the final dwell for each group, how much the head moved and turned, and how often each
   signal was asked for and confirmed.
 
-Task times, SUS, NASA-TLX and the ratings are collected on paper. Single plots for one folder:
+Task times, SUS and feedback are collected on paper. Single plots for one folder:
 `tests/plot_heatmap.py --person P01-gaze` and `tests/plot_dwell.py --person P01-gaze`.
 
 ### Adaptive vs Fixed study
@@ -165,7 +158,7 @@ Task times, SUS, NASA-TLX and the ratings are collected on paper. Single plots f
 Each participant does one Adaptive and one Fixed session with gaze pointing, in an order set by
 their number. `tests/study.py P03 1` and `tests/study.py P03 2` start the sessions, and
 `tests/compare.py` compares the conditions across participants, with SUS and task times from
-`data/study_forms.csv`. Steps are in [docs/study-run-sheet.md](docs/study-run-sheet.md).
+`data/study_forms.csv`.
 
 ## Learning log
 
